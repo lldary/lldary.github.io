@@ -273,7 +273,7 @@ docker exec -it &lt;container ID/name&gt; &lt;command&gt; # start a new containe
 <h2 id="compile-gem5"><a class="header" href="#compile-gem5">Compile <code>gem5</code></a></h2>
 <p>Once the container has started, or if you have manually prepared the environment, you can proceed to compile <code>gem5</code>. Please note that <code>gem5</code> must be built on a Unix platform (e.g., Linux and MacOS). <code>gem5</code> uses SCons to manage its compilation. In this lab, we'll compile for ARM ISA:</p>
 <pre><code class="language-sh">cd gem5
-scons build/ARM/gem5.opt -j `grep -c '^processor' /proc/cpuinfo` # use all your cores to compile
+scons build/ARM/gem5.opt -j \$(nproc) # use all your cores to compile
 </code></pre>
 <p>Building <code>gem5</code> may take you <em>more than 30 minutes</em> on your PC. If it completes successfully, you will see the following results:</p>
 <pre><code> [     CXX] ARM/base/date.cc -&gt; .o
