@@ -358,7 +358,7 @@ bp_types = {
 }
 </code></pre>
 <p>And we can compile and run the <code>gem5</code>:</p>
-<pre><code class="language-sh">scons build/ARM/gem5.opt -j8
+<pre><code class="language-sh">scons build/ARM/gem5.opt -j $(nproc)
 build/ARM/gem5.opt configs/proj2/simple.py tests/labexe/hello --bp simple
 </code></pre>
 <p>If everything goes correctly, we can see the <code>cpu.branchPred</code> has changed in <code>config.ini</code>.</p>

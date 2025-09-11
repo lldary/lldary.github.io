@@ -328,8 +328,8 @@ for e in ${exes[@]}; do
     # set output dir, name it however you like
     build/ARM/gem5.opt -d $e$c$m \
     configs/proj1/simple.py tests/labexe/$e \
-    # add `&amp;` after the command to let it run in background
     --cpu $c --mem $m &amp;
+    # add `&amp;` after the command to let it run in background
 done
 done
 done
