@@ -1,0 +1,1013 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Archlab SimpleSSD Project 4</title>
+        <meta name="robots" content="noindex">
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../mdbook-admonish.css">
+
+        <!-- MathJax -->
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+        <!-- Custom JS scripts for mdbook-pdf PDF generation -->
+        <script type='text/javascript'>
+            let markAllContentHasLoadedForPrinting = () =>
+                window.setTimeout(
+                    () => {
+                        let p = document.createElement('div');
+                        p.setAttribute('id', 'content-has-all-loaded-for-mdbook-pdf-generation');
+                        document.body.appendChild(p);
+                    }, 100
+                );
+
+            window.addEventListener('load', () => {
+                // Expand all the <details> elements for printing.
+                r = document.getElementsByTagName('details');
+                for (let i of r)
+                    i.open = true;
+
+                try {
+                    MathJax.Hub.Register.StartupHook('End', markAllContentHasLoadedForPrinting);
+                } catch (e) {
+                    markAllContentHasLoadedForPrinting();
+                }
+            });
+        </script>
+    <div style="display: none"><a href="#proj4">proj4</a><a href="#proj4-ssd">proj4-ssd</a><a href="#proj4-sim">proj4-sim</a><a href="#proj4-task">proj4-task</a><a href="#proj4-submit">proj4-submit</a></div>
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Archlab SimpleSSD Project 4</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="computer-architecture-2025fall-project-4"><a class="header" href="#computer-architecture-2025fall-project-4">Computer Architecture 2025fall Project 4</a></h1>
+<div id="admonition-default" class="admonition admonish-success" role="note">
+<div>
+<p><em>By Prof. Jie Zhang</em></p>
+<p><strong>Due:</strong> 11:59:59 pm, January 21, 2026</p>
+</div>
+</div>
+<p>In this project, you will explore solid-state drives (SSDs). Specifically, you will learn about the various SSD internal mechanisms (e.g., the flash translation layer (FTL)) through an SSD simulator. Further, you will implement a hybrid-level address mapping scheme in the SSD simulator.</p>
+<p>Whenever you face trouble or problems with this project, please contact TAs by WeChat or e-mail. All the following information has been verified on Ubuntu 20.04.1 with Linux Kernel 5.15.0 and Ubuntu 22.04.2 LTS with Linux Kernel 5.19.0.</p>
+<div id="admonition-note" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-title">
+<div class="admonition-title">
+<div id="admonition-note-title">
+<p>Note</p>
+</div>
+<a class="admonition-anchor-link" href="proj4.html#admonition-note"></a>
+</div>
+<div>
+<p>This project is <em><strong>optional</strong></em>. You are not required to finish this project. If you finish this project, you can get up to 5 bonus points.</p>
+</div>
+</div>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="introduction-to-ssd"><a class="header" href="#introduction-to-ssd">Introduction to SSD</a></h1>
+<p>SSDs have become major storage media in modern computing systems. The figure below illustrates the SSD internal architecture, which consists of a computation complex and a storage complex.</p>
+<p><img src="proj4/./ssd1.png" alt="fig1" /></p>
+<p>The computation complex consists of embedded ARM cores, internal DRAM, and device controllers. Specifically, multiple cores are allocated to flash firmware that controls all I/O services and address translations within an SSD. In addition, the device controller fetches requests from the host and sends responses back via a high-performance communication protocol (e.g., NVMe). SSDs employ embedded DRAM, which stores the address mapping table and I/O queues. To leverage DRAM performance, SSD also buffers the data of requests in DRAM, which hides the long latency imposed by the underlying storage media, namely the <strong>flash</strong>.</p>
+<p>The storage complex contains multiple flash <strong>packages</strong>, each containing multiple <strong>dies</strong>, which are connected to the interconnection buses, referred to as <strong>channel</strong>. A set of flash packages across different channels can simultaneously operate. To leverage such parallelism, the flash firmware spreads a host request over multiple dies that have the same offset address but exist across different channels. Each set of flash dies (or packages) is called a way. A flash die comprises hundreds to thousands of <strong>blocks</strong>, each containing hundreds of <strong>pages</strong>. A group of multiple physical pages and blocks that span over all internal channels or ways is referred to as <strong>superpage or superblock</strong>, respectively. This organization poses a high SSD internal parallelism, thus achieving superb I/O throughput.</p>
+<p>The flash supports read and write operations at <strong>page granularity</strong>. However, due to the physical characteristics, the whole flash block must be erased before writing any page in that block, making flash unsupportable for in-place updates. To address the limitation, the SSD constructs an indirection layer called the <strong>flash translation layer (FTL)</strong>, which maintains a mapping table to record the mapping between the host logical address (LPN) and its corresponding flash physical address (PPN). For an overwrite, the data is written to a pre-erased free block. Subsequently, FTL updates the mapping of the new flash page and invalidates the stale flash page. Depending on the mapping granularity, the FTL mapping schemes can be divided into three categories: block-level, page-level, and hybrid-level mapping, as illustrated in the following figure.</p>
+<p><img src="proj4/./ssd2.png" alt="fig2" /></p>
+<ul>
+<li>
+<p><strong>Block-level mapping</strong>: In block-level mapping, the LPN is divided into a logical block number (LBN) and a page offset. A block-level mapping table uses the LBN to find the physical block (i.e., PBN) that includes the requested page, while the page offset is used to locate the page in the corresponding block. Due to such a fixed mapping, the page offsets of the logical and physical blocks should be identical, therefore, every overwrite to the same logical page incurs a block-level copy operation. That is, all the data in the corresponding block as well as the new data have to be written into another empty block, resulting in poor overwrite performance.</p>
+</li>
+<li>
+<p><strong>Page-level mapping</strong>: The page-level scheme maps the LPN directly to any PPN by maintaining a logical-physical mapping table (i.e., page-level mapping table in Figure (b)). Although this scheme improves performance with flexible address translation, the mapping table occupies huge amounts of DRAM.</p>
+</li>
+<li>
+<p><strong>Hybrid-level mapping</strong>: To achieve a balance between performance and DRAM consumption, several hybrid-level mapping schemes are proposed. Most of them use a log block mechanism to store updates. Specifically, flash blocks are divided into data blocks and log blocks. Data blocks represent ordinary storage space, while log blocks are used for storing overwrites. For translating addresses, these schemes maintain a block mapping table for the data blocks and a page mapping table for the log blocks, which consume less DRAM than page-level mapping. When an overwrite request arrives, the new data of the request is written to the log block instead of being stored in the original location, thus avoiding the heavy block copy operation in the block-level mapping. The mapping scheme also determines the specific association between data blocks and log blocks, such as 1-to-1 or N-to-N.</p>
+</li>
+</ul>
+<p>In page-level mapping scheme, when overwrites exhaust all free blocks, <strong>garbage collection</strong> (GC) is triggered to reclaim the used blocks where the SSD selects victim blocks, moves all valid pages to a new free block, and then erases it. On the other hand, in hybrid-level mapping scheme, GC is replaced by the operations of <strong>merging</strong> data blocks and log blocks, as well as recycling log blocks. More specifically, when log blocks are exhausted, the SSD reclaims these blocks by merging them with the associated data blocks. During such merge process, pages are migrated into new blocks and multiple blocks are erased, thereby incurring latency spike.</p>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="introduction-to-a-precise-ssd-simulator"><a class="header" href="#introduction-to-a-precise-ssd-simulator">Introduction to a Precise SSD Simulator</a></h1>
+<div id="admonition-cite" class="admonition admonish-quote" role="note" aria-labelledby="admonition-cite-title">
+<div class="admonition-title">
+<div id="admonition-cite-title">
+<p>Cite</p>
+</div>
+<a class="admonition-anchor-link" href="proj4/sim.html#admonition-cite"></a>
+</div>
+<div>
+<p>Gouk, D., Kwon, M., Zhang, J., Koh, S., Choi, W., Kim, N. S., ... &amp; Jung, M. (2018, October). Amber: Enabling precise full-system simulation with detailed modeling of all SSD resources. In 2018 51st Annual IEEE/ACM International Symposium on Microarchitecture (MICRO) (pp. 469-481). IEEE.</p>
+<p><a href="https://dl.acm.org/doi/10.1109/MICRO.2018.00045">get the pdf</a></p>
+</div>
+</div>
+<p>In this part, we will learn about a precise SSD simulator called Amber/SimpleSSD， which is described by the paper cited above. SimpleSSD models embedded ARM cores, DRAMs, and various flash technologies within an SSD. SimpleSSD also includes the full firmware stack of an SSD, including DRAM cache logic, flash firmware (e.g., FTL and Host Interface Layer (HIL)), and diverse standard protocols (e.g., NVMe). To meet various simulation demands, SimpleSSD supports both standalone (without the host system) and full-system (with the host system) simulation environments. Note that in this project, we will use the standalone version of SimpleSSD (i.e., SimpleSSD-Standalone) to simulate an SSD.
+The following content shows the code structure of SimpleSSD, where the code in each subfolder simulates the corresponding component. In this project, we mainly focus on <em><strong>pal</strong></em> and <em><strong>ftl</strong></em> components.</p>
+<h2 id="pal-module-in-simplessd"><a class="header" href="#pal-module-in-simplessd">PAL module in SimpleSSD</a></h2>
+<p>The PAL in SimpleSSD models the NAND flash. The following functions are provided by PAL.</p>
+<pre><code class="language-cpp">class PAL : public StatObject {
+ private:
+  Parameter param;
+  AbstractPAL *pPAL;
+
+  ConfigReader &amp;conf;
+
+ public:
+  PAL(ConfigReader &amp;);
+  ~PAL();
+
+  void read(Request &amp;, uint64_t &amp;);
+  void write(Request &amp;, uint64_t &amp;);
+  void erase(Request &amp;, uint64_t &amp;);
+};
+</code></pre>
+<p>PAL implements <code>read</code>, <code>write</code>, and <code>erase</code> functions that receive the requests from the FTL module and return the latency of the corresponding flash operations. Note that you do not need to pay much attention to the details of the PAL. You can view the PAL as a black-box model, that is, you provide reasonable parameters for these PAL functions and get the latency simulated by the black-box model.</p>
+<h2 id="ftl-module-in-simplessd"><a class="header" href="#ftl-module-in-simplessd">FTL module in SimpleSSD</a></h2>
+<p>We then introduce the FTL implementation in SimpleSSD. As shown in the below codes, <code>simplessd-standalone/simplessd/ftl/abstract_ftl.h</code> defines the FTL abstract class (i.e., <code>AbstractFTL</code>), which contains several virtual functions that need to be implemented by the FTL mapping scheme. The <code>initialize</code> function sets the necessary parameters of the mapping scheme (e.g., the threshold for triggering GC) and <em><strong>warms up</strong></em> the SSD by writing a certain amount of data. The <code>read</code> and <code>write</code> functions describe how the firmware handles read and write requests from the upper layer based on the FTL mapping scheme, respectively. The <code>getStatus</code> function returns some status metrics for the FTL. Note that your hybrid-level mapping scheme should inherit <code>AbstractFTL</code> class and implement all virtual functions required by the abstract class. For convenience, you do not need to implement specific logic for <code>trim</code>, <code>getStatus</code>, and <code>format</code> functions.</p>
+<pre><code class="language-cpp">class AbstractFTL : public StatObject {
+ protected:
+  Parameter &amp;param;
+  PAL::PAL *pPAL;
+  DRAM::AbstractDRAM *pDRAM;
+  Status status;
+
+ public:
+  AbstractFTL(Parameter &amp;p, PAL::PAL *l, DRAM::AbstractDRAM *d)
+      : param(p), pPAL(l), pDRAM(d) {}
+  virtual ~AbstractFTL() {}
+
+  virtual bool initialize() = 0;
+
+  virtual void read(Request &amp;, uint64_t &amp;) = 0;
+  virtual void write(Request &amp;, uint64_t &amp;) = 0;
+  virtual void trim(Request &amp;, uint64_t &amp;) = 0;
+
+  virtual void format(LPNRange &amp;, uint64_t &amp;) = 0;
+
+  virtual Status *getStatus(uint64_t, uint64_t) = 0;
+};
+</code></pre>
+<p>SimpleSSD provides a default superpage-level FTL mapping scheme, which can be found in <code>simplessd-standalone/simplessd/ftl/page_mapping.hh</code>. <code>PageMapping</code> inherits <code>AbstractFTL</code> and adds some necessary member variables. Specifically, the <code>pPAL</code> is a pointer to the underlying NAND flash model (i.e., parallelism abstraction layer (PAL)), which can be used to obtain the latency of flash operations from a precise flash model. <code>table</code> implements the superpage-level mapping from LPNs to PPNs which are described by a flash superpage number and a page offset within the superpage. Note that the superpage-level is slightly different from pure page-level mapping. <code>blocks</code> stores flash block status information, such as the page valid information, erase count, and write pointer of blocks. <code>freeBlocks</code> is a collection of free blocks, while <code>nFreeBlocks</code> stores the number of free blocks, which is used to check whether GC is needed.</p>
+<pre><code class="language-cpp">class PageMapping : public AbstractFTL {
+ private:
+  PAL::PAL *pPAL;
+
+  ConfigReader &amp;conf;
+
+  std::unordered_map&lt;uint64_t, std::vector&lt;std::pair&lt;uint32_t, uint32_t&gt;&gt;&gt;
+      table;
+  std::unordered_map&lt;uint32_t, Block&gt; blocks;
+  std::list&lt;Block&gt; freeBlocks;
+  uint32_t nFreeBlocks;  // For some libraries which std::list::size() is O(n)
+  std::vector&lt;uint32_t&gt; lastFreeBlock;
+  Bitset lastFreeBlockIOMap;
+  uint32_t lastFreeBlockIndex;
+
+  bool bReclaimMore;
+  bool bRandomTweak;
+  uint32_t bitsetSize;
+
+  struct {
+    uint64_t gcCount;
+    uint64_t reclaimedBlocks;
+    uint64_t validSuperPageCopies;
+    uint64_t validPageCopies;
+  } stat;
+  ...
+</code></pre>
+<p>The rest functions in <code>PageMapping</code> are as follows. <code>PageMapping</code> simply implements the public interface required by <code>AbstractFTL</code> (e.g., <code>read</code> and <code>write</code>) while placing the detailed logic into the internal functions (e.g., <code>readInternal</code> and <code>writeInternal</code>). To perform GC, <code>PageMapping</code> calculates the weight of each block based on wear-leveling, selects the victim blocks, and executes the GC operation through <code>calculateVictimWeight</code>, <code>selectVictimBlock</code>, and <code>doGarbageCollection</code> function, respectively.</p>
+<pre><code class="language-cpp">  ...
+  float freeBlockRatio();
+  uint32_t convertBlockIdx(uint32_t);
+  uint32_t getFreeBlock(uint32_t);
+  uint32_t getLastFreeBlock(Bitset &amp;);
+  void calculateVictimWeight(std::vector&lt;std::pair&lt;uint32_t, float&gt;&gt; &amp;,
+                             const EVICT_POLICY, uint64_t);
+  void selectVictimBlock(std::vector&lt;uint32_t&gt; &amp;, uint64_t &amp;);
+  void doGarbageCollection(std::vector&lt;uint32_t&gt; &amp;, uint64_t &amp;);
+
+  float calculateWearLeveling();
+  void calculateTotalPages(uint64_t &amp;, uint64_t &amp;);
+
+  void readInternal(Request &amp;, uint64_t &amp;);
+  void writeInternal(Request &amp;, uint64_t &amp;, bool = true);
+  void trimInternal(Request &amp;, uint64_t &amp;);
+  void eraseInternal(PAL::Request &amp;, uint64_t &amp;);
+
+ public:
+  PageMapping(ConfigReader &amp;, Parameter &amp;, PAL::PAL *, DRAM::AbstractDRAM *);
+  ~PageMapping();
+
+  bool initialize() override;
+
+  void read(Request &amp;, uint64_t &amp;) override;
+  void write(Request &amp;, uint64_t &amp;) override;
+  void trim(Request &amp;, uint64_t &amp;) override;
+
+  void format(LPNRange &amp;, uint64_t &amp;) override;
+
+  Status *getStatus(uint64_t, uint64_t) override;
+
+  void getStatList(std::vector&lt;Stats&gt; &amp;, std::string) override;
+  void getStatValues(std::vector&lt;double&gt; &amp;) override;
+  void resetStatValues() override;
+};
+</code></pre>
+<h2 id="read-operation-in-pagemapping-ftl-model"><a class="header" href="#read-operation-in-pagemapping-ftl-model">Read operation in <code>PageMapping</code> FTL model</a></h2>
+<p>We will use the read operation as an example to introduce how <code>PageMapping</code> operates and how it interacts with the upper and lower layers in SimpleSSD. As shown in the following codes in <code>page_mapping.cc</code>, <code>PageMapping</code> first looks up the mapping table (i.e., <code>table</code>) to translate the LPN to the PPN which is stored in <code>mappingList</code>. It then performs the latency simulation of DRAM access via the <code>pDRAM</code> member.</p>
+<pre><code class="language-cpp">void PageMapping::readInternal(Request &amp;req, uint64_t &amp;tick) {
+  PAL::Request palRequest(req); // produce pal request
+  uint64_t beginAt;
+  uint64_t finishedAt = tick;
+
+  auto mappingList = table.find(req.lpn); // find the mapping list
+
+  if (mappingList != table.end()) {
+    if (bRandomTweak) {
+      pDRAM-&gt;read(&amp;(*mappingList), 8 * req.ioFlag.count(), tick);
+    }
+    else {
+      pDRAM-&gt;read(&amp;(*mappingList), 8, tick); // simulate DRAM access latency
+    }
+    ...
+</code></pre>
+<p><code>PageMapping</code> then locates the data required by the upper layer request in the superpage and subsequently constructs the underlying layer request (i.e., <code>palRequest</code>) based on the address of the requested data. Further, <code>PageMapping</code> sends the <code>palRequest</code> to the NAND flash model via the <code>pPAL</code> pointer and obtains the flash read latency in the <code>beginAt</code> variable.</p>
+<pre><code class="language-cpp">    ...
+    for (uint32_t idx = 0; idx &lt; bitsetSize; idx++) {
+      if (req.ioFlag.test(idx) || !bRandomTweak) {
+        auto &amp;mapping = mappingList-&gt;second.at(idx); // locate the exact PPN in the mapping list
+
+        if (mapping.first &lt; param.totalPhysicalBlocks &amp;&amp;
+            mapping.second &lt; param.pagesInBlock) {
+          palRequest.blockIndex = mapping.first; // constructed by PAL::Request palRequest(req);
+          palRequest.pageIndex = mapping.second;
+
+          if (bRandomTweak) {
+            palRequest.ioFlag.reset();
+            palRequest.ioFlag.set(idx);
+          }
+          else {
+            palRequest.ioFlag.set();
+          }
+
+          auto block = blocks.find(palRequest.blockIndex);
+
+          if (block == blocks.end()) {
+            panic("Block is not in use");
+          }
+
+          beginAt = tick;
+
+          block-&gt;second.read(palRequest.pageIndex, idx, beginAt); // update block metadata
+          pPAL-&gt;read(palRequest, beginAt); // after this, beginAt stores the finish time of the PAL request
+
+          finishedAt = MAX(finishedAt, beginAt);
+        }
+      }
+    }
+    ...
+</code></pre>
+<p><code>PageMapping</code> updates the request latency by taking the maximum value of the returned read latency. <code>PageMapping</code> also adds the firmware latency to the request latency. But in this project, you can neglect the firmware latency. Finally, the request latency is returned to the upper layer.</p>
+<pre><code class="language-cpp">    ...
+    tick = finishedAt; // update the tick argument to pass the finish time back, do not need return
+    tick += applyLatency(CPU::FTL__PAGE_MAPPING, CPU::READ_INTERNAL);
+  }
+}
+</code></pre>
+<div id="admonition-info" class="admonition admonish-info" role="note" aria-labelledby="admonition-info-title">
+<div class="admonition-title">
+<div id="admonition-info-title">
+<p>Info</p>
+</div>
+<a class="admonition-anchor-link" href="proj4/sim.html#admonition-info"></a>
+</div>
+<div>
+<p>You may notice that the code checks the <code>bRandomTweak</code> for several times and does different behaviors based on its value. In general, random-tweak enables page-level reads and writes under superpage-level mapping. The <code>idx</code>, <code>ioFlag</code> and <code>bitsetSize</code> are all used for this purpose. The <code>table</code> also saves vectors of block-page pair for each mapping. In this project, we turn this function off, and you do not need to implement any features for this function.</p>
+</div>
+</div>
+<h2 id="write-operation-in-pagemapping-ftl-model"><a class="header" href="#write-operation-in-pagemapping-ftl-model">Write operation in <code>PageMapping</code> FTL model</a></h2>
+<p>Then we introduce the write operations performed by <code>PageMapping</code>. Specifically, <code>PageMapping</code> employs <code>Block</code> class to manage the flash blocks currently in use within the SSD. As we describe before, this class encompasses various information, including the validity status of individual pages and LPN associated with each page. Moreover, <code>Block</code> offers multiple functions that emulate real flash operations, such as writing a page to a flash block (<code>write</code> function) and invalidating a page within the flash block (<code>invalidate</code> function). It is crucial to carefully examine its code as FAST frequently queries the flash block information. When <code>PageMapping</code> starts processing a write request, it first invalidates the obsolete page. This process involves finding the previous mapping from table, subsequently locating the corresponding block, and finally invoking the <code>invalidate</code> function.</p>
+<pre><code class="language-cpp">void PageMapping::writeInternal(Request &amp;req, uint64_t &amp;tick, bool sendToPAL) {
+  PAL::Request palRequest(req);
+  std::unordered_map&lt;uint32_t, Block&gt;::iterator block;
+  auto mappingList = table.find(req.lpn);
+  uint64_t beginAt;
+  uint64_t finishedAt = tick;
+  bool readBeforeWrite = false;
+
+  if (mappingList != table.end()) { // exists old page on this LPN
+    for (uint32_t idx = 0; idx &lt; bitsetSize; idx++) {
+      if (req.ioFlag.test(idx) || !bRandomTweak) {
+        auto &amp;mapping = mappingList-&gt;second.at(idx);
+
+        if (mapping.first &lt; param.totalPhysicalBlocks &amp;&amp;
+            mapping.second &lt; param.pagesInBlock) {
+          block = blocks.find(mapping.first);
+
+          // Invalidate current page
+          block-&gt;second.invalidate(mapping.second, idx);
+        }
+      }
+    }
+  }
+  else { // no old page on this LPN
+    // Create empty mapping
+    auto ret = table.emplace(
+        req.lpn,
+        std::vector&lt;std::pair&lt;uint32_t, uint32_t&gt;&gt;(
+            bitsetSize, {param.totalPhysicalBlocks, param.pagesInBlock}));
+
+    if (!ret.second) {
+      panic("Failed to insert new mapping");
+    }
+
+    mappingList = ret.first;
+  }
+  ...
+</code></pre>
+<p>It proceeds by allocating a free flash page for the upcoming write via <code>getLastFreeBlock</code> function. Notice that to optimize performance, SimpleSSD customizes the allocation policy to suit the flash parallelism. But you can simplify this allocation process in your implementation. This can be achieved by maintaining a linked list of free blocks, where each write utilizes the block at the head, and any reclaimed free block is inserted at the end (i.e., the FIFO policy).</p>
+<pre><code class="language-cpp">  ...
+  block = blocks.find(getLastFreeBlock(req.ioFlag));
+
+  if (block == blocks.end()) {
+    panic("No such block");
+  }
+
+  if (sendToPAL) {
+    if (bRandomTweak) {
+      pDRAM-&gt;read(&amp;(*mappingList), 8 * req.ioFlag.count(), tick);
+      pDRAM-&gt;write(&amp;(*mappingList), 8 * req.ioFlag.count(), tick);
+    }
+    else {
+      pDRAM-&gt;read(&amp;(*mappingList), 8, tick); // simulate DRAM access latency. read-modify-write the mapping table.
+      pDRAM-&gt;write(&amp;(*mappingList), 8, tick);
+    }
+  }
+</code></pre>
+<p>Finally, similar to a read operation, the <code>PageMapping</code> emulates a write operation in the block by validing the flash page and recording the corresponding LPN via write function. Subsequently, a <code>palRequest</code> is dispatched to the underlying PAL to accquire the write latency. It is worth noting that <code>sendToPAL</code> is utlized to distinguish whether the write request originates from the warmup phase or the emulation phase. The warmup phase is specifically designed to replicate the real SSD state after a prolonged period of operation, and it constructs write requests to change the SSD internal states (e.g., FTL mappings). To rapidly reach the steady state, write requests in the warmup phase does not need to be forwarded to the PAL, instead, they solely necessitate modification to metadata within the FTL. Similarly, in your implementation, it is imperative to support the warmup operation to emulate internal states in real SSDs.</p>
+<pre><code class="language-cpp">  ...
+  for (uint32_t idx = 0; idx &lt; bitsetSize; idx++) {
+    if (req.ioFlag.test(idx) || !bRandomTweak) {
+      uint32_t pageIndex = block-&gt;second.getNextWritePageIndex(idx); // find an empty page to write
+      auto &amp;mapping = mappingList-&gt;second.at(idx);
+
+      beginAt = tick;
+      block-&gt;second.write(pageIndex, req.lpn, idx, beginAt);
+
+      // Read old data if needed (Only executed when bRandomTweak = false)
+      // Maybe some other init procedures want to perform 'partial-write'
+      // So check sendToPAL variable
+      if (readBeforeWrite &amp;&amp; sendToPAL) {
+        palRequest.blockIndex = mapping.first;
+        palRequest.pageIndex = mapping.second;
+
+        // We don't need to read old data
+        palRequest.ioFlag = req.ioFlag;
+        palRequest.ioFlag.flip();
+        pPAL-&gt;read(palRequest, beginAt);
+      }
+
+      // update mapping to table
+      mapping.first = block-&gt;first;
+      mapping.second = pageIndex;
+
+      if (sendToPAL) {
+        palRequest.blockIndex = block-&gt;first;
+        palRequest.pageIndex = pageIndex;
+
+        if (bRandomTweak) {
+          palRequest.ioFlag.reset();
+          palRequest.ioFlag.set(idx);
+        }
+        else {
+          palRequest.ioFlag.set();
+        }
+        pPAL-&gt;write(palRequest, beginAt);
+      }
+      finishedAt = MAX(finishedAt, beginAt);
+    }
+  }
+
+  // Exclude CPU operation when initializing
+  if (sendToPAL) {
+    tick = finishedAt;
+    tick += applyLatency(CPU::FTL__PAGE_MAPPING, CPU::WRITE_INTERNAL);
+  }
+</code></pre>
+<h2 id="garbage-collection-in-pagemapping-ftl-model"><a class="header" href="#garbage-collection-in-pagemapping-ftl-model">Garbage collection in <code>PageMapping</code> FTL model</a></h2>
+<p>After the write operation finishes, the amount of free blocks may drop below a threshold. Garbage collection is a process to find some victim blocks, move the valid pages from these blocks into free blocks, and earse these blocks, making them free blocks. This process is performed in <code>writeInternal</code>:</p>
+<pre><code class="language-cpp">  // GC if needed
+  // I assumed that init procedure never invokes GC
+  static float gcThreshold = conf.readFloat(CONFIG_FTL, FTL_GC_THRESHOLD_RATIO);
+
+  if (freeBlockRatio() &lt; gcThreshold) {
+    if (!sendToPAL) {
+      panic("ftl: GC triggered while in initialization");
+    }
+
+    std::vector&lt;uint32_t&gt; list;
+    uint64_t beginAt = tick;
+
+    selectVictimBlock(list, beginAt);
+
+    debugprint(LOG_FTL_PAGE_MAPPING,
+               "GC   | On-demand | %u blocks will be reclaimed", list.size());
+
+    doGarbageCollection(list, beginAt);
+
+    debugprint(LOG_FTL_PAGE_MAPPING,
+               "GC   | Done | %" PRIu64 " - %" PRIu64 " (%" PRIu64 ")", tick,
+               beginAt, beginAt - tick);
+
+    stat.gcCount++;
+    stat.reclaimedBlocks += list.size();
+  }
+</code></pre>
+<p>The <code>selectVictimBlock</code> selects suitable blocks for being victim and push them into the <code>list</code>. The <code>doGarbageCollection</code> performs actual PAL requests. It firstly constructs three lists, recording the read, write and erase requests that are going to be performed, respectively.</p>
+<pre><code class="language-cpp">void PageMapping::doGarbageCollection(std::vector&lt;uint32_t&gt; &amp;blocksToReclaim,
+                                      uint64_t &amp;tick) {
+  PAL::Request req(param.ioUnitInPage);
+  std::vector&lt;PAL::Request&gt; readRequests;
+  std::vector&lt;PAL::Request&gt; writeRequests;
+  std::vector&lt;PAL::Request&gt; eraseRequests;
+  std::vector&lt;uint64_t&gt; lpns;
+  Bitset bit(param.ioUnitInPage);
+  uint64_t beginAt;
+  uint64_t readFinishedAt = tick;
+  uint64_t writeFinishedAt = tick;
+  uint64_t eraseFinishedAt = tick;
+  ...
+</code></pre>
+<p>Then, it builds the requests for each block in the list (i.e., <code>blocksToReclaim</code>). For each valid page in the block, it reads the page out, writes it to a free page, and updates the corresponding metadata. Then it erases all the victim blocks.</p>
+<pre><code class="language-cpp">// For all blocks to reclaim, collecting request structure only
+  for (auto &amp;iter : blocksToReclaim) {
+    auto block = blocks.find(iter);
+
+    if (block == blocks.end()) {
+      panic("Invalid block");
+    }
+
+    // Copy valid pages to free block
+    for (uint32_t pageIndex = 0; pageIndex &lt; param.pagesInBlock; pageIndex++) {
+      // Valid?
+      if (block-&gt;second.getPageInfo(pageIndex, lpns, bit)) {
+        if (!bRandomTweak) {
+          bit.set();
+        }
+
+        // Retrive free block
+        auto freeBlock = blocks.find(getLastFreeBlock(bit));
+
+        // Issue Read
+        req.blockIndex = block-&gt;first;
+        req.pageIndex = pageIndex;
+        req.ioFlag = bit;
+
+        readRequests.push_back(req);
+
+        // Update mapping table
+        uint32_t newBlockIdx = freeBlock-&gt;first;
+
+        for (uint32_t idx = 0; idx &lt; bitsetSize; idx++) {
+          if (bit.test(idx)) {
+            // Invalidate
+            block-&gt;second.invalidate(pageIndex, idx);
+
+            auto mappingList = table.find(lpns.at(idx));
+
+            if (mappingList == table.end()) {
+              panic("Invalid mapping table entry");
+            }
+
+            pDRAM-&gt;read(&amp;(*mappingList), 8 * param.ioUnitInPage, tick);
+
+            auto &amp;mapping = mappingList-&gt;second.at(idx);
+
+            uint32_t newPageIdx = freeBlock-&gt;second.getNextWritePageIndex(idx);
+
+            mapping.first = newBlockIdx;
+            mapping.second = newPageIdx;
+
+            freeBlock-&gt;second.write(newPageIdx, lpns.at(idx), idx, beginAt);
+
+            // Issue Write
+            req.blockIndex = newBlockIdx;
+            req.pageIndex = newPageIdx;
+
+            if (bRandomTweak) {
+              req.ioFlag.reset();
+              req.ioFlag.set(idx);
+            }
+            else {
+              req.ioFlag.set();
+            }
+
+            writeRequests.push_back(req);
+
+            stat.validPageCopies++;
+          }
+        }
+
+        stat.validSuperPageCopies++;
+      }
+    }
+
+    // Erase block
+    req.blockIndex = block-&gt;first;
+    req.pageIndex = 0;
+    req.ioFlag.set();
+
+    eraseRequests.push_back(req);
+  }
+</code></pre>
+<p>After this process, all the requests are actually performed.</p>
+<pre><code class="language-cpp">  // Do actual I/O here
+  // This handles PAL2 limitation (SIGSEGV, infinite loop, or so-on)
+  for (auto &amp;iter : readRequests) {
+    beginAt = tick;
+
+    pPAL-&gt;read(iter, beginAt);
+
+    readFinishedAt = MAX(readFinishedAt, beginAt);
+  }
+
+  for (auto &amp;iter : writeRequests) {
+    beginAt = readFinishedAt;
+
+    pPAL-&gt;write(iter, beginAt);
+
+    writeFinishedAt = MAX(writeFinishedAt, beginAt);
+  }
+
+  for (auto &amp;iter : eraseRequests) {
+    beginAt = readFinishedAt;
+
+    eraseInternal(iter, beginAt);
+
+    eraseFinishedAt = MAX(eraseFinishedAt, beginAt);
+  }
+
+  tick = MAX(writeFinishedAt, eraseFinishedAt);
+  tick += applyLatency(CPU::FTL__PAGE_MAPPING, CPU::DO_GARBAGE_COLLECTION);
+}
+</code></pre>
+<h2 id="simplessd-setup-and-configuration"><a class="header" href="#simplessd-setup-and-configuration">SimpleSSD Setup and Configuration</a></h2>
+<p>The <a href="https://docs.simplessd.org/en/v2.0.12/">SimpleSSD document</a> shows detailed procedures to compile and run SimpleSSD. The first thing you need to do is download SimpleSSD. For your convenience, we've provided a code skeleton for you, so you do not need to download the codes from Github. You can download the package from <a href="https://disk.pku.edu.cn/link/AA8F735492EA4048A282AA5A7B9820B521">PKU Disk</a>.</p>
+<p>To build SimpleSSD, you will need CMake. You can install it via the following commands:</p>
+<pre><code class="language-sh">sudo apt-get update
+sudo apt-get install cmake --fix-missing
+</code></pre>
+<p>Next, you can setup the workspace and build the program <code>simplessd-standalone</code>:</p>
+<pre><code class="language-sh">cd simplessd-standalone
+cmake -DDEBUG_BUILD=off .
+make -j 8
+</code></pre>
+<p>After successfully building SimpleSSD, you can use the following command to run SimpleSSD. SimpleSSD runs the workload according to the settings in the Simulation configuration file and SimpleSSD configuration file. It outputs the simulation results and logs to the path specified by the Output directory.</p>
+<pre><code class="language-sh"># Usage: simplessd-standalone &lt;Simulation configuration file&gt; &lt;SimpleSSD configuration file&gt; &lt;Output directory&gt;
+./simplessd-standalone ./config/sample.cfg ./simplessd/config/sample.cfg ./output
+</code></pre>
+<p>We've provide the default simulation configuration file and SimpleSSD configuration file, which are located in <code>simplessd-standalone/config/sample.cfg</code> and <code>simplessd-standalone/simplessd/config/sample.cfg</code>, respectively.</p>
+<p>The <strong>simulation configuration file</strong> sets the key parameters of the simulation environment. Specifically, <code>LogFile</code>, <code>DebugLogFile</code>, and <code>LatencyLogFile</code> set the output paths of the statistic log, debug log, and latency log, respectively. These log files help you observe the behavior of the SSD. For example, <code>DebugLogFile</code> records the log output during simulation, which can track the processing path of each request, while <code>LatencyLogFile</code> holds statistics for each request in the format of <code>(request ID, address offset, request length, latency (in ps))</code>. Additionally, SimpleSSD provides an I/O generator and a trace replayer to generate workloads for evaluations, and which one to use is decided by <code>Mode</code> in this file. You can use them to evaluate the performance of your FTL scheme implementation. Note that the log file and debug log file can be very large. You can empty the parameter fields to turn off logging.</p>
+<pre><code class="language-ini">## Select mode
+# Possible values:
+#  0: Request generator mode (all configs in [trace] will be ignored)
+#  1: Trace replayer mode (all configs in [generator] will be ignored)
+Mode = 1
+
+## Statistic log period
+# Print statistic log periodically
+# 0 means no log printout
+# Unit: ms (millisecond) in simulation time (not real time)
+LogPeriod = 10
+
+## Log file
+# Set output path of statistic log and debug log
+# &lt;empty value&gt; means no log printout
+# Possible keywords:
+#  STDOUT: Standard Output
+#  STDERR: Standard Error
+LogFile = log.txt
+DebugLogFile = debug.txt
+
+## I/O Log file
+# Set output path of latency log
+# &lt;empty value&gt; means no log printout
+LatencyLogFile = latency.csv
+</code></pre>
+<p>we provide 4 traces obtained from the FIU traces, plus a simple traces for you to debug. These workload exhibits complicated I/O patterns that can check the correctness of your implementation. In addition, workload labels each request as sequential or random. Based on this information and combined with latency data, the correctness of your implementation can be checked. For example, sequential writes should benefit from the SW log block design. You can use these traces by setting <code>Mode = 1</code> and modify the <code>File</code> parameter:</p>
+<pre><code class="language-ini">[trace]
+## Trace file
+File = ./traces/simple
+</code></pre>
+<p>You will also need to run microbenchmark via the request generator mode. This mode will automatically generate requests according to the configuation. The <code>io_size</code> defines the total size of all requests. <code>readwrite</code> defines the pattern of the requests. Sequential read/write, random read/write and mixed sequential/random I/O are possible configurations. <code>rwmixread</code> defines the ratio of read requests in all requests when running under mixed patterns. <code>blocksize</code> defines the size of each individial request.</p>
+<pre><code class="language-ini">[generator]
+## This request generator will work similar to Flexible I/O tester
+# Definition of Types:
+#  str:   String, a sequence of alphanumeric characters
+#  int:   SI integer, a sequence of numeric characters
+#         Possible suffix (case sensitive):
+#          10^3 base: k, m, g, t
+#          2^10 base: K, M, G, T
+#  float: Floating point number, a sequence of numeric characters
+#         with one (or none) of decimal point
+#  bool:  Boolean, a true or false value.
+#         Possible value (case insensitive):
+#          True: Non-zero number, T, True, Y, Yes
+#          False: Otherwise
+#  time:  SI integer, a sequenced of numeric characters
+#         If no suffix provided, value will treated as pico-second.
+#         Possible suffix (case sensitive):
+#          s, ms, us, ns, ps
+
+## Total size to I/O = int
+# Only valid when time_based = false
+io_size = 128M   # 16 * 2^20 bytes
+
+## Type of I/O = str
+# Possible values:
+#  read:      Sequential read
+#  write:     Sequential write
+#  randread:  Random read
+#  randwrite: Random write
+#  readwrite: Mixed sequential I/O
+#  randrw:    Mixed random I/O
+readwrite = write
+
+## Percentage of mixed I/O = float
+# If readwrite is not readwrite nor randrw, this value will ignored
+# 0 &lt;= value &lt;= 1
+rwmixread = 0.5  # 50% of read I/O
+
+## Block size = int
+blocksize = 4K
+</code></pre>
+<p>Other parameters in the simulation configuration file can be left unchanged during this project.</p>
+<p>The <strong>SimpleSSD configuration file</strong> sets the key parameters of the simulated SSD, including the embedded cores, NVMe, FTL, ICL, and PAL. This file provides a detailed explanation for each parameter, and you can refer to this file to learn how to set the parameters. Nevertheless, the only necessary parameter in this project is <code>MappingMode</code>. You can leave others unchanged.</p>
+<pre><code class="language-ini">[ftl]
+## Set mapping method
+# Possible values:
+#  0: Page level mapping
+#  1: FAST mapping
+MappingMode = 1
+
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="task-read-paper-implement-and-evaluate-fast"><a class="header" href="#task-read-paper-implement-and-evaluate-fast">Task: Read Paper, Implement and Evaluate FAST</a></h1>
+<div id="admonition-cite" class="admonition admonish-quote" role="note" aria-labelledby="admonition-cite-title">
+<div class="admonition-title">
+<div id="admonition-cite-title">
+<p>Cite</p>
+</div>
+<a class="admonition-anchor-link" href="proj4/task.html#admonition-cite"></a>
+</div>
+<div>
+<p>Lee, S. W., Park, D. J., Chung, T. S., Lee, D. H., Park, S., &amp; Song, H. J. (2007). A log buffer-based flash translation layer using fully-associative sector translation. ACM Transactions on Embedded Computing Systems (TECS), 6(3), 18-es.</p>
+<p><a href="https://dl.acm.org/doi/10.1145/1275986.1275990">get the pdf</a></p>
+</div>
+</div>
+<p>The task in this project is to read the paper cited above, implement the FAST hybrid-level mapping scheme in SimpleSSD, and evaluate it.</p>
+<h2 id="fast-mapping-scheme-a-brief-introdution"><a class="header" href="#fast-mapping-scheme-a-brief-introdution">FAST mapping scheme: a brief introdution</a></h2>
+<p>The FAST scheme leverages a hybrid-level mapping, which divides the physical blocks into data blocks and log blocks.</p>
+<p>The <strong>data blocks</strong> use <strong>block-level mapping</strong>. That is, when it maps a page with LPN (= LBN * pagePerBlock + PageOffset), the mapping table records only LBN-PBN mapping pairs. The PageOffset remains unchanged during the mapping.</p>
+<p>The <strong>log blocks</strong> use <strong>page-level mapping</strong>. The mapping table records LPN-PPN pairs, and the PageOffset of the LPN and PPN can be different.</p>
+<p>Further more, FAST divides log blocks into <strong>Sequential Write Block</strong> and <strong>Random Write Blocks</strong>. The entire system contains a single SW block. It is used to buffer sequential writes. It also leverages <strong>block-level mapping</strong>, so when it is merged with data blocks, there is possibility to eliminate operations to speed up the merging. RW blocks uses page-level mapping, and the total number of RW blocks are constrained (set to 6 in this project).</p>
+<p>There are four types of operation in FAST:</p>
+<ol>
+<li><strong>Read</strong>. When reading a page, FAST first checks if any log block (SW or RW block) contains this page. If so, it reads the page from the block. Otherwise, it finds the data block by mapping the LBN to PBN. If there exist a data block that maps to the LBN, and the physical page on Page Offset is valid, FAST reads the page from it.</li>
+<li><strong>Write</strong>. When writing a page, FAST first checks if the corresponding physical page, i.e., PBN * pagePerBlock + PageOffset, is free (hasn't been written since last erase). If so, FAST writes the page to it. If not, then FAST writes it to a log block. Firstly, it checks whether this is a sequential write by checking two conditions: (1) PageOffset is 0, no matter what LBN; (2) the LBN is equal to the LBN of current SW block, and the PageOffset is exactly the first free physical page of the SW block (for example, SW block = [0, 1, free, free], writting page 2). If this is a sequential write, FAST writes the page to SW block. Specially, under condition (1), if the write LBN is not the LBN of SW block, the SW block should be merged first. If this is not a sequential write, FAST finds a non-full RW block and writes the page to the first free page of it.</li>
+<li><strong>SW block merge</strong>. "Merge" is the operation that transforms a log block and a few corresponding data blocks into new data blocks and erases these old blocks. When a write with PageOffset == 0 comes, but the LBN is not the current LBN of SW block, FAST merges the SW block first. There are two conditions: (1) the SW block is full of valid pages. Under this condition, the SW block can be "switched" to a data block. FAST finds the old data block of this LBN, modifies the mapping table to let the LBN maps to current SW block, and erase the old data block into a new free block. (2) The SW block is not full. Under this condition, FAST finds the old data block of this LBN, reads all valid pages from the data and SW blocks, allocates a new free block as new data block, writes the valid pages to the new data block, and erases the old data and SW blocks. After both conditions, FAST allocates a free block as the new SW block.</li>
+<li><strong>RW block merge</strong>. When all RW blocks are full (with valid and invalid pages, no more free page), FAST choose a victim RW block to be merged. A RW block may contains logical pages that belong to different logical blocks. FAST first finds all related LBNs of the LPNs in the victim block. Then, it reads all valid pages that belong to these LBNs from all RW blocks and corresponding data blocks (will scan RW blocks, but check the mapping table to find the data blocks to read). It then allocates multiple free blocks for these LBNs, one for each, and write the valid pages to them. Lastly, it erases the old data blocks and the victim block, then allocates a new free RW block.</li>
+</ol>
+<h2 id="provided-contents-in-code-package"><a class="header" href="#provided-contents-in-code-package">Provided contents in code package</a></h2>
+<p>We've provided a few contents in the code package for your convenience (you can download the package from <a href="https://disk.pku.edu.cn/link/AA8F735492EA4048A282AA5A7B9820B521">PKU Disk</a>):</p>
+<ol>
+<li><code>config/simulation_sample.cfg</code>: A sample configuration file.</li>
+<li><code>config/&lt;trace name&gt;.cfg</code>: Four configuration files that configure the program to run on the traces.</li>
+<li><code>simplessd/config/ssd_sample.cfg</code>: A sample configuration file.</li>
+<li><code>simplessd/config/&lt;base/fast&gt;.cfg</code>: Two configuration files that configure the pragram to run with base mapping (<code>PageMapping</code>) and fast mapping.</li>
+<li><code>traces/</code>: Four traces from FIU and one simple trace with 6 requests.</li>
+<li><code>compile</code>: A bash script that calls CMake to setup and compile simplessd. It will compile in both release mode and debug mode.</li>
+<li><code>test</code>: A bash script that automatically simulates the four traces with base/fast mapping. You can run this script in background (<code>./test &amp;</code>). It may take ~10 minutes to complete.</li>
+<li><code>plot.py, plot</code>: Python and bash scripts that draw the latency plots for each setting, based on latency log output <code>latency.csv</code>. You can also open the CSV files in Excel and draw the plot. Note that the other log outputs (<code>log.txt</code> and <code>debug.txt</code>) can be very large, you can modify the configuration files, empty the corresponding fields to turn the log off.</li>
+<li><code>simplessd/ftl/fast.hh, simplessd/ftl/fast.cc</code>: Code skeleton. You can only work under these two files.</li>
+</ol>
+<h2 id="code-skeleton"><a class="header" href="#code-skeleton">Code skeleton</a></h2>
+<p>We've provide a detailed code skeleton for you. Basically, <code>fast.hh</code> defines all the classes and interfaces. There are six functions that require you to complete in <code>fast.cc</code> (You can search for <code>TODO: Lab4</code> to see the exact location):</p>
+<pre><code class="language-cpp">void invalidateOldPage(LBN lbn, POff offset);
+std::pair&lt;PBN, POff&gt; findPageInRWBlocks(LPN lpn);
+bool findPageInSWBlock(LBN lbn, POff offset);
+PBN findPageInDataBlocks(LBN lbn, POff offset);
+bool pageIsFreeInDataBlock(LBN lbn, POff offset);
+bool canWriteToSWBlockAfterMerge(LBN lbn, POff offset, uint64_t &amp;tick,
+                                 bool sendToPAL);
+std::pair&lt;PBN, POff&gt; findFreePageInRWBlocks(uint64_t &amp;tick, bool sendToPAL);
+</code></pre>
+<p>Others are already implemented. You can check the comments for the detailed description. You are not required to simulate the DRAM access latency in this project for simplicity.</p>
+<div id="admonition-info" class="admonition admonish-info" role="note" aria-labelledby="admonition-info-title">
+<div class="admonition-title">
+<div id="admonition-info-title">
+<p>Info</p>
+</div>
+<a class="admonition-anchor-link" href="proj4/task.html#admonition-info"></a>
+</div>
+<div>
+<p>The interfaces in SimpleSSD leverage a unique implementation to simulate the latency of each request. Basically, The request is passed from the top to the bottom by a serial of interfaces like <code>read</code> and <code>write</code>. Each interface receive a reference to a variable, namely <code>uint64_t &amp;tick</code>. The interfaces modify this variable directly when there is a new latency component, like <code>tick += applyLatency(CPU::FTL__PAGE_MAPPING, CPU::READ_INTERNAL);</code>. They can also pass this variable to other interfaces to gather the latency of next layer, like <code>pPAL-&gt;read(palRequest, tick);</code>. You can use this method to implement FAST.</p>
+</div>
+</div>
+<h2 id="desired-outputs"><a class="header" href="#desired-outputs">Desired outputs</a></h2>
+<p>Compared to <code>PageMapping</code>, your implementation of FAST should exhibits latency spikes that are much higher than the average latency. The latency plots can be like this:</p>
+<p><img src="proj4/./latency.png" alt="Lat" /></p>
+<div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
+<div class="admonition-title">
+<div id="admonition-deliverables-title">
+<p>Deliverables</p>
+</div>
+<a class="admonition-anchor-link" href="proj4/task.html#admonition-deliverables"></a>
+</div>
+<div>
+<p>In this project, please include the following contents in your <em><strong>report</strong></em>:</p>
+<ul>
+<li>Codes of your implementation.</li>
+<li>The <em><strong>comparation of your implementation with <code>PageMapping</code></strong></em> in SimpleSSD. Specifically, show the latency plots for each traces.</li>
+</ul>
+</div>
+</div>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="submission"><a class="header" href="#submission">Submission</a></h1>
+<div id="admonition-submission" class="admonition admonish-note" role="note" aria-labelledby="admonition-submission-title">
+<div class="admonition-title">
+<div id="admonition-submission-title">
+<p>Submission</p>
+</div>
+<a class="admonition-anchor-link" href="proj4/submit.html#admonition-submission"></a>
+</div>
+<div>
+<ul>
+<li>Please submit the deliverables for each part in order and clearly defined in a report form (e.g., PDF or Word). Please give a brief description of the results in your report. You also <strong>NEED</strong> to submit your codes and paper summary.</li>
+<li>Please pack your report, codes and summary in an archive and submit it as an attachment at <a href="https://course.pku.edu.cn">course.pku.edu.cn</a>. The title of the attachment should be Student-ID_Name_Proj4 (e.g., 123456789_WangXiaoming_Proj4).</li>
+<li>You can also send the archive to <a href="proj4/">ca2024fall@163.com</a>. The titles of your email AND attachment should both be Student-ID_Name_Proj4.</li>
+<li><strong>DO NOT PLAGIARIZE</strong>. We will select 10 students randomly and ask them to answer our questions related to their results.</li>
+</ul>
+</div>
+</div>
+<div id="admonition-late-policy" class="admonition admonish-warning" role="note" aria-labelledby="admonition-late-policy-title">
+<div class="admonition-title">
+<div id="admonition-late-policy-title">
+<p>Late policy</p>
+</div>
+<a class="admonition-anchor-link" href="proj4/submit.html#admonition-late-policy"></a>
+</div>
+<div>
+<ul>
+<li>You will be given <strong>3 slip days</strong> (shared by all projects), which can be used to extend project deadlines, e.g., 1 project extended by 3 days or 3 projects each extended by 1 day.</li>
+<li>Projects are due at 23:59:59, no exceptions; 20% off per day late, 1 second late = 1 hour late = 1 day late.</li>
+</ul>
+</div>
+</div>
+<div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
+<div class="admonition-title">
+<div id="admonition-deliverables-title">
+<p>Deliverables</p>
+</div>
+<a class="admonition-anchor-link" href="proj4/submit.html#admonition-deliverables"></a>
+</div>
+<div>
+<p>In this project, please include the following contents in your <em><strong>report</strong></em>:</p>
+<ul>
+<li>Codes of your implementation.</li>
+<li>The <em><strong>comparation of your implementation with <code>PageMapping</code></strong></em> in SimpleSSD. Specifically, show the latency plots for each traces.</li>
+</ul>
+</div>
+</div>
+<div id="admonition-grading" class="admonition admonish-success" role="note" aria-labelledby="admonition-grading-title">
+<div class="admonition-title">
+<div id="admonition-grading-title">
+<p>Grading</p>
+</div>
+<a class="admonition-anchor-link" href="proj4/submit.html#admonition-grading"></a>
+</div>
+<div>
+<p>In this project, the grading is partially based on the performance of your implementation. The details are (5 points in total):</p>
+<ul>
+<li>A FAST implementation that can finish the simulation of the four traces without fatal error:</li>
+<li>
+<ul>
+<li><strong>4pts</strong>.</li>
+</ul>
+</li>
+<li><em><strong>PLUS</strong></em> resonable performance of your implementation:</li>
+<li>
+<ul>
+<li><strong>5pts</strong>.</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+        <script>
+        window.addEventListener('load', function() {
+            MathJax.Hub.Register.StartupHook('End', function() {
+                window.setTimeout(window.print, 100);
+            });
+        });
+        </script>
+
+
+    </div>
+    </body>
+</html>

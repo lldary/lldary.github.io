@@ -1,0 +1,310 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Part 2: Run Simulation with Prefetchers - Archlab gem5 Project 3</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../../mdbook-admonish.css">
+
+        <!-- MathJax -->
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Archlab gem5 Project 3</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="part-2-run-simulation-with-prefetchers"><a class="header" href="#part-2-run-simulation-with-prefetchers">Part 2: Run Simulation with Prefetchers</a></h1>
+<p><code>gem5</code> provides multiple classic cache prefetchers. They can be found in <code>src/mem/cache/prefetch/Prefetcher.py</code>. One of the simplest prefetchers is the <code>StridePrefetcher</code>. We can directly add it to the CPU's data cache with the following code:</p>
+<pre><code class="language-py">def init_system(system, args):
+    ...
+    system.cpu.addTwoLevelCacheHierarchy(L1I(), L1D(), L2())
+    # ADD FOLLOWS:
+    system.cpu.dcache.prefetcher = StridePrefetcher()
+    ...
+</code></pre>
+<p>When you start a simulation, you can find the prefetcher in <code>config.ini</code>:</p>
+<pre><code># config.ini
+...
+[system.cpu.dcache.prefetcher]
+type=StridePrefetcher
+...
+</code></pre>
+<p>To evaluate different prefetchers, we can also add options in the script. In this part, we will explore two of the provided prefetchers: <code>StridePrefetcher</code> and <code>AMPMPrefetcher</code>:</p>
+<pre><code class="language-py">pf_types = {
+    "stride": StridePrefetcher,
+    "ampm": AMPMPrefetcher,
+}
+...
+def init_system(system, args):
+    ...
+    system.cpu.dcache.prefetcher = pf_types[args.pf]()
+    ...
+...
+if __name__ == '__m5_main__':
+    ...
+    parser.add_argument(
+        "--pf", type=str, default="stride",
+    )
+    ...
+</code></pre>
+<p>Then, let's run the test executables and learn how these prefetchers can impact on system performance. Among the provided executables, <code>shell_sort</code> and <code>gemm</code> are sensitive to prefetching. In project 3, you only need to run the sensitive workloads, that is, <code>shell_sort</code> and <code>gemm</code>. So, to test the performance of stride prefetcher, the commands are as follows:</p>
+<pre><code class="language-sh"># using default CPU and Mem
+build/ARM/gem5.opt -d m5out/stride/sort configs/proj3/simple.py tests/labexe/shell_sort --pf stride
+build/ARM/gem5.opt -d m5out/stride/gemm configs/proj3/simple.py tests/labexe/gemm --pf stride
+</code></pre>
+<p>The commands to test AMPM are similar.</p>
+<div id="admonition-important-note" class="admonition admonish-warning" role="note" aria-labelledby="admonition-important-note-title">
+<div class="admonition-title">
+<div id="admonition-important-note-title">
+<p>Important note</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-important-note"></a>
+</div>
+<div>
+<p>In previous project, the recommended <code>system.cpu.max_insts_any_thread</code> is 1e8. This value makes sure you can run a simulation fastly. However, typical prefetcher requires much more accesses to learn the pattern and generate prefetches. Thus, in this project, <em><strong>the recommended <code>system.cpu.max_insts_any_thread</code> is 1e9</strong></em>. You can use 1e8 or even less values to speed-up your debugging. We also <strong>accept</strong> reports that are generated from less values, but the statistic outputs may be unreasonable. If you face troubles (for example, you cannot complete simulation with value 1e9), you can inform us in your report, the grading will be discretionary.</p>
+</div>
+</div>
+<p>After the simulations have finished, let's check the statistics in <code>stats.txt</code>. In this project, we care about four metrics, which evaluate the performance of the prefetchers:</p>
+<ul>
+<li><code>cpu.ipc</code>: The IPC of the cpu.</li>
+<li><code>prefetcher.accuracy</code>: The accuracy of the prefetcher, which means the fraction of useful prefetches among all prefetches (<em>check appendix A for detailed explaination</em>).</li>
+<li><code>prefetcher.coverage</code>: The coverage of the prefetcher, which means the fraction of eliminated misses (first-time hits on prefetched data) among all potential misses (eliminated misses plus actual misses).</li>
+<li><code>prefetcher.pfLate</code>: The number of prefetches that are issued lately (data are already in cache, MSHRs or write buffer before issuing).</li>
+</ul>
+<div id="admonition-delieverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-delieverables-title">
+<div class="admonition-title">
+<div id="admonition-delieverables-title">
+<p>Delieverables</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-delieverables"></a>
+</div>
+<div>
+<p>Please run two prefetch-sensitive workloads, i.e., <code>shell_sort</code> and <code>gemm</code>, with two prefetchers. The rest workloads <code>spfa</code> and <code>binary_search</code>, are insensitive to prefetching. You can run these workloads if you are interested, and have sufficient computing resources. Nevertheless, in this part, please (at least) include figures or tables, which show the four critical metrics (i.e., IPC, accuracy, coverage, late count) of different prefetch configurations on workloads listed below, in your <em><strong>report</strong></em>:</p>
+<ul>
+<li>prefetch: <strong>No prefetcher</strong>, <code>StridePrefetcher</code>, <code>AMPMPrefetcher</code>.</li>
+<li>exe: <code>shell_sort</code>, <code>gemm</code>.</li>
+<li>With default CPU and Memory (O3 and DDR4).</li>
+<li>Use the cache hierarchy described in part 1, and attach the prefetchers to <code>cpu.dcache</code>.</li>
+</ul>
+<p>In total, you need to run <code>gem5</code> six times.</p>
+</div>
+</div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../proj3/part1.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../proj3/part3.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../proj3/part1.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../proj3/part3.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

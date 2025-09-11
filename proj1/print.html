@@ -1,0 +1,835 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Archlab gem5 Project 1</title>
+        <meta name="robots" content="noindex">
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../mdbook-admonish.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "searchindex.js";
+        </script>
+
+        <!-- Custom JS scripts for mdbook-pdf PDF generation -->
+        <script type='text/javascript'>
+            let markAllContentHasLoadedForPrinting = () =>
+                window.setTimeout(
+                    () => {
+                        let p = document.createElement('div');
+                        p.setAttribute('id', 'content-has-all-loaded-for-mdbook-pdf-generation');
+                        document.body.appendChild(p);
+                    }, 100
+                );
+
+            window.addEventListener('load', () => {
+                // Expand all the <details> elements for printing.
+                r = document.getElementsByTagName('details');
+                for (let i of r)
+                    i.open = true;
+
+                try {
+                    MathJax.Hub.Register.StartupHook('End', markAllContentHasLoadedForPrinting);
+                } catch (e) {
+                    markAllContentHasLoadedForPrinting();
+                }
+            });
+        </script>
+    <div style="display: none"><a href="#proj1">proj1</a><a href="#proj1-setup">proj1-setup</a><a href="#proj1-part1">proj1-part1</a><a href="#proj1-part2">proj1-part2</a><a href="#proj1-part3">proj1-part3</a><a href="#proj1-submit">proj1-submit</a><a href="#proj1-appendix">proj1-appendix</a></div>
+        <!-- Start loading toc.js asap -->
+        <script src="toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Archlab gem5 Project 1</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="computer-architecture-2025fall-project-1"><a class="header" href="#computer-architecture-2025fall-project-1">Computer Architecture 2025fall Project 1</a></h1>
+<div id="admonition-default" class="admonition admonish-success" role="note">
+<div>
+<p><em>By Prof. Jie Zhang</em></p>
+<p><strong>Due:</strong> 11:59:59 pm, October 8, 2025</p>
+</div>
+</div>
+<p>Nowadays, <code>gem5</code> has been the most popular simulation framework used by computer architecture research community. This project will cover the tutorial of building up a computer system framework by using <code>gem5</code> simulator. We will study how different CPU types and main memory systems can impact the whole performance of computer system. Please note that <code>gem5</code> simulation usually takes a long time. So you need to start the project as early as possible.</p>
+<p>For your convenience, we have tried to minimize the hassles of setting up <code>gem5</code>, but still, it is somewhat tricky. Whenever you face the trouble or problem on this project, please refer to <code>gem5</code> documentation or contact TAs by WeChat or e-mail. All the following information have been verified on Ubuntu 20.04.1 with Linux Kernel 5.15.0 and Ubuntu 22.04.2 LTS with the Linux Kernel 5.19.0.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="setup-install-toolchain-and-compile-gem5"><a class="header" href="#setup-install-toolchain-and-compile-gem5">Setup: Install Toolchain and Compile <code>gem5</code></a></h1>
+<h2 id="install-environment"><a class="header" href="#install-environment">Install environment</a></h2>
+<p>As a complicated software, <code>gem5</code> requires several prerequisites to run properly. However, manually preparing the correct environment is very challenging. For your convenience, we provide a Docker image with correctly installed prerequisites. To use the image, you first need to install Docker. On Windows system, you can easily install it by installing <a href="https://www.docker.com/get-started/">Docker Desktop</a>; on Linux system, you can install Docker following the <a href="https://docs.docker.com/engine/install/">documentation</a>. You can use the following command to check your installation:</p>
+<pre><code class="language-sh">docker --version
+
+# You'll see contents like the following:
+Docker version 24.0.2, build cb74dfc
+</code></pre>
+<p>Once you've installed Docker, you can pull our image with the following command:</p>
+<pre><code class="language-sh">docker pull chaselab/archlab
+</code></pre>
+<div id="admonition-note" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-title">
+<div class="admonition-title">
+<div id="admonition-note-title">
+<p>Note</p>
+</div>
+<a class="admonition-anchor-link" href="proj1/setup.html#admonition-note"></a>
+</div>
+<div>
+<p>If you can't connect to Docker Hub, you can also download the image archive from our <a href="https://disk.pku.edu.cn/link/AA8F735492EA4048A282AA5A7B9820B521">PKU Disk</a> and load it with the following command:</p>
+<pre><code class="language-sh">docker load -i archlab-image.tar
+</code></pre>
+<p>All the resources used in labs will be visible in the PKU Disk.</p>
+</div>
+</div>
+<p>After pull (load) the image, you can find it by running the following command:</p>
+<pre><code class="language-sh">docker images
+
+# you'll see contents like the following:
+REPOSITORY         TAG           IMAGE ID       CREATED        SIZE
+chaselab/archlab   latest        c028b12a3ac4   1 second ago   1.8GB
+</code></pre>
+<div id="admonition-note-1" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-1-title">
+<div class="admonition-title">
+<div id="admonition-note-1-title">
+<p>Note</p>
+</div>
+<a class="admonition-anchor-link" href="proj1/setup.html#admonition-note-1"></a>
+</div>
+<div>
+<p>If you prefer to install the prerequisites for <code>gem5</code> manually, you can follow the commands listed below.</p>
+<pre><code class="language-sh">sudo apt-get update; sudo apt-get upgrade
+# For Ubuntu 20.04
+sudo apt install build-essential git m4 scons zlib1g zlib1g-dev libprotobuf-dev protobuf-compiler libprotoc-dev libgoogle-perftools-dev python3-dev python-is-python3 libboost-all-dev pkg-config
+
+# For Ubuntu 18.04
+sudo apt install build-essential git m4 scons zlib1g zlib1g-dev libprotobuf-dev protobuf-compiler libprotoc-dev libgoogle-perftools-dev python3-dev python libboost-all-dev pkg-config
+</code></pre>
+</div>
+</div>
+<p>After preparing the environment, you should clone the codes of <code>gem5</code>. We have provided a skeleton code which you can clone from its <a href="https://github.com/ChaseLab-PKU/archlab-gem5">repo</a>, or download the code package from <a href="https://disk.pku.edu.cn/link/AA8F735492EA4048A282AA5A7B9820B521">PKU Disk</a> and then extract the codes to a directory.</p>
+<p>Once you have the codes, you are able to compile <code>gem5</code>. If you are using Docker (if not you can skip this part), you need to firstly create a container to setup the environment. Also, you need to mount the code onto the container when you start it, so that you can read and modify the code files inside the container. The command is as follows:</p>
+<pre><code class="language-sh">docker run -it --name &lt;container name&gt; -v &lt;local path&gt;:&lt;container path&gt; chaselab/archlab /bin/bash
+</code></pre>
+<ul>
+<li>The <code>-it</code> option means to attach stdin, stdout and stderr to current terminal, so you can operate the container interactively.</li>
+<li>The <code>--name &lt;container name&gt;</code> option specifies the name of the new container. It may be useful when you try to run other commands on the container, but it is rather optional, because you can always specify a container by its individual ID. You can see the IDs and names of all existing containers with this command:</li>
+</ul>
+<pre><code class="language-sh">docker ps -a
+
+# you'll see contents like the following:
+CONTAINER ID   IMAGE                  COMMAND       CREATED          STATUS                      PORTS     NAMES
+43518d84eb29   chaselab/archlab       "/bin/bash"   14 seconds ago   Exited (0) 14 seconds ago             lab1
+</code></pre>
+<ul>
+<li>The <code>-v &lt;local path&gt;:&lt;container path&gt;</code> allows you to mount a local directory to a directory in the container. Here, you need to specify the <code>local path</code> as the path to your <code>gem5</code> code, for example, <code>C:\Users\myname\gem5</code>. The <code>container path</code> can be simple, for example, <code>/gem5</code>. When you enter the container, you can see all the codes under container path. Please note that this option <strong>only accepts absolute paths</strong>, otherwise the contents in the directory will not be correctly mounted.</li>
+<li>The first argument after the options is the image name, here is <code>chaselab/archlab</code>.</li>
+<li>The second argument is the command you want to run upon container start. Here we use <code>/bin/bash</code> to start an interactive terminal.</li>
+</ul>
+<p>Thus, filling up all the options and arguments makes the command look like this:</p>
+<pre><code class="language-sh">docker run -it --name lab1 -v C:\Users\myname\gem5:/gem5 chaselab/archlab /bin/bash
+</code></pre>
+<div id="admonition-docker-command-tips" class="admonition admonish-tip" role="note" aria-labelledby="admonition-docker-command-tips-title">
+<div class="admonition-title">
+<div id="admonition-docker-command-tips-title">
+<p>Docker command tips</p>
+</div>
+<a class="admonition-anchor-link" href="proj1/setup.html#admonition-docker-command-tips"></a>
+</div>
+<div>
+<p>After starting the container, you can run any commands in it. However, you need to know more docker commands when meeting other situations:</p>
+<ul>
+<li>If you've closed the container by running <code>exit</code> and want to run the lab again, you do not need to create another container with <code>docker run</code>. Instead, you can use the following command to restart your container and attach stdin, stdout and stderr to your terminal:</li>
+</ul>
+<pre><code class="language-sh">docker start -ia &lt;container ID/name&gt;
+</code></pre>
+<ul>
+<li>If you start the simulation and want to close the terminal while keeping <code>gem5</code> running, you can type <code>ctrl+p+q</code> to stop the interactive evironment and return to your own terminal. Then, when you want to return to the container, you can use the following commands:</li>
+</ul>
+<pre><code class="language-sh">docker attach &lt;container ID/name&gt; # return to the original container terminal
+docker exec -it &lt;container ID/name&gt; &lt;command&gt; # start a new container terminal
+</code></pre>
+</div>
+</div>
+<h2 id="compile-gem5"><a class="header" href="#compile-gem5">Compile <code>gem5</code></a></h2>
+<p>Once the container has started, or if you have manually prepared the environment, you can proceed to compile <code>gem5</code>. Please note that <code>gem5</code> must be built on a Unix platform (e.g., Linux and MacOS). <code>gem5</code> uses SCons to manage its compilation. In this lab, we'll compile for ARM ISA:</p>
+<pre><code class="language-sh">cd gem5
+scons build/ARM/gem5.opt -j `grep -c '^processor' /proc/cpuinfo` # use all your cores to compile
+</code></pre>
+<p>Building <code>gem5</code> may take you <em>more than 30 minutes</em> on your PC. If it completes successfully, you will see the following results:</p>
+<pre><code> [     CXX] ARM/base/date.cc -&gt; .o
+ [    LINK]  -&gt; ARM/gem5.opt
+scons: done building targets.
+</code></pre>
+<p>You now have a binary in the directory <code>build/ARM</code> called <code>gem5.opt</code>.</p>
+<div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
+<div class="admonition-title">
+<div id="admonition-deliverables-title">
+<p>Deliverables</p>
+</div>
+<a class="admonition-anchor-link" href="proj1/setup.html#admonition-deliverables"></a>
+</div>
+<div>
+<p>Please include a <strong>screenshot that shows your <code>gem5</code> can compile correctly</strong> in your report.</p>
+</div>
+</div>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="part-1-create-and-run-a-simple-configuration-script"><a class="header" href="#part-1-create-and-run-a-simple-configuration-script">Part 1: Create and Run a Simple Configuration Script</a></h1>
+<p><code>gem5</code> simulator is built from a collection of Python objects, <code>SimObject</code>. In this part, you need to set up a simple configuration script to describe the <code>SimObject</code> to be instantiated, their parameters, and their relationships. Following the instructions in this part, you are able to model a simple computer system, including a simple CPU core, a single DDR4 memory channel, and a system-wide memory bus connecting CPU core and memory channel.</p>
+<p>Let’s get started by creating a new configuration file:</p>
+<pre><code class="language-sh">mkdir configs/proj1
+touch configs/proj1/simple.py
+</code></pre>
+<p>This configuration file is a normal Python file. Therefore, you can use any legal grammar or available libraries in Python.</p>
+<p>The first thing we should write in the script is to import the class definitions from the <code>m5</code> modules and all <code>SimObject</code> as follows:</p>
+<pre><code>import m5
+from m5.objects import *
+</code></pre>
+<div id="admonition-info" class="admonition admonish-info" role="note" aria-labelledby="admonition-info-title">
+<div class="admonition-title">
+<div id="admonition-info-title">
+<p>Info</p>
+</div>
+<a class="admonition-anchor-link" href="proj1/part1.html#admonition-info"></a>
+</div>
+<div>
+<p><code>gem5</code> is an open-source project based on another project <code>m5</code>, which is still involved in <code>gem5</code> from many aspects.</p>
+</div>
+</div>
+<p>In <code>gem5</code>, to simplify the description of large systems, the overall simulation specification is organized as a tree. Each node in the tree is a <code>SimObject</code> instance. The program must create a special object root of class <code>Root</code> to identify the root of the tree hierarchy. When parsing the configuration program, the tree hierarchy is walked recursively to identify the objects from the root to its descendants. We will create the first object which is the <code>Root</code> and specify its parameters in the “m5 main process”:</p>
+<pre><code class="language-python">if __name__ == '__m5_main__':
+    root = Root()
+    root.full_system = False
+    root.system = System()
+</code></pre>
+<p><code>gem5</code> provides two simulation modes: system call emulation (SE) mode and full system (FS) mode. In FS mode, Gem5 can simulate a complete system with devices and an operating system, while in SE mode, only essential system services are provided by simulator to execute workloads. In our projects, we will use SE mode for faster simulation (<code>root.full_system = False</code>). The above codes also instantiate class <code>System</code>. It is the parent of all the other objects in the simulated system, and contains a lot of functional information, such as the physical memory ranges, the root clock domain, the root voltage domain, etc.</p>
+<div id="admonition-note" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-title">
+<div class="admonition-title">
+<div id="admonition-note-title">
+<p>Note</p>
+</div>
+<a class="admonition-anchor-link" href="proj1/part1.html#admonition-note"></a>
+</div>
+<div>
+<p>Here is an alternative method to pass the parameters as named arguments:</p>
+<pre><code class="language-python">root = Root(full_system = False, system = System())
+</code></pre>
+<p>All the definitions of the used Python objects can be found under <code>gem5/src/.../*.py</code>. For example, <code>Root</code> can be found in <code>gem5/src/sim/Root.py</code>. You can check the usages of objects and choose your favorite way.</p>
+</div>
+</div>
+<p>Now that a reference to the system for the simulation has been created, let’s build a simple but complete system. The first thing is to set the clock on the system. We first need to create the clock domain, which is an instance of class <code>SrcCLockDomain</code>. Clock domain contains multiple parameters such as clock (clock frequency), voltage domain (voltage), etc. Each parameter has its default value defined in the python class. We can also manually set the values in the configuration script as follows:</p>
+<pre><code class="language-python">def init_system(system):
+    system.clk_domain = SrcClockDomain(clock='4GHz', voltage_domain=VoltageDomain())
+</code></pre>
+<p>Once the clock domain is set up, we can move to create the memory and the memory controller. We need to configure the memory simulation mode and memory range. Since we make configurations for normal simulation, we are going to select <em>timing mode</em> for the memory simulation, which can be applied in most conditions. In other simulation conditions such as restoring memory system from a checkpoint, you may select <em>atomic mode</em>.</p>
+<p>Then, we will also set up a single memory range of size 2GB and assign it to the system. We should also get instances of memory controller (<code>MemCtrl</code>) and memory device from various memory device classes such as DDR4 DRAM (<code>DDR4_2400_8x8</code>), HMC (<code>HMC_2500_x32</code>), etc. All available memory devices classes are listed in <code>src/mem/DRAMInterface.py</code>. Last, we assign the memory device with the memory range.</p>
+<pre><code class="language-python">system.mem_mode = 'timing'
+system.mem_ranges = [AddrRange ('2GB')]
+system.mem_ctrl = MemCtrl()
+system.mem_ctrl.dram = DDR4_2400_8x8()
+system.mem_ctrl.dram.range = root.system.mem_ranges[0]
+</code></pre>
+<p>So far, we have almost completed memory setup. Now, we can create a CPU. <code>gem5</code> provides various types of CPU such as <code>SimpleCPU</code> (simplified CPU timing model), <code>MinorCPU</code> (in-order CPU), <code>O3CPU</code> (out-of-order CPU), etc. As an example, we choose simple timing-based CPU in Gem5, <code>TimingSimpleCPU</code>. This CPU model executes each instruction in a single clock cycle, except for memory requests, which flow through the memory. You can instantiate the object in the system:</p>
+<pre><code class="language-python">system.cpu = TimingSimpleCPU()
+</code></pre>
+<p>Next, we need to create a system bus to connect between the CPU and memory controller. The command to instantiate memory bus is as follows:</p>
+<pre><code class="language-python">system.membus = SystemXBar()
+</code></pre>
+<p>Now that we have created the system bus, the next step is to describe the interconnect logic which actually connect the CPU to the memory. For CPU, we need to connect the ICache and DCache ports to the system bus (currently we do not include any cache in the CPU). For memory, we need to connect memory controller port to the system bus. In addition, we need to create an interrupt controller on the CPU and connect a system port to the memory bus. This port is a functional-only port to allow the system to read/write memory:</p>
+<pre><code class="language-python">system.cpu.icache_port = system.membus.cpu_side_ports
+system.cpu.dcache_port = system.membus.cpu_side_ports
+system.mem_ctrl.port = system.membus.mem_side_ports
+system.cpu.createInterruptController()
+system.system_port = system.membus.cpu_side_ports
+# system.cpu.interrupts[0].pio = system.membus.mem_side_ports
+# system.cpu.interrupts[0].int_requestor = system.membus.cpu_side_ports
+# system.cpu.interrupts[0].int_responder = system.membus.mem_side_ports
+</code></pre>
+<div id="admonition-info-1" class="admonition admonish-info" role="note" aria-labelledby="admonition-info-1-title">
+<div class="admonition-title">
+<div id="admonition-info-1-title">
+<p>Info</p>
+</div>
+<a class="admonition-anchor-link" href="proj1/part1.html#admonition-info-1"></a>
+</div>
+<div>
+<p>For your information, X86 ISA also requires connecting PIO and interrupt ports to the memory bus. Here we use ARM ISA and ignore these requirements, but we leave the code in comments.</p>
+</div>
+</div>
+<div id="admonition-note-1" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-1-title">
+<div class="admonition-title">
+<div id="admonition-note-1-title">
+<p>Note</p>
+</div>
+<a class="admonition-anchor-link" href="proj1/part1.html#admonition-note-1"></a>
+</div>
+<div>
+<p>In code above, we manually connect all the necessary ports of CPU to show the details of system wiring up. In fact, <code>gem5</code> source codes have provided a wrapped helper function to perform this procedure. You can use it as follows:</p>
+<pre><code class="language-python">system.cpu.connectBus(system.membus)
+system.mem_ctrl.port = system.membus.mem_side_ports
+system.cpu.createInterruptController()
+system.system_port = system.membus.cpu_side_ports
+</code></pre>
+</div>
+</div>
+<p>So far, we have finished the configuration of simulated system. Next, we will set up the program to be executed. <code>gem5</code> allows you to specify any application built for ARM ISA and that’s been <strong>statically</strong> compiled. In this script, we will execute a simple “Hello World” program. You can compile the code with <code>make</code> in <code>tests/labexe</code>, or download the pre-built binaries from <a href="https://disk.pku.edu.cn/link/AA8F735492EA4048A282AA5A7B9820B521">PKU Disk</a>.</p>
+<div id="admonition-important-note" class="admonition admonish-warning" role="note" aria-labelledby="admonition-important-note-title">
+<div class="admonition-title">
+<div id="admonition-important-note-title">
+<p>Important note</p>
+</div>
+<a class="admonition-anchor-link" href="proj1/part1.html#admonition-important-note"></a>
+</div>
+<div>
+<p>In our released codes, we've included five simple but representative algorithm programs in <code>gem5/tests/labexe</code>. The Docker image also includes the cross-compile toolchain. To compile these programs, simply run following commands:</p>
+<pre><code class="language-sh">cd tests/labexe
+make
+</code></pre>
+<p>Then the executable files can be found under <code>tests/labexe</code>.</p>
+<p>If you want to compile your own programs, just use <code>arm-linux-gnueabihf-gcc</code> and <code>arm-linux-gnueabihf-g++</code> as the compiler. Remember to add <code>-static</code> option so that <code>gem5</code> can correctly load the executables.</p>
+<p>If you are not using Docker and want to compile ARM executables, you should install the cross-compile toolchain:</p>
+<pre><code class="language-sh">sudo apt install gcc-arm-linux-gnueabihf
+</code></pre>
+<p>If you prefer not to build the excutables by yourself or the building process takes a lot of time, you can just download the pre-built binaries from <a href="https://disk.pku.edu.cn/link/AA8F735492EA4048A282AA5A7B9820B521">PKU Disk</a>.</p>
+</div>
+</div>
+<p>To inform <code>gem5</code> to execute our program, we first need to set system workload to the executable. Then we create a process and set the process command to the workload we want to run. This is a list structure with the executable in the first field and the arguments passed to the executable in the rest of the list. Then we configure the CPU to execute the process and finally create the functional execution contexts in the CPU:</p>
+<pre><code class="language-python">import os
+def init_process(root):
+    exe_path = 'tests/labexe/hello'
+    root.system.workload = SEWorkload.init_compatible(exe_path)
+    process = Process()
+    process.executable = exe_path
+    process.cwd = os.getcwd()
+    process.cmd = [exe_path]
+    root.system.cpu.workload = process
+    root.system.cpu.createThreads()
+</code></pre>
+<p>Finally, we need to instantiate the object hierarchy by calling <code>instantiate()</code> function. Once the object hierarchy has been instantiated, the actual simulation can begin. The <code>simulate()</code> function invokes the C++ event loop. By default, this function will simulate forever, or until some other factor causes the simulation loop to exit (such as the CPU has been shutdown). If a positive integer argument is passed to the simulate function, it will simulate at most that number of additional ticks, but may exit sooner if another cause arises first. In any case, the <code>simulate()</code> function will return an event object that represents the reason for exiting. The object can be queried via its <code>getCause()</code> method for a string explaining that reason. Let’s return to m5 main process, initialize the system and process, then start the simulation:</p>
+<pre><code class="language-python">if __name__ == '__m5_main__':
+    root = Root()
+    root.full_system = False
+    root.system = System()
+    # new codes:
+    init_system(root.system)
+    init_process(root)
+    m5.instantiate()
+    exit_event = m5.simulate()
+    print(f'{exit_event.getCause()} ({exit_event.getCode()}) @ {m5.curTick()}')
+</code></pre>
+<p>Now, we have created a simple but complete simulation script, we are ready to run <code>gem5</code>:</p>
+<pre><code class="language-sh">build/ARM/gem5.opt configs/proj1/simple.py
+</code></pre>
+<p>If everything goes fine, you'll see contents like follows:</p>
+<pre><code>...
+Hello, World!
+exiting with last active thread context (0) @ 14307750
+</code></pre>
+<div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
+<div class="admonition-title">
+<div id="admonition-deliverables-title">
+<p>Deliverables</p>
+</div>
+<a class="admonition-anchor-link" href="proj1/part1.html#admonition-deliverables"></a>
+</div>
+<div>
+<p>Please include a <strong>screenshot of the output on stdout of your configuration script</strong> in your <em><strong>report</strong></em>.</p>
+</div>
+</div>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="part-2-understand-gem5-statistics-and-output"><a class="header" href="#part-2-understand-gem5-statistics-and-output">Part 2: Understand <code>gem5</code> Statistics and Output</a></h1>
+<p>After <code>gem5</code> simulation completes, by default there are three files generated in directory <code>m5out</code>:</p>
+<ul>
+<li><code>config.ini</code>: contains a list of <code>SimObject</code> and the values of their parameters for simulation.</li>
+<li><code>config.json</code>: same with <code>config.ini</code>, but in json format.</li>
+<li><code>stats.txt</code>: detailed statistics generated from <code>gem5</code> simulation. Specifically, it contains general information about the execution, which is shown as follows:</li>
+</ul>
+<pre><code>---------- Begin Simulation Statistics ----------
+simSeconds                    5.148973        # Number of seconds simulated (Second)
+simTicks                 5148973163000        # Number of ticks simulated (Tick)
+...
+</code></pre>
+<p>It contains three columns: left lists the statistics names, middle column lists the values, and the right column shows the explanation. In this project, simSeconds and simInsts are important. You can calculate your simulated computer system performance (instructions per second) by <code>simInsts / simSeconds</code>. You also can find out system.cpu.numCycles and calculate IPC (instruction per cycle) by <code>simInsts / system.cpu.numCycles</code>. Each <code>SimObject</code> in the simulated system will print its own statistics. You can use any finding approach (e.g., <code>grep</code>) to check specific statistics, like the statistics of <code>system.cpu</code>.</p>
+<div id="admonition-tip" class="admonition admonish-tip" role="note" aria-labelledby="admonition-tip-title">
+<div class="admonition-title">
+<div id="admonition-tip-title">
+<p>Tip</p>
+</div>
+<a class="admonition-anchor-link" href="proj1/part2.html#admonition-tip"></a>
+</div>
+<div>
+<p>You can change the output directory of <code>gem5</code> using command options like these (the options need to be <strong>before</strong> the script argument):</p>
+<pre><code class="language-sh">build/ARM/gem5.opt -d another-dir configs/proj1/simple.py
+build/ARM/gem5.opt --outdir=another-dir configs/proj1/simple.py
+</code></pre>
+<p>This is important for this and other projects, because <code>gem5</code> will override previous output in the same directory, which may delete your experiment results and waste your time. <strong>Make sure to backup important results before running <code>gem5</code> again!</strong></p>
+</div>
+</div>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="part-3-add-options-in-the-configuration-script"><a class="header" href="#part-3-add-options-in-the-configuration-script">Part 3: Add Options in the Configuration Script</a></h1>
+<p>In this project, you are required to explore different CPU and memory configurations for different workloads. However, it is cumbersome to edit your configuration script every time you want to test the system with different parameters. To smoothly solve this issue, you can add command-line parameters to your configuration scripts. Since the configuration script is a Python script, it can use Python libraries that support argument parsing (e.g., <code>argparse</code>). Adding options to configuration script requires several steps. After importing <code>argparse</code>, you need to specify the arguments in m5 main process:</p>
+<pre><code class="language-python">import argparse
+if __name__ == "__m5_main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "commands_to_run",
+        nargs="*",
+        help="Command(s) to run",
+    )
+    parser.add_argument(
+        "--cpu",
+        type=str,
+        choices=list(cpu_types.keys()),
+        default="simple",
+        help="CPU model to use",
+    )
+    parser.add_argument(
+        "--mem",
+        type=str,
+        choices=list(mem_types.keys()),
+        default="DDR4",
+        help="type of memory to use",
+    )
+    parser.add_argument(
+        "--clock", 
+        type=str, 
+        default="4GHz"
+    )
+    args = parser.parse_args()
+    ...
+</code></pre>
+<div id="admonition-info" class="admonition admonish-info" role="note" aria-labelledby="admonition-info-title">
+<div class="admonition-title">
+<div id="admonition-info-title">
+<p>Info</p>
+</div>
+<a class="admonition-anchor-link" href="proj1/part3.html#admonition-info"></a>
+</div>
+<div>
+<p><code>argparse</code> is a very useful Python library that provides a set of methods to help build user-friendly CLI. In codes above we add a <em>positional argument</em> <code>commands_to_run</code> and three <em>options</em> with prefix <code>--</code>. <code>gem5</code> support you to use <code>-h,--help</code> options to check the usage of a configuration script:</p>
+<pre><code class="language-sh">build/ARM/gem5.opt configs/proj1/simple.py --help
+
+# you'll see contents like the following:
+...
+usage: simple.py [-h] [--cpu CPU] [--mem MEM] [--clock CLOCK] [commands_to_run [commands_to_run ...]]
+...
+</code></pre>
+<p>For detailed usage of <code>argparse</code>, please refer to the <a href="https://docs.python.org/3/library/argparse.html">official documentation</a>.</p>
+</div>
+</div>
+<p>You may notice that we have specified the <code>choices</code> in <code>--cpu</code> and <code>--mem</code>, which is a Python <code>list</code> that can specify the available choices. We've also defined <code>cpu_types</code> and <code>mem_types</code> and used their <code>keys()</code> as the choices. This is a convenient way to simplify the arugments used in commands. We can transform the argument short strings to detailed <code>SimObject</code> names with them. <code>gem5</code> provides various alternative CPU and memory models alongside <code>TimingSimpleCPU</code> and <code>DDR4</code> memory, such as <code>O3CPU</code> (out-of-order), <code>MinorCPU</code> (in-order), <code>DDR5</code> memory. We can use these models as choices. Example defines are as follows:</p>
+<pre><code class="language-python">cpu_types = {
+    "simple": TimingSimpleCPU,
+    "minor": MinorCPU,
+    "o3": O3CPU,
+}
+mem_types = {
+    "DDR3": DDR3_1600_8x8,
+    "DDR4": DDR4_2400_8x8,
+    "DDR5": DDR5_8400_4x8,
+}
+</code></pre>
+<p>Next, we need to pass the CPU type option and memory type option to the system. We can modify the <code>init_system()</code> function by following codes:</p>
+<pre><code class="language-python"># DELETE: def init_system(system):
+def init_system(system, args):
+    ...
+    # DELETE: system.mem_ctrl.dram = DDR4_2400_8x8()
+    system.mem_ctrl.dram = mem_types[args.mem]()
+    # DELETE: system.cpu = TimingSimpleCPU()
+    system.cpu = cpu_types[args.cpu]()
+    ...
+</code></pre>
+<p>We've also set the clock speed (<code>--clock</code>) option in codes above, and we can also pass it to the system:</p>
+<pre><code class="language-python"># DELETE: system.clk_domain = SrcClockDomain(clock='4GHz', voltage_domain=VoltageDomain())
+system.clk_domain = SrcClockDomain(clock=args.clock, voltage_domain=VoltageDomain())
+</code></pre>
+<p>Finally, we can pass the first positional argument <code>command_to_run</code> to the process, which allows us to specify executables other than simply <code>hello</code>:</p>
+<pre><code class="language-python"># DELETE: def init_process(root):
+def init_process(root, args):
+    # DELETE: exe_path = 'tests/labexe/hello'
+    exe_path = args.commands_to_run[0]
+    root.system.workload = SEWorkload.init_compatible(exe_path)
+    process = Process()
+    process.executable = exe_path
+    precess.cwd = os.getcwd()
+    # DELETE: process.cmd = [exe_path]
+    process.cmd = args.commands_to_run
+    root.system.cpu.workload = process
+    root.system.cpu.createThreads()
+</code></pre>
+<p>Now, we have completed the modification to our configuration script, we can run the script like follows:</p>
+<pre><code class="language-sh">build/ARM/gem5.opt configs/proj1/simple.py tests/labexe/gemm --cpu minor --mem DDR5 --clock 2GHz
+</code></pre>
+<div id="admonition-tip" class="admonition admonish-tip" role="note" aria-labelledby="admonition-tip-title">
+<div class="admonition-title">
+<div id="admonition-tip-title">
+<p>Tip</p>
+</div>
+<a class="admonition-anchor-link" href="proj1/part3.html#admonition-tip"></a>
+</div>
+<div>
+<ul>
+<li>Except the <code>hello</code>, other executables are quite complex, and will take hours for <code>gem5</code> to finish simulation. You can early-stop the simulation with all statistics printed by specifying the <code>max_insts_any_thread</code> in CPU, which will shutdown the CPU when that many instructions are already executed (you can also set an option for this parameter):</li>
+</ul>
+<pre><code class="language-python">system.cpu.max_insts_any_thread = 1e+9
+</code></pre>
+<ul>
+<li>Find the proper <code>max_insts_any_thread</code> number for your PC that allows a fast simulation, but still generate reasonable statistics (warmup phases in executables may show quite different performance statistics compared to real execution phases). A <strong>recommended number is <code>5e+8</code></strong> for this project.</li>
+</ul>
+</div>
+</div>
+<div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
+<div class="admonition-title">
+<div id="admonition-deliverables-title">
+<p>Deliverables</p>
+</div>
+<a class="admonition-anchor-link" href="proj1/part3.html#admonition-deliverables"></a>
+</div>
+<div>
+<p>Please include the following in your <em><strong>report</strong></em>:</p>
+<ul>
+<li>Use these system settings (<code>cpu=simple</code>, <code>clock=2GHz</code>, <code>mem=DDR3</code>) to run simulation. Please use the <strong>complex</strong> executables provided in <code>tests/labexe</code> (i.e., <code>shell_sort</code>, <code>gemm</code>, <code>spfa</code> and <code>binary_search</code>). Please <strong>calculate and show (in tables or figures) the IPC</strong> for these executables.</li>
+<li>Repeat the experiments, but change the CPU type (with <code>mem=DDR3</code> and <code>clock=2GHz</code> unchanged) to achieve better performance for different executables. Also calculate and show the IPC for each executable and CPU type.</li>
+<li>Repeat the experiments, but change the mem type (with a <strong>fixed</strong> CPU type and <code>clock=2GHz</code> unchanged) to achieve better performance for different executables. Also calculate and show the IPC for each executable and CPU type.</li>
+</ul>
+</div>
+</div>
+<div id="admonition-important-note" class="admonition admonish-warning" role="note" aria-labelledby="admonition-important-note-title">
+<div class="admonition-title">
+<div id="admonition-important-note-title">
+<p>Important note</p>
+</div>
+<a class="admonition-anchor-link" href="proj1/part3.html#admonition-important-note"></a>
+</div>
+<div>
+<p>Running complex executables with <code>gem5</code> takes you a lot of time. This part requires you to run multiple settings, so it takes much longer time. Since <code>gem5</code> is basically a single-thread process, you can run different settings <strong>in parallel</strong> to accelerate your experiments.</p>
+<p>Also, please remind to <strong>set a unique output directory</strong> (refer to <a href="proj1/./part2.html">part 2</a>) for each parallel run, otherwise these runs may override with each other!</p>
+<p>You can also use a shell script to automate this parallel running. Things may be like the following:</p>
+<pre><code class="language-bash">#!/bin/bash
+
+# examples
+cpus=("c1" "c2")
+mems=("m1" "m2")
+exes=("shell_sort" "gemm" "spfa" "binary_search")
+
+for c in ${cpus[@]}; do
+for m in ${mems[@]}; do
+for e in ${exes[@]}; do
+    # set output dir, name it however you like
+    build/ARM/gem5.opt -d $e$c$m \
+    configs/proj1/simple.py tests/labexe/$e \
+    # add `&amp;` after the command to let it run in background
+    --cpu $c --mem $m &amp;
+done
+done
+done
+</code></pre>
+<p>Then use <code>ctrl+p+q</code> to quit container terminal while keeping the background threads runing.</p>
+</div>
+</div>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="submission"><a class="header" href="#submission">Submission</a></h1>
+<div id="admonition-submission" class="admonition admonish-note" role="note" aria-labelledby="admonition-submission-title">
+<div class="admonition-title">
+<div id="admonition-submission-title">
+<p>Submission</p>
+</div>
+<a class="admonition-anchor-link" href="proj1/submit.html#admonition-submission"></a>
+</div>
+<div>
+<ul>
+<li>Please submit the deliverables for each part in order and clearly defined in a report form (e.g., PDF or Word). Please give a brief description of the results in your report. You <strong>DO NOT</strong> need to submit your configuration script <strong>in this project</strong>.</li>
+<li>Please submit your report as an attachment at <a href="https://course.pku.edu.cn">course.pku.edu.cn</a>. The title of the attachment should be Student-ID_Name_Proj1 (e.g., 123456789_WangXiaoming_Proj1).</li>
+<li>You can also send your report to <a href="proj1/">ca2024fall@163.com</a>. The titles of your email AND attachment should both be Student-ID_Name_Proj1.</li>
+<li><strong>DO NOT PLAGIARIZE</strong>. We will select 10 students randomly and ask them to answer our questions related to their results.</li>
+</ul>
+</div>
+</div>
+<div id="admonition-late-policy" class="admonition admonish-warning" role="note" aria-labelledby="admonition-late-policy-title">
+<div class="admonition-title">
+<div id="admonition-late-policy-title">
+<p>Late policy</p>
+</div>
+<a class="admonition-anchor-link" href="proj1/submit.html#admonition-late-policy"></a>
+</div>
+<div>
+<ul>
+<li>You will be given <strong>3 slip days</strong> (shared by all projects), which can be used to extend project deadlines, e.g., 1 project extended by 3 days or 3 projects each extended by 1 day.</li>
+<li>Projects are due at 23:59:59, no exceptions; 20% off per day late, 1 second late = 1 hour late = 1 day late.</li>
+</ul>
+</div>
+</div>
+<div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
+<div class="admonition-title">
+<div id="admonition-deliverables-title">
+<p>Deliverables</p>
+</div>
+<a class="admonition-anchor-link" href="proj1/submit.html#admonition-deliverables"></a>
+</div>
+<div>
+<p>Please include the following in your <em><strong>report</strong></em>:</p>
+<ol>
+<li><strong>Startup:</strong> a screenshot that shows you <code>gem5</code> can compile correctly.</li>
+<li><strong>Part 1:</strong> a screenshot of the output on stdout of your configuration script.</li>
+<li><strong>Part 3:</strong>
+<ul>
+<li>Use these system settings (<code>cpu=simple</code>, <code>clock=2GHz</code>, <code>mem=DDR3</code>) to run simulation. Please use the <strong>complex</strong> executables provided in <code>tests/labexe</code>. Please <strong>calculate and show (in tables or figures) the IPC</strong> for these executables.</li>
+<li>Repeat the experiments, but change the CPU type (with <code>mem=DDR3</code> and <code>clock=2GHz</code> unchanged) to achieve better performance for different executables. Also calculate and show the IPC for each executable and CPU type.</li>
+<li>Repeat the experiments, but change the mem type (with and <strong>fixed</strong> CPU type and <code>clock=2GHz</code> unchanged) to achieve better performance for different executables. Also calculate and show the IPC for each executable and CPU type.</li>
+</ul>
+</li>
+</ol>
+<p>You <strong>DO NOT</strong> need to submit your configuration script <strong>in this project</strong>.</p>
+</div>
+</div>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="appendix-common-questions"><a class="header" href="#appendix-common-questions">Appendix: Common Questions</a></h1>
+<p>Here are some common questions that we collected on Part 1, especially for installing environment and compiling <code>gem5</code>:</p>
+<h2 id="pull-image-issue"><a class="header" href="#pull-image-issue">Pull image issue</a></h2>
+<p>If you failed to pull the Docker image with <code>docker pull</code>, it is probably because the Docker Hub is blocked currently. Try to use VPN or download the image from our <a href="https://disk.pku.edu.cn/link/AA8F735492EA4048A282AA5A7B9820B521">PKU Disk</a>.</p>
+<h2 id="warning-about-pre-commit"><a class="header" href="#warning-about-pre-commit">Warning about <code>pre-commit</code></a></h2>
+<p>If you run <code>scons</code> to compile and are warned with <code>Cannot find 'pre-commit'</code> (messages like the following), you can ignore the message. This is only required for contributing to <code>gem5</code> and will not prevent the compilation.</p>
+<pre><code>You're missing the pre-commit/commit-msg hooks. These hook help to ensure your
+code follows gem5's style rules on git commit and your commit messages follow
+our commit message requirements. This script will now install these hooks in
+your .git/hooks/ directory.
+Press enter to continue, or ctrl-c to abort:
+ Cannot find 'pre-commit'. Please ensure all Python requirements are
+installed. This can be done via 'pip install -r requirements.txt'.
+It is strongly recommended you install the pre-commit hooks before working with gem5. Do you want to continue compilation (y/n)?
+</code></pre>
+<h2 id="format-issue-r-with-git-and-windows"><a class="header" href="#format-issue-r-with-git-and-windows">Format issue (<code>\r</code>) with <code>git</code> and Windows</a></h2>
+<p>If you use Docker Desktop on a Windows system, you may meet a file format issue during compilation, especially when you clone the codes under Windows using <code>git</code>. <code>git</code> will automatically replace <code>\n</code> (LF) with <code>\r\n</code> (CRLF) for you. SCons may report the occurance of <code>\r</code> (or <code>^M</code>) and throw an error. Here's three possible solutions:</p>
+<ul>
+<li>Disable the auto replacement by <code>git config --global core.autocrlf false</code>, and clone (re-clone) the codes.</li>
+<li>Use <code>dos2unix</code> under your container (you need to firstly install it using <code>apt</code>) to transform <code>\r\n</code> to <code>\n</code>. The command referring to this <a href="https://www.cnblogs.com/JasonCeng/p/15806834.html">blog</a> can be</li>
+</ul>
+<pre><code>find . -type f -print0 | xargs -0 dos2unix
+</code></pre>
+<ul>
+<li>Clone the codes inside container. Be careful, <strong>you will lose your codes when you remove the container</strong> if you choose this solution.</li>
+</ul>
+<h2 id="run-out-of-memory-scons-killed-issue"><a class="header" href="#run-out-of-memory-scons-killed-issue">Run out of memory (SCons killed) issue</a></h2>
+<p>If you fail to compile and SCons reports message like the following, you are probably running out of memory:</p>
+<pre><code class="language-sh">collect2: fatal error: ld terminated with signal 9 [Killed]
+# ... or
+g++: fatal error: Killed signal terminated program cc1plus
+</code></pre>
+<p>As reference values, with 8 compile jobs (<code>-j 8</code>), the compilation and the link process (<code>[LINK]  -&gt; build/ARM/gem5.opt</code>) may both take up to <strong><em>12GB</em></strong> memory. If your PC's physical memory is equal to or less than 16GB, you may probably meet this issue.</p>
+<p>If you face this trouble, you can manually enlarge the swap space used by Docker container. On Windows, you need to firstly change the backend to WSL2 (installation method can be found in <a href="https://learn.microsoft.com/zh-cn/windows/wsl/install">official doc</a>). The setting process is like the following:
+<img src="proj1/./part1append.png" alt="setting" /></p>
+<p>Next, stop Docker Desktop, and stop WSL by <code>wsl --shutdown</code>. Then, create a file named <code>.wslconfig</code> under <code>C:\Users\Yourname</code>, and write the following configs:</p>
+<pre><code class="language-toml">[wsl2]
+memory=4GB
+swap=32GB
+autoMemoryReclaim=gradual
+</code></pre>
+<p>You can adjust the <code>memory</code> and <code>swap</code> values based on your PC's physical memory and disk space limits. WSL2 uses up to 50% of your physical memory by default. According to the memory usage values described above, the <code>swap</code> is recommended to be larger than <strong><em>20GB</em></strong>. Set <code>autoMemoryReclaim=gradual</code> to save your physical memory when you are not running WSL or containers.</p>
+<p>Lastly, start WSL, Docker Desktop and your container again. You can also start a new container by restricting its memory and swap limits:</p>
+<pre><code class="language-sh">docker run -it --memory 4G --memory-swap 20G -v ...
+</code></pre>
+<p>Remember to use the same <code>&lt;container path&gt;</code> in <code>-v</code>, otherwise compilation may fail. Or you can delete <code>build/</code> and re-compile completely.</p>
+<h2 id="use-docker-on-server"><a class="header" href="#use-docker-on-server">Use docker on server</a></h2>
+<p>If you still cannot compile or cannot setup WSL and Docker Desktop, feel free to contact TA for a server account. However, please note:</p>
+<ul>
+<li>You still need to <strong>use docker image</strong>, since the environment on the server is not checked.</li>
+<li>You <strong>DO NOT need to pull</strong> the image again. Just clone the codes and use <code>docker run</code>.</li>
+<li>Because you can see all existing containers on the server, please assign an <em><strong>UNIQUE NAME</strong></em> to your new container with <code>--name</code> in <code>docker run</code>. If you use a name same with an existing one, you will not be able to start the new container.</li>
+<li><strong>DO NOT MALICIOUSLY ENTER OTHER STUDENTS' CONTAINERS OR MODIFY THEIR CODES!</strong></li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+        <script>
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+
+
+    </div>
+    </body>
+</html>

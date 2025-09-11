@@ -1,0 +1,314 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Task: Read Paper, Implement and Evaluate FAST - Archlab SimpleSSD Project 4</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../../mdbook-admonish.css">
+
+        <!-- MathJax -->
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Archlab SimpleSSD Project 4</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="task-read-paper-implement-and-evaluate-fast"><a class="header" href="#task-read-paper-implement-and-evaluate-fast">Task: Read Paper, Implement and Evaluate FAST</a></h1>
+<div id="admonition-cite" class="admonition admonish-quote" role="note" aria-labelledby="admonition-cite-title">
+<div class="admonition-title">
+<div id="admonition-cite-title">
+<p>Cite</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-cite"></a>
+</div>
+<div>
+<p>Lee, S. W., Park, D. J., Chung, T. S., Lee, D. H., Park, S., &amp; Song, H. J. (2007). A log buffer-based flash translation layer using fully-associative sector translation. ACM Transactions on Embedded Computing Systems (TECS), 6(3), 18-es.</p>
+<p><a href="https://dl.acm.org/doi/10.1145/1275986.1275990">get the pdf</a></p>
+</div>
+</div>
+<p>The task in this project is to read the paper cited above, implement the FAST hybrid-level mapping scheme in SimpleSSD, and evaluate it.</p>
+<h2 id="fast-mapping-scheme-a-brief-introdution"><a class="header" href="#fast-mapping-scheme-a-brief-introdution">FAST mapping scheme: a brief introdution</a></h2>
+<p>The FAST scheme leverages a hybrid-level mapping, which divides the physical blocks into data blocks and log blocks.</p>
+<p>The <strong>data blocks</strong> use <strong>block-level mapping</strong>. That is, when it maps a page with LPN (= LBN * pagePerBlock + PageOffset), the mapping table records only LBN-PBN mapping pairs. The PageOffset remains unchanged during the mapping.</p>
+<p>The <strong>log blocks</strong> use <strong>page-level mapping</strong>. The mapping table records LPN-PPN pairs, and the PageOffset of the LPN and PPN can be different.</p>
+<p>Further more, FAST divides log blocks into <strong>Sequential Write Block</strong> and <strong>Random Write Blocks</strong>. The entire system contains a single SW block. It is used to buffer sequential writes. It also leverages <strong>block-level mapping</strong>, so when it is merged with data blocks, there is possibility to eliminate operations to speed up the merging. RW blocks uses page-level mapping, and the total number of RW blocks are constrained (set to 6 in this project).</p>
+<p>There are four types of operation in FAST:</p>
+<ol>
+<li><strong>Read</strong>. When reading a page, FAST first checks if any log block (SW or RW block) contains this page. If so, it reads the page from the block. Otherwise, it finds the data block by mapping the LBN to PBN. If there exist a data block that maps to the LBN, and the physical page on Page Offset is valid, FAST reads the page from it.</li>
+<li><strong>Write</strong>. When writing a page, FAST first checks if the corresponding physical page, i.e., PBN * pagePerBlock + PageOffset, is free (hasn't been written since last erase). If so, FAST writes the page to it. If not, then FAST writes it to a log block. Firstly, it checks whether this is a sequential write by checking two conditions: (1) PageOffset is 0, no matter what LBN; (2) the LBN is equal to the LBN of current SW block, and the PageOffset is exactly the first free physical page of the SW block (for example, SW block = [0, 1, free, free], writting page 2). If this is a sequential write, FAST writes the page to SW block. Specially, under condition (1), if the write LBN is not the LBN of SW block, the SW block should be merged first. If this is not a sequential write, FAST finds a non-full RW block and writes the page to the first free page of it.</li>
+<li><strong>SW block merge</strong>. "Merge" is the operation that transforms a log block and a few corresponding data blocks into new data blocks and erases these old blocks. When a write with PageOffset == 0 comes, but the LBN is not the current LBN of SW block, FAST merges the SW block first. There are two conditions: (1) the SW block is full of valid pages. Under this condition, the SW block can be "switched" to a data block. FAST finds the old data block of this LBN, modifies the mapping table to let the LBN maps to current SW block, and erase the old data block into a new free block. (2) The SW block is not full. Under this condition, FAST finds the old data block of this LBN, reads all valid pages from the data and SW blocks, allocates a new free block as new data block, writes the valid pages to the new data block, and erases the old data and SW blocks. After both conditions, FAST allocates a free block as the new SW block.</li>
+<li><strong>RW block merge</strong>. When all RW blocks are full (with valid and invalid pages, no more free page), FAST choose a victim RW block to be merged. A RW block may contains logical pages that belong to different logical blocks. FAST first finds all related LBNs of the LPNs in the victim block. Then, it reads all valid pages that belong to these LBNs from all RW blocks and corresponding data blocks (will scan RW blocks, but check the mapping table to find the data blocks to read). It then allocates multiple free blocks for these LBNs, one for each, and write the valid pages to them. Lastly, it erases the old data blocks and the victim block, then allocates a new free RW block.</li>
+</ol>
+<h2 id="provided-contents-in-code-package"><a class="header" href="#provided-contents-in-code-package">Provided contents in code package</a></h2>
+<p>We've provided a few contents in the code package for your convenience (you can download the package from <a href="https://disk.pku.edu.cn/link/AA8F735492EA4048A282AA5A7B9820B521">PKU Disk</a>):</p>
+<ol>
+<li><code>config/simulation_sample.cfg</code>: A sample configuration file.</li>
+<li><code>config/&lt;trace name&gt;.cfg</code>: Four configuration files that configure the program to run on the traces.</li>
+<li><code>simplessd/config/ssd_sample.cfg</code>: A sample configuration file.</li>
+<li><code>simplessd/config/&lt;base/fast&gt;.cfg</code>: Two configuration files that configure the pragram to run with base mapping (<code>PageMapping</code>) and fast mapping.</li>
+<li><code>traces/</code>: Four traces from FIU and one simple trace with 6 requests.</li>
+<li><code>compile</code>: A bash script that calls CMake to setup and compile simplessd. It will compile in both release mode and debug mode.</li>
+<li><code>test</code>: A bash script that automatically simulates the four traces with base/fast mapping. You can run this script in background (<code>./test &amp;</code>). It may take ~10 minutes to complete.</li>
+<li><code>plot.py, plot</code>: Python and bash scripts that draw the latency plots for each setting, based on latency log output <code>latency.csv</code>. You can also open the CSV files in Excel and draw the plot. Note that the other log outputs (<code>log.txt</code> and <code>debug.txt</code>) can be very large, you can modify the configuration files, empty the corresponding fields to turn the log off.</li>
+<li><code>simplessd/ftl/fast.hh, simplessd/ftl/fast.cc</code>: Code skeleton. You can only work under these two files.</li>
+</ol>
+<h2 id="code-skeleton"><a class="header" href="#code-skeleton">Code skeleton</a></h2>
+<p>We've provide a detailed code skeleton for you. Basically, <code>fast.hh</code> defines all the classes and interfaces. There are six functions that require you to complete in <code>fast.cc</code> (You can search for <code>TODO: Lab4</code> to see the exact location):</p>
+<pre><code class="language-cpp">void invalidateOldPage(LBN lbn, POff offset);
+std::pair&lt;PBN, POff&gt; findPageInRWBlocks(LPN lpn);
+bool findPageInSWBlock(LBN lbn, POff offset);
+PBN findPageInDataBlocks(LBN lbn, POff offset);
+bool pageIsFreeInDataBlock(LBN lbn, POff offset);
+bool canWriteToSWBlockAfterMerge(LBN lbn, POff offset, uint64_t &amp;tick,
+                                 bool sendToPAL);
+std::pair&lt;PBN, POff&gt; findFreePageInRWBlocks(uint64_t &amp;tick, bool sendToPAL);
+</code></pre>
+<p>Others are already implemented. You can check the comments for the detailed description. You are not required to simulate the DRAM access latency in this project for simplicity.</p>
+<div id="admonition-info" class="admonition admonish-info" role="note" aria-labelledby="admonition-info-title">
+<div class="admonition-title">
+<div id="admonition-info-title">
+<p>Info</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-info"></a>
+</div>
+<div>
+<p>The interfaces in SimpleSSD leverage a unique implementation to simulate the latency of each request. Basically, The request is passed from the top to the bottom by a serial of interfaces like <code>read</code> and <code>write</code>. Each interface receive a reference to a variable, namely <code>uint64_t &amp;tick</code>. The interfaces modify this variable directly when there is a new latency component, like <code>tick += applyLatency(CPU::FTL__PAGE_MAPPING, CPU::READ_INTERNAL);</code>. They can also pass this variable to other interfaces to gather the latency of next layer, like <code>pPAL-&gt;read(palRequest, tick);</code>. You can use this method to implement FAST.</p>
+</div>
+</div>
+<h2 id="desired-outputs"><a class="header" href="#desired-outputs">Desired outputs</a></h2>
+<p>Compared to <code>PageMapping</code>, your implementation of FAST should exhibits latency spikes that are much higher than the average latency. The latency plots can be like this:</p>
+<p><img src="./latency.png" alt="Lat" /></p>
+<div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
+<div class="admonition-title">
+<div id="admonition-deliverables-title">
+<p>Deliverables</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-deliverables"></a>
+</div>
+<div>
+<p>In this project, please include the following contents in your <em><strong>report</strong></em>:</p>
+<ul>
+<li>Codes of your implementation.</li>
+<li>The <em><strong>comparation of your implementation with <code>PageMapping</code></strong></em> in SimpleSSD. Specifically, show the latency plots for each traces.</li>
+</ul>
+</div>
+</div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../proj4/sim.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../proj4/submit.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../proj4/sim.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../proj4/submit.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

@@ -1,0 +1,351 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Part 3: Read Paper, Implement and Evaluate Hyperion Prefetcher - Archlab gem5 Project 3</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../../mdbook-admonish.css">
+
+        <!-- MathJax -->
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Archlab gem5 Project 3</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="part-3-read-paper-implement-and-evaluate-hyperion-prefetcher"><a class="header" href="#part-3-read-paper-implement-and-evaluate-hyperion-prefetcher">Part 3: Read Paper, Implement and Evaluate Hyperion Prefetcher</a></h1>
+<h2 id="implemeting-a-prefetcher-in-gem5"><a class="header" href="#implemeting-a-prefetcher-in-gem5">Implemeting a prefetcher in <code>gem5</code></a></h2>
+<p>Compared with implementing branch predictors, as we did in project 2, implementing a prefetcher in <code>gem5</code> involves far fewer interfaces. Let's learn from the code of the simplest prefetcher in <code>gem5</code>, namely the <code>TaggedPrefetcher</code>.</p>
+<pre><code class="language-cpp">// src/mem/cache/prefetch/tagged.hh
+namespace gem5 {
+namespace prefetch {
+class Tagged : public Queued {
+  protected:
+      const int degree;
+
+  public:
+    Tagged(const TaggedPrefetcherParams &amp;p);
+    ~Tagged() = default;
+
+    void calculatePrefetch(const PrefetchInfo &amp;pfi,
+                           std::vector&lt;AddrPriority&gt; &amp;addresses,
+                           const CacheAccessor &amp;cache) override;
+};
+} // namespace prefetch
+} // namespace gem5
+
+</code></pre>
+<p>The class <code>Tagged</code> is inherited from <code>prefetch::Queued</code>, which is inherited from <code>prefetch::Base</code>. <code>Queued</code> provides a framework that handles basic issues, like merging prefetches targeting the same address. Thus, our implementation can simply focus on generating prefetches, which is performed in the interface <code>calculatePrefetch()</code>.</p>
+<p>If we check the code of <code>Base</code> (in <code>mem/cache/prefetch/base.hh</code>), it leaves multiple virtual methods, two of them are critical to our implementation:</p>
+<ul>
+<li><code>notify()</code>: This is called when the cache is accessed. By default, two types of access will call this method, namely cache miss and hit on prefetched data (i.e., all potential misses). Set the parameter <code>prefetch_on_access = True</code> will call this method on each cache access.</li>
+<li><code>notifyFill()</code>: This is called when a cacheline is filled into the cache. The cacheline may be demand missed or prefetched previously.</li>
+</ul>
+<p>In the implementation of <code>Queued</code> (in <code>queued.hh</code>), the basic works, like merging prefetches, are wrapped in the default implementation of <code>notify()</code>. Instead, it leaves another virtual method, <code>calculatePrefetch()</code>. Let's check the implementation of <code>Tagged</code> to understand the implementation principle of this method:</p>
+<pre><code class="language-cpp">// src/mem/cache/prefetch/tagged.cc
+void Tagged::calculatePrefetch(const PrefetchInfo &amp;pfi,
+    std::vector&lt;AddrPriority&gt; &amp;addresses, const CacheAccessor &amp;cache) {
+    Addr blkAddr = blockAddress(pfi.getAddr());
+
+    for (int d = 1; d &lt;= degree; d++) {
+        Addr newAddr = blkAddr + d*(blkSize);
+        addresses.push_back(AddrPriority(newAddr,0));
+    }
+}
+</code></pre>
+<p>Basically, the implementation will extract information from <code>pfi</code> and <code>cache</code>, calculate the addresses that are going to be prefetched, and push them into <code>addresses</code> using <code>push_back()</code>.</p>
+<p>The defination of <code>PrefetchInfo</code> can be found in <code>base.hh</code>. Four interfaces are useful for our implementation:</p>
+<ul>
+<li><code>getAddr()</code>: Get the address of the access that trigger the prefetcher.</li>
+<li><code>hasPC()</code>: Check if this access is performed by an instruction.</li>
+<li><code>getPC()</code>: Get the PC of the instruction that performs this access.</li>
+<li><code>isCacheMiss()</code>: Check if this access is a cache miss.</li>
+</ul>
+<p>The <code>Base</code> also provides several useful tools for extract the information:</p>
+<ul>
+<li><code>blockAddress()</code>: Extract the block base of an address. For example, if block size is 64 Bytes, and address <code>A = 66</code>, then <code>blockAddress(A) = 64</code>.</li>
+<li><code>blockIndex()</code>: Extract the block index of an address. For example, <code>blockIndex(A) = 1</code>.</li>
+<li><code>pageAddress()</code>: Extract the page base of an address.</li>
+<li><code>pageOffset()</code>: Extract the offset of an address in its page.</li>
+</ul>
+<p>Please note that <code>Base</code> doesn't provide a method like <code>pageIndex()</code>. By default, the page size is configured to <code>4kiB</code>. Thus, you can implement this method on your own (for example, <code>pageIndex(Addr a) { return a &gt;&gt; 12; }</code>).</p>
+<p>The <code>CacheAccessor</code> provides some interfaces to allow you check the cache status (for example, whether an address is in the cache), they are defined in <code>src/mem/cache/cache_probe_arg.hh</code>.</p>
+<p><code>Tagged</code> doesn't uses <code>notifyFill()</code>. We can found the defination in <code>base.hh</code>:</p>
+<pre><code class="language-cpp">// src/mem/cache/prefetch/base.hh
+virtual void notifyFill(const CacheAccessProbeArg &amp;acc) {}
+</code></pre>
+<p>The <code>CacheAccessProbeArg</code> records the memory packet that triggers the fill event, and a <code>CacheAccessor</code> that allows you to check the cache. This class can also be found in <code>src/mem/cache/cache_probe_arg.hh</code>. For the packet, <code>CacheAccessProbeArg</code> provide a pointer <code>PacketPtr pkt</code>. The two useful interfaces are:</p>
+<ul>
+<li><code>pkt-&gt;getAddr()</code>: get the address of this data fill.</li>
+<li><code>pkt-&gt;cmd.isHWPrefetech()</code>: check if the filled data are prefetched from your hardware prefetcher.</li>
+</ul>
+<p>Please note that, when <code>notifyFill()</code> is called, the address of the filled data is <strong>the block base address</strong>. Thus, when you want to record accesses and check them in <code>notifyFill()</code>, you may want to record them in their block base address.</p>
+<div id="admonition-info" class="admonition admonish-info" role="note" aria-labelledby="admonition-info-title">
+<div class="admonition-title">
+<div id="admonition-info-title">
+<p>Info</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-info"></a>
+</div>
+<div>
+<p>If you check the defination of <code>CacheAccessor</code> and <code>PrefetchInfo</code>, you may find that there are more information recorded, including <code>isSecure</code> and <code>requestorID</code>. In this project, you can simply ignore them. You may only use the interfaces that doesn't require specifying <code>requestorID</code>, and always treat <code>isSecure</code> as <code>false</code>. For example, to check whether an address has been prefetched, you can just use <code>cache.hasBeenPrefetched(addr, false)</code>.</p>
+<p>Also, in next part, you will need to record the "timestamp" of several events. In <code>gem5</code>, we can disrectly use the function <code>curTick()</code> to get the exact current timestamp. An <code>uint64_t</code> value will be returned.</p>
+</div>
+</div>
+<p>In summary, you only need to work with <code>calculatePrefetch()</code> and <code>notifyFull()</code> when you are implementing prefetcher in this part. The provided arguments can help you to determine what type of access (hit on prefetch, data fill or demand miss) calls these methods. All the structures can be implemented as private members and methods, ensuring high flexibility.</p>
+<h2 id="reading-the-paper-and-implementing-hyperion-prefetcher"><a class="header" href="#reading-the-paper-and-implementing-hyperion-prefetcher">Reading the paper and implementing Hyperion prefetcher</a></h2>
+<div id="admonition-cite" class="admonition admonish-quote" role="note" aria-labelledby="admonition-cite-title">
+<div class="admonition-title">
+<div id="admonition-cite-title">
+<p>Cite</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-cite"></a>
+</div>
+<div>
+<p>Cui, Y., Chen, W., Cheng, X., &amp; Yi, J. (2024). Hyperion: A Highly Effective Page and PC Based Delta Prefetcher. ACM Transactions on Architecture and Code Optimization.</p>
+<p><a href="https://dl.acm.org/doi/10.1145/3675398">get the pdf</a></p>
+</div>
+</div>
+<p>In this part, you are required to read the paper cited above, summarize the method described in the paper, and implement the Hyperion prefetcher in <code>gem5</code>. For your convenience, an Appendix provides a brief description of the method. We've already provided a code skeleton. Please check <code>Lab3Hyperion</code> in <code>Prefetcher.py</code>, <code>mem/cache/prefetch/lab3_pf.hh</code> and <code>mem/cache/prefetch/lab3_pf.cc</code>. You can follow the tutorial in project 2 to add useful parameters to <code>Lab3Hyperion</code> and implement C++ codes.</p>
+<div id="admonition-delieverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-delieverables-title">
+<div class="admonition-title">
+<div id="admonition-delieverables-title">
+<p>Delieverables</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-delieverables"></a>
+</div>
+<div>
+<p>Please run two prefetch-sensitive workloads, i.e., <code>shell_sort</code> and <code>gemm</code>, with your Hyperion prefetcher. Please (at least) include figures or tables, which show the IPC of CPU, accuracy, coverage and late count of <code>Lab3Hyperion</code> on executables listed below, in your <em><strong>report</strong></em>:</p>
+<ul>
+<li>prefetch: <code>Lab3Hyperion</code>.</li>
+<li>exe: <code>shell_sort</code>, <code>gemm</code>.</li>
+<li>With default CPU and Memory (O3 and DDR4).</li>
+<li>Use the cache hierarchy described in part 1, and attach the prefetcher to <code>cpu.dcache</code>.</li>
+</ul>
+<p>In total you need to run <code>gem5</code> twice.</p>
+<p>In this part, you also need to submit:</p>
+<ul>
+<li><em><strong>your codes</strong></em>, including <code>Pretecher.py</code>, <code>lab3_pf.hh</code> and <code>lab3_pf.cc</code>.</li>
+<li><em><strong>paper summary</strong></em>, which summarizes the cited paper, including background and designs (the motivation is not required considering the paper length).</li>
+</ul>
+</div>
+</div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../proj3/part2.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../proj3/submit.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../proj3/part2.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../proj3/submit.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

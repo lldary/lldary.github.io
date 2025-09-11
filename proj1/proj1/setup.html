@@ -1,0 +1,347 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Setup: Install Toolchain and Compile gem5 - Archlab gem5 Project 1</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../../mdbook-admonish.css">
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Archlab gem5 Project 1</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="setup-install-toolchain-and-compile-gem5"><a class="header" href="#setup-install-toolchain-and-compile-gem5">Setup: Install Toolchain and Compile <code>gem5</code></a></h1>
+<h2 id="install-environment"><a class="header" href="#install-environment">Install environment</a></h2>
+<p>As a complicated software, <code>gem5</code> requires several prerequisites to run properly. However, manually preparing the correct environment is very challenging. For your convenience, we provide a Docker image with correctly installed prerequisites. To use the image, you first need to install Docker. On Windows system, you can easily install it by installing <a href="https://www.docker.com/get-started/">Docker Desktop</a>; on Linux system, you can install Docker following the <a href="https://docs.docker.com/engine/install/">documentation</a>. You can use the following command to check your installation:</p>
+<pre><code class="language-sh">docker --version
+
+# You'll see contents like the following:
+Docker version 24.0.2, build cb74dfc
+</code></pre>
+<p>Once you've installed Docker, you can pull our image with the following command:</p>
+<pre><code class="language-sh">docker pull chaselab/archlab
+</code></pre>
+<div id="admonition-note" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-title">
+<div class="admonition-title">
+<div id="admonition-note-title">
+<p>Note</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-note"></a>
+</div>
+<div>
+<p>If you can't connect to Docker Hub, you can also download the image archive from our <a href="https://disk.pku.edu.cn/link/AA8F735492EA4048A282AA5A7B9820B521">PKU Disk</a> and load it with the following command:</p>
+<pre><code class="language-sh">docker load -i archlab-image.tar
+</code></pre>
+<p>All the resources used in labs will be visible in the PKU Disk.</p>
+</div>
+</div>
+<p>After pull (load) the image, you can find it by running the following command:</p>
+<pre><code class="language-sh">docker images
+
+# you'll see contents like the following:
+REPOSITORY         TAG           IMAGE ID       CREATED        SIZE
+chaselab/archlab   latest        c028b12a3ac4   1 second ago   1.8GB
+</code></pre>
+<div id="admonition-note-1" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-1-title">
+<div class="admonition-title">
+<div id="admonition-note-1-title">
+<p>Note</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-note-1"></a>
+</div>
+<div>
+<p>If you prefer to install the prerequisites for <code>gem5</code> manually, you can follow the commands listed below.</p>
+<pre><code class="language-sh">sudo apt-get update; sudo apt-get upgrade
+# For Ubuntu 20.04
+sudo apt install build-essential git m4 scons zlib1g zlib1g-dev libprotobuf-dev protobuf-compiler libprotoc-dev libgoogle-perftools-dev python3-dev python-is-python3 libboost-all-dev pkg-config
+
+# For Ubuntu 18.04
+sudo apt install build-essential git m4 scons zlib1g zlib1g-dev libprotobuf-dev protobuf-compiler libprotoc-dev libgoogle-perftools-dev python3-dev python libboost-all-dev pkg-config
+</code></pre>
+</div>
+</div>
+<p>After preparing the environment, you should clone the codes of <code>gem5</code>. We have provided a skeleton code which you can clone from its <a href="https://github.com/ChaseLab-PKU/archlab-gem5">repo</a>, or download the code package from <a href="https://disk.pku.edu.cn/link/AA8F735492EA4048A282AA5A7B9820B521">PKU Disk</a> and then extract the codes to a directory.</p>
+<p>Once you have the codes, you are able to compile <code>gem5</code>. If you are using Docker (if not you can skip this part), you need to firstly create a container to setup the environment. Also, you need to mount the code onto the container when you start it, so that you can read and modify the code files inside the container. The command is as follows:</p>
+<pre><code class="language-sh">docker run -it --name &lt;container name&gt; -v &lt;local path&gt;:&lt;container path&gt; chaselab/archlab /bin/bash
+</code></pre>
+<ul>
+<li>The <code>-it</code> option means to attach stdin, stdout and stderr to current terminal, so you can operate the container interactively.</li>
+<li>The <code>--name &lt;container name&gt;</code> option specifies the name of the new container. It may be useful when you try to run other commands on the container, but it is rather optional, because you can always specify a container by its individual ID. You can see the IDs and names of all existing containers with this command:</li>
+</ul>
+<pre><code class="language-sh">docker ps -a
+
+# you'll see contents like the following:
+CONTAINER ID   IMAGE                  COMMAND       CREATED          STATUS                      PORTS     NAMES
+43518d84eb29   chaselab/archlab       "/bin/bash"   14 seconds ago   Exited (0) 14 seconds ago             lab1
+</code></pre>
+<ul>
+<li>The <code>-v &lt;local path&gt;:&lt;container path&gt;</code> allows you to mount a local directory to a directory in the container. Here, you need to specify the <code>local path</code> as the path to your <code>gem5</code> code, for example, <code>C:\Users\myname\gem5</code>. The <code>container path</code> can be simple, for example, <code>/gem5</code>. When you enter the container, you can see all the codes under container path. Please note that this option <strong>only accepts absolute paths</strong>, otherwise the contents in the directory will not be correctly mounted.</li>
+<li>The first argument after the options is the image name, here is <code>chaselab/archlab</code>.</li>
+<li>The second argument is the command you want to run upon container start. Here we use <code>/bin/bash</code> to start an interactive terminal.</li>
+</ul>
+<p>Thus, filling up all the options and arguments makes the command look like this:</p>
+<pre><code class="language-sh">docker run -it --name lab1 -v C:\Users\myname\gem5:/gem5 chaselab/archlab /bin/bash
+</code></pre>
+<div id="admonition-docker-command-tips" class="admonition admonish-tip" role="note" aria-labelledby="admonition-docker-command-tips-title">
+<div class="admonition-title">
+<div id="admonition-docker-command-tips-title">
+<p>Docker command tips</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-docker-command-tips"></a>
+</div>
+<div>
+<p>After starting the container, you can run any commands in it. However, you need to know more docker commands when meeting other situations:</p>
+<ul>
+<li>If you've closed the container by running <code>exit</code> and want to run the lab again, you do not need to create another container with <code>docker run</code>. Instead, you can use the following command to restart your container and attach stdin, stdout and stderr to your terminal:</li>
+</ul>
+<pre><code class="language-sh">docker start -ia &lt;container ID/name&gt;
+</code></pre>
+<ul>
+<li>If you start the simulation and want to close the terminal while keeping <code>gem5</code> running, you can type <code>ctrl+p+q</code> to stop the interactive evironment and return to your own terminal. Then, when you want to return to the container, you can use the following commands:</li>
+</ul>
+<pre><code class="language-sh">docker attach &lt;container ID/name&gt; # return to the original container terminal
+docker exec -it &lt;container ID/name&gt; &lt;command&gt; # start a new container terminal
+</code></pre>
+</div>
+</div>
+<h2 id="compile-gem5"><a class="header" href="#compile-gem5">Compile <code>gem5</code></a></h2>
+<p>Once the container has started, or if you have manually prepared the environment, you can proceed to compile <code>gem5</code>. Please note that <code>gem5</code> must be built on a Unix platform (e.g., Linux and MacOS). <code>gem5</code> uses SCons to manage its compilation. In this lab, we'll compile for ARM ISA:</p>
+<pre><code class="language-sh">cd gem5
+scons build/ARM/gem5.opt -j `grep -c '^processor' /proc/cpuinfo` # use all your cores to compile
+</code></pre>
+<p>Building <code>gem5</code> may take you <em>more than 30 minutes</em> on your PC. If it completes successfully, you will see the following results:</p>
+<pre><code> [     CXX] ARM/base/date.cc -&gt; .o
+ [    LINK]  -&gt; ARM/gem5.opt
+scons: done building targets.
+</code></pre>
+<p>You now have a binary in the directory <code>build/ARM</code> called <code>gem5.opt</code>.</p>
+<div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
+<div class="admonition-title">
+<div id="admonition-deliverables-title">
+<p>Deliverables</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-deliverables"></a>
+</div>
+<div>
+<p>Please include a <strong>screenshot that shows your <code>gem5</code> can compile correctly</strong> in your report.</p>
+</div>
+</div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../proj1.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../proj1/part1.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../proj1.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../proj1/part1.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

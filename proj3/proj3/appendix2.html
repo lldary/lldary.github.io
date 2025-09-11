@@ -1,0 +1,279 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Appendix B: Hyperion Prefetcher Brief Description - Archlab gem5 Project 3</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../../mdbook-admonish.css">
+
+        <!-- MathJax -->
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Archlab gem5 Project 3</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="appendix-b-hyperion-prefetcher-brief-description"><a class="header" href="#appendix-b-hyperion-prefetcher-brief-description">Appendix B: Hyperion Prefetcher Brief Description</a></h1>
+<p>In this appendix, we will briefly describe the concepts of delta prefetching and timely prefetch. Based on these information, we describe the Hyperion prefetcher. Finally, we list the features that are proposed in the paper but you don't need to implement in your codes.</p>
+<h2 id="delta-prefetching-and-local-delta-prefetching"><a class="header" href="#delta-prefetching-and-local-delta-prefetching">Delta prefetching and local-delta prefetching</a></h2>
+<p>To introduce delta prefetching, let's first consider a workload that performs an "irregular" memory access pattern: <code>A, A+1, A+3, A+4, A+6, ...</code>. The stride sequence of this stream is <code>+1, +2, +1, +2, ...</code>. Patterns that vary their strides like this are called irregular patterns. A normal stride prefetcher (<em>check Appendix A for details</em>) cannot provide any coverage for irregular patterns, since it cannot learn enough confidence for any individual stride value.</p>
+<p><img src="./delta.svg" alt="fig" /></p>
+<p>Delta prefetching is proposed to handle these irregular patterns. Conceptually, a "delta" is the address difference of current demand access with any previous accesses, as shown in the left figure above. The principle of delta prefetching is to learn among all existing deltas and issue prefetch based on deltas with the highest confidence. As shown in the right figure, with <code>+1, +2, +1, +2, ...</code> pattern, a delta prefetcher can learn that <code>+1</code> and <code>+2</code> has same confidence. It can then prefetch both <code>+1</code> and <code>+2</code>, increasing the coverage (though may decrease accuracy).</p>
+<p>Similar to branch predictors, prefetchers can also learn deltas based on local contexts, such as access history of individual PCs, or history inside individual pages.</p>
+<h2 id="timely-prefetch"><a class="header" href="#timely-prefetch">Timely prefetch</a></h2>
+<p>In Appendix A, we introduced the concept of late prefetches. An example is illustrated in figure below. Late prefetch happens because fetching data from lower levels of memory hierarchy requires time. For example, under the simplest pattern <code>+1, +1, +1, ...</code>, if the access interval is less than the fetch latency, next-line prefetcher can only provide zero coverage because all prefetches will be late. The principle of timely prefetch is to take prefetch latency into consideration. As shown in the right figure, timely prefetches can provide enough coverage.</p>
+<p><img src="./timely.svg" alt="fig" /></p>
+<p>To find the best timely delta for prefetch, prefetchers can estimate the fetch latency from accesses and data fills. When a delta prefetcher records previous accesses, it will also record a <strong>timestamp</strong> of the access's arrival. When the data <strong>is filled</strong> into the cache (green part in the figure), the fetch latency can be estimated with <code>current timestamp - arrival timestamp</code>. Based on these information, when an access <code>B</code> arrives, the best delta <code>d</code> should meet the following constraints:</p>
+<ul>
+<li>In histories, the access interval between <code>A</code> and <code>A+d</code> is larger than the fetch latency (<code>+2</code> and <code>+3</code> in the figure).</li>
+<li>The <code>d</code> is the minimal delta that meet the above constraint (<code>+2 &lt; +3</code>).</li>
+</ul>
+<p>Once the best delta is learned, the prefetcher can issue timely prefetches.</p>
+<h2 id="hyperion"><a class="header" href="#hyperion">Hyperion</a></h2>
+<p>Hyperion is a local-delta-based L1D prefetcher that generates timely prefetches to enhance both the accuracy and coverage. The figure below shows the overview of Hyperion's structure and methods.</p>
+<p><img src="./hyperion.svg" alt="fig" /></p>
+<p>Hyperion contains two kind of tables: history tables and delta tables. Each individual PC and page has its own history table and delta table. The history tables record the recent potential misses (demand miss and hit on prefetch) with its address and access timestamp. The delta tables record the recent occurred timely deltas. Each table has a total counter, and each delta has its local counter. These counters are used to calculate the confidence of deltas.</p>
+<p>Three types of cache events can trigger Hyperion:</p>
+<ol>
+<li>When there is a demand miss, Hyperion first updates the history tables (both PC and Page) with the address and timestamp. If a table is full, it will evict the earliest history (i.e., <strong>FIFO eviction</strong>). Then, Hyperion find both the PC delta table and Page delta table for the delta with highest confidence, and prefetch with this delta. This find-prefetch cycle will perform 12 times.</li>
+<li>When there is a demand fill (i.e., filling the data required by demand miss to cache), Hyperion will find the demand miss on this filled address in the history tables. The latency can be estimated by <code>lat = current - timestamp</code>. Then, it will scan the history tables and learn the best delta. Then, it will update the delta tables with this learnt delta. If the delta is already recorded in the table, the total counter and its local counter are plused by 1. If the delta is not recorded, the old delta with lowest confidence will be evicted, and the counters are updated (new local counter is 1).</li>
+<li>When there is a hit on prefetched data, which indicates a potential miss, Hyperion will also estimate the latency (the timestamp of fetch-beginning can be found in the prefetch queue), learn best delta and update delta tables, like in scenario 2. It will also update history tables and issue prefetches, like in secnario 1.</li>
+</ol>
+<div id="admonition-tip" class="admonition admonish-tip" role="note" aria-labelledby="admonition-tip-title">
+<div class="admonition-title">
+<div id="admonition-tip-title">
+<p>Tip</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-tip"></a>
+</div>
+<div>
+<ul>
+<li><strong>Use block base address</strong>: In cache context, all operations are in block granularity. The most important issue is that <code>notifyFill()</code> will pass block base address to the arguments. If you forget to use block base address, you may miss information in <code>notifyFill()</code>. So it's better to transform any address to block base address firstly (you can use <code>blockAddress()</code> or <code>blockIndex()</code>).</li>
+<li><strong>Record more information</strong>: The Hyperion is a hardware prefetcher. To mitigate its usage of hardware resources, it records only neccessary information. However, in your simulator, you can use much more memory. Feel free to record useful information to improve your prefetcher. The approaches Hyperion uses to mitigate hardware overheads are not neccessary in your implementation. We've listed them in next section.</li>
+<li><strong>Use larger degree</strong>: Hyperion is a degree-1 prefetcher, that is, for each selected delta, it prefetches only one block. However, increasing the degree may improve the performance under our specific test executables. You can use larger degree as long as it doesn't severely pollute the cache (leading to low accuracy and high cache miss rate). For example, <code>gem5</code>'s default stride perfetcher uses <code>degree = 4</code>.</li>
+<li><strong>Use lower threshold</strong>: Hyperion uses 0.8 as the L1D prefetch confidence threshold to avoid L1D cache pollution. However, such high confidence may lead to low coverage. You can use lower confidence during testing.</li>
+</ul>
+</div>
+</div>
+<h2 id="features-that-are-not-required-to-implement"><a class="header" href="#features-that-are-not-required-to-implement">Features that are not required to implement</a></h2>
+<p>As a hardware design, Hyperion takes multiple approaches to reduce the hardware overheads. However, in <code>gem5</code> simulator, hardware overhead is not a critical concern if we primarily focus on the logical performance of a design. Moreover, some designs modify basic cache implementation, which can be challenging in <code>gem5</code>. For your convenience, you don't need to implement the following features:</p>
+<ul>
+<li><strong>Unified tables</strong>: As described, Hyperion records histories and deltas for both individual PCs and individual pages. However, this can lead to redundant records. To reduce the used hardware, Hyperion merges the actual entries of PC and page tables into unified history/delta tables, and only uses separate indexing tables. In your implementation, you can just use two separate tables.</li>
+<li><strong>Prefetch buffer</strong>: Hyperion issues multiple prefetches each round. However, hardware prefetch queue can be full and some prefetches may not have the chance to be issued. Hyperion introduces a prefetch buffer to temporarily records these prefetches. Our software impelementation can ignore this constraint.</li>
+<li><strong>Timestamp and latency recording</strong>: Hyperion add some bits to cache blocks and MSHR entries to record the timestamps and latencies. This is more hardware-efficient than use new tables. However, it will be difficult to modify the cache and MSHR implementation in <code>gem5</code>. You can just use tables in your prefetcher to record timestamps and latencies.</li>
+<li><strong>Dynamic cache-level selection</strong>: Hyperion will select the level of prefetches according to the delta confidence. Delta with low confidence may be filled into L2 cache. However, implementing this feature may be difficult in <code>gem5</code>, since the framework doesn't provide to prefetchers for a global access of all caches. You are not required to implement this feature.</li>
+<li><strong>Event on fill of prefetched data</strong>: Hyperion will trigger additional events when a prefetched block is filled, due to limited PQ size. In your implementation, you don't need to implement this feature. In <code>notifyFill()</code>, you can use the interface <code>acc.pkt-&gt;cmd.isHWPrefetch()</code> to identify if the fill is from prefetching.</li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../proj3/appendix1.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../proj3/appendix1.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>

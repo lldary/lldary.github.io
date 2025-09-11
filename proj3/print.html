@@ -1,0 +1,721 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Archlab gem5 Project 3</title>
+        <meta name="robots" content="noindex">
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../mdbook-admonish.css">
+
+        <!-- MathJax -->
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+        <!-- Custom JS scripts for mdbook-pdf PDF generation -->
+        <script type='text/javascript'>
+            let markAllContentHasLoadedForPrinting = () =>
+                window.setTimeout(
+                    () => {
+                        let p = document.createElement('div');
+                        p.setAttribute('id', 'content-has-all-loaded-for-mdbook-pdf-generation');
+                        document.body.appendChild(p);
+                    }, 100
+                );
+
+            window.addEventListener('load', () => {
+                // Expand all the <details> elements for printing.
+                r = document.getElementsByTagName('details');
+                for (let i of r)
+                    i.open = true;
+
+                try {
+                    MathJax.Hub.Register.StartupHook('End', markAllContentHasLoadedForPrinting);
+                } catch (e) {
+                    markAllContentHasLoadedForPrinting();
+                }
+            });
+        </script>
+    <div style="display: none"><a href="#proj3">proj3</a><a href="#proj3-part1">proj3-part1</a><a href="#proj3-part2">proj3-part2</a><a href="#proj3-part3">proj3-part3</a><a href="#proj3-submit">proj3-submit</a><a href="#proj3-appendix1">proj3-appendix1</a><a href="#proj3-appendix2">proj3-appendix2</a></div>
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Archlab gem5 Project 3</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="computer-architecture-2025fall-project-3"><a class="header" href="#computer-architecture-2025fall-project-3">Computer Architecture 2025fall Project 3</a></h1>
+<div id="admonition-default" class="admonition admonish-success" role="note">
+<div>
+<p><em>By Prof. Jie Zhang</em></p>
+<p><strong>Due:</strong> 11:59:59 pm, December 17, 2025</p>
+</div>
+</div>
+<p>In this project, we will explore the design of a cache prefetcher in a computer system. Specifically, we will first introduce how to build a cache hierarchy in the configuration script, and how to add a prefetcher to a specific cache. You will evaluate how caches and prefetcher can significantly impact system performance. Further, you are required to read a recent paper that proposes a prefetcher named Hyperion. You need to summarize the paper and implement the Hyperion in <code>gem5</code>. Next, you are required to compare your prefetcher’s performance with that of other prefetchers in <code>gem5</code>.</p>
+<p>Whenever you face trouble or problems with this project, please contact TAs by WeChat or e-mail. All the following information has been verified on Ubuntu 20.04.1 with Linux Kernel 5.15.0 and Ubuntu 22.04.2 LTS with Linux Kernel 5.19.0.</p>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="part-1-add-caches-in-the-configuration-script"><a class="header" href="#part-1-add-caches-in-the-configuration-script">Part 1: Add Caches in the Configuration Script</a></h1>
+<p>In this part, we will extend our configuration script with a cache hierarchy. Let's start with copying the original script to a new directory:</p>
+<pre><code class="language-sh">mkdir -p configs/proj3
+cp configs/proj1/simple.py configs/proj3
+</code></pre>
+<p>In this part, we will add <code>SimObject</code> of caches to the CPU. <code>gem5</code> provides a comprehensive cache implementation, found in <code>src/mem/cache/Cache.py</code>. An abstract class <code>BaseCache</code> describes the basic cache framework. There are seven critical parameters that define the performance of a given cache:</p>
+<ul>
+<li><code>size</code>: the total size in bytes of the cache.</li>
+<li><code>assoc</code>: the associativity of the cache, namely the number of blocks (cachelines) in a single cache set.</li>
+<li><code>tag_latency</code>: the cycles to lookup the tag in the cache.</li>
+<li><code>data_latency</code>: the cycles to access the data in the cache.</li>
+<li><code>response_latency</code>: the cycles for the return path on a miss.</li>
+<li><code>mshrs</code>: the number of MSHRs (Miss Status Holding Register).</li>
+<li><code>tgts_per_mshr</code>: the max number of accesses per MSHR.</li>
+</ul>
+<p>To create <code>SimObject</code> of caches, we need to define our specific non-abstract classes first. Let's add the following classes at the beginning of our configuration script (right after the <code>import</code> statements):</p>
+<pre><code class="language-py">class L1D(Cache):
+    size = '48kB'
+    assoc = 12
+    tag_latency = 3
+    data_latency = 3
+    response_latency = 3
+    mshrs = 16
+    tgts_per_mshr = 20
+
+class L1I(L1D):
+    pass
+
+class L2(Cache):
+    size = '2MB'
+    assoc = 16
+    tag_latency = 20
+    data_latency = 20
+    response_latency = 20
+    mshrs = 20
+    tgts_per_mshr = 12
+</code></pre>
+<p>Once we have the cache classes, we can build a "two-level" cache hierarchy in our script. In this part, we will use the helpers provided by <code>gem5</code> to make our script simple. Specifically, our function <code>init_system()</code> can be modified like follows:</p>
+<pre><code class="language-py">def init_system(system, args):
+    system.clk_domain = SrcClockDomain(clock='4GHz',
+        voltage_domain=VoltageDomain())
+    system.mem_mode = 'timing'
+    system.mem_ranges = [AddrRange ('2GB')]
+    system.mem_ctrl = MemCtrl()
+    system.mem_ctrl.dram = DDR4_2400_8x8()
+    system.mem_ctrl.dram.range = root.system.mem_ranges[0]
+    system.membus = SystemXBar()
+    # Use O3CPU as default CPU, similar to project 2
+    system.cpu = O3CPU()
+    system.cpu.createInterruptController()
+    # MODIFIED: use addTwoLevelCacheHierarchy() and connectBus()
+    system.cpu.addTwoLevelCacheHierarchy(L1I(), L1D(), L2())
+    system.cpu.connectBus(system.membus)
+    system.mem_ctrl.port = system.membus.mem_side_ports
+    system.system_port = system.membus.cpu_side_ports
+</code></pre>
+<p>By using <code>addTwoLevelCacheHierarchy()</code> and <code>connectBus()</code>, we can add a cache hierarchy to the CPU without manually connecting all the ports and buses.</p>
+<p>Now, if you start a simulation with your new script (for example, running <code>tests\labexe\hello</code>), you can find that the caches have been added to CPU in <code>config.ini</code>:</p>
+<pre><code># config.ini
+...
+[system.cpu]
+type=BaseO3CPU
+children=...dcache icache l2cache...
+...
+</code></pre>
+<div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
+<div class="admonition-title">
+<div id="admonition-deliverables-title">
+<p>Deliverables</p>
+</div>
+<a class="admonition-anchor-link" href="proj3/part1.html#admonition-deliverables"></a>
+</div>
+<div>
+<p>Please run the memory-sensitive workload, i.e., <code>gemm</code>, with the two-level cache hierarchy we defined above. In this part, please include the following contents in your <em><strong>report</strong></em>:</p>
+<ul>
+<li>A screenshot of <code>config.ini</code> that shows you have successfully added the cache hierarchy.</li>
+<li>A figure or table, comparing the <code>system.cpu.ipc</code> on workload <code>gemm</code> of system with and without caches. You can use the results in project 1 and 2 as the results of cache-free systems.</li>
+</ul>
+</div>
+</div>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="part-2-run-simulation-with-prefetchers"><a class="header" href="#part-2-run-simulation-with-prefetchers">Part 2: Run Simulation with Prefetchers</a></h1>
+<p><code>gem5</code> provides multiple classic cache prefetchers. They can be found in <code>src/mem/cache/prefetch/Prefetcher.py</code>. One of the simplest prefetchers is the <code>StridePrefetcher</code>. We can directly add it to the CPU's data cache with the following code:</p>
+<pre><code class="language-py">def init_system(system, args):
+    ...
+    system.cpu.addTwoLevelCacheHierarchy(L1I(), L1D(), L2())
+    # ADD FOLLOWS:
+    system.cpu.dcache.prefetcher = StridePrefetcher()
+    ...
+</code></pre>
+<p>When you start a simulation, you can find the prefetcher in <code>config.ini</code>:</p>
+<pre><code># config.ini
+...
+[system.cpu.dcache.prefetcher]
+type=StridePrefetcher
+...
+</code></pre>
+<p>To evaluate different prefetchers, we can also add options in the script. In this part, we will explore two of the provided prefetchers: <code>StridePrefetcher</code> and <code>AMPMPrefetcher</code>:</p>
+<pre><code class="language-py">pf_types = {
+    "stride": StridePrefetcher,
+    "ampm": AMPMPrefetcher,
+}
+...
+def init_system(system, args):
+    ...
+    system.cpu.dcache.prefetcher = pf_types[args.pf]()
+    ...
+...
+if __name__ == '__m5_main__':
+    ...
+    parser.add_argument(
+        "--pf", type=str, default="stride",
+    )
+    ...
+</code></pre>
+<p>Then, let's run the test executables and learn how these prefetchers can impact on system performance. Among the provided executables, <code>shell_sort</code> and <code>gemm</code> are sensitive to prefetching. In project 3, you only need to run the sensitive workloads, that is, <code>shell_sort</code> and <code>gemm</code>. So, to test the performance of stride prefetcher, the commands are as follows:</p>
+<pre><code class="language-sh"># using default CPU and Mem
+build/ARM/gem5.opt -d m5out/stride/sort configs/proj3/simple.py tests/labexe/shell_sort --pf stride
+build/ARM/gem5.opt -d m5out/stride/gemm configs/proj3/simple.py tests/labexe/gemm --pf stride
+</code></pre>
+<p>The commands to test AMPM are similar.</p>
+<div id="admonition-important-note" class="admonition admonish-warning" role="note" aria-labelledby="admonition-important-note-title">
+<div class="admonition-title">
+<div id="admonition-important-note-title">
+<p>Important note</p>
+</div>
+<a class="admonition-anchor-link" href="proj3/part2.html#admonition-important-note"></a>
+</div>
+<div>
+<p>In previous project, the recommended <code>system.cpu.max_insts_any_thread</code> is 1e8. This value makes sure you can run a simulation fastly. However, typical prefetcher requires much more accesses to learn the pattern and generate prefetches. Thus, in this project, <em><strong>the recommended <code>system.cpu.max_insts_any_thread</code> is 1e9</strong></em>. You can use 1e8 or even less values to speed-up your debugging. We also <strong>accept</strong> reports that are generated from less values, but the statistic outputs may be unreasonable. If you face troubles (for example, you cannot complete simulation with value 1e9), you can inform us in your report, the grading will be discretionary.</p>
+</div>
+</div>
+<p>After the simulations have finished, let's check the statistics in <code>stats.txt</code>. In this project, we care about four metrics, which evaluate the performance of the prefetchers:</p>
+<ul>
+<li><code>cpu.ipc</code>: The IPC of the cpu.</li>
+<li><code>prefetcher.accuracy</code>: The accuracy of the prefetcher, which means the fraction of useful prefetches among all prefetches (<em>check appendix A for detailed explaination</em>).</li>
+<li><code>prefetcher.coverage</code>: The coverage of the prefetcher, which means the fraction of eliminated misses (first-time hits on prefetched data) among all potential misses (eliminated misses plus actual misses).</li>
+<li><code>prefetcher.pfLate</code>: The number of prefetches that are issued lately (data are already in cache, MSHRs or write buffer before issuing).</li>
+</ul>
+<div id="admonition-delieverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-delieverables-title">
+<div class="admonition-title">
+<div id="admonition-delieverables-title">
+<p>Delieverables</p>
+</div>
+<a class="admonition-anchor-link" href="proj3/part2.html#admonition-delieverables"></a>
+</div>
+<div>
+<p>Please run two prefetch-sensitive workloads, i.e., <code>shell_sort</code> and <code>gemm</code>, with two prefetchers. The rest workloads <code>spfa</code> and <code>binary_search</code>, are insensitive to prefetching. You can run these workloads if you are interested, and have sufficient computing resources. Nevertheless, in this part, please (at least) include figures or tables, which show the four critical metrics (i.e., IPC, accuracy, coverage, late count) of different prefetch configurations on workloads listed below, in your <em><strong>report</strong></em>:</p>
+<ul>
+<li>prefetch: <strong>No prefetcher</strong>, <code>StridePrefetcher</code>, <code>AMPMPrefetcher</code>.</li>
+<li>exe: <code>shell_sort</code>, <code>gemm</code>.</li>
+<li>With default CPU and Memory (O3 and DDR4).</li>
+<li>Use the cache hierarchy described in part 1, and attach the prefetchers to <code>cpu.dcache</code>.</li>
+</ul>
+<p>In total, you need to run <code>gem5</code> six times.</p>
+</div>
+</div>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="part-3-read-paper-implement-and-evaluate-hyperion-prefetcher"><a class="header" href="#part-3-read-paper-implement-and-evaluate-hyperion-prefetcher">Part 3: Read Paper, Implement and Evaluate Hyperion Prefetcher</a></h1>
+<h2 id="implemeting-a-prefetcher-in-gem5"><a class="header" href="#implemeting-a-prefetcher-in-gem5">Implemeting a prefetcher in <code>gem5</code></a></h2>
+<p>Compared with implementing branch predictors, as we did in project 2, implementing a prefetcher in <code>gem5</code> involves far fewer interfaces. Let's learn from the code of the simplest prefetcher in <code>gem5</code>, namely the <code>TaggedPrefetcher</code>.</p>
+<pre><code class="language-cpp">// src/mem/cache/prefetch/tagged.hh
+namespace gem5 {
+namespace prefetch {
+class Tagged : public Queued {
+  protected:
+      const int degree;
+
+  public:
+    Tagged(const TaggedPrefetcherParams &amp;p);
+    ~Tagged() = default;
+
+    void calculatePrefetch(const PrefetchInfo &amp;pfi,
+                           std::vector&lt;AddrPriority&gt; &amp;addresses,
+                           const CacheAccessor &amp;cache) override;
+};
+} // namespace prefetch
+} // namespace gem5
+
+</code></pre>
+<p>The class <code>Tagged</code> is inherited from <code>prefetch::Queued</code>, which is inherited from <code>prefetch::Base</code>. <code>Queued</code> provides a framework that handles basic issues, like merging prefetches targeting the same address. Thus, our implementation can simply focus on generating prefetches, which is performed in the interface <code>calculatePrefetch()</code>.</p>
+<p>If we check the code of <code>Base</code> (in <code>mem/cache/prefetch/base.hh</code>), it leaves multiple virtual methods, two of them are critical to our implementation:</p>
+<ul>
+<li><code>notify()</code>: This is called when the cache is accessed. By default, two types of access will call this method, namely cache miss and hit on prefetched data (i.e., all potential misses). Set the parameter <code>prefetch_on_access = True</code> will call this method on each cache access.</li>
+<li><code>notifyFill()</code>: This is called when a cacheline is filled into the cache. The cacheline may be demand missed or prefetched previously.</li>
+</ul>
+<p>In the implementation of <code>Queued</code> (in <code>queued.hh</code>), the basic works, like merging prefetches, are wrapped in the default implementation of <code>notify()</code>. Instead, it leaves another virtual method, <code>calculatePrefetch()</code>. Let's check the implementation of <code>Tagged</code> to understand the implementation principle of this method:</p>
+<pre><code class="language-cpp">// src/mem/cache/prefetch/tagged.cc
+void Tagged::calculatePrefetch(const PrefetchInfo &amp;pfi,
+    std::vector&lt;AddrPriority&gt; &amp;addresses, const CacheAccessor &amp;cache) {
+    Addr blkAddr = blockAddress(pfi.getAddr());
+
+    for (int d = 1; d &lt;= degree; d++) {
+        Addr newAddr = blkAddr + d*(blkSize);
+        addresses.push_back(AddrPriority(newAddr,0));
+    }
+}
+</code></pre>
+<p>Basically, the implementation will extract information from <code>pfi</code> and <code>cache</code>, calculate the addresses that are going to be prefetched, and push them into <code>addresses</code> using <code>push_back()</code>.</p>
+<p>The defination of <code>PrefetchInfo</code> can be found in <code>base.hh</code>. Four interfaces are useful for our implementation:</p>
+<ul>
+<li><code>getAddr()</code>: Get the address of the access that trigger the prefetcher.</li>
+<li><code>hasPC()</code>: Check if this access is performed by an instruction.</li>
+<li><code>getPC()</code>: Get the PC of the instruction that performs this access.</li>
+<li><code>isCacheMiss()</code>: Check if this access is a cache miss.</li>
+</ul>
+<p>The <code>Base</code> also provides several useful tools for extract the information:</p>
+<ul>
+<li><code>blockAddress()</code>: Extract the block base of an address. For example, if block size is 64 Bytes, and address <code>A = 66</code>, then <code>blockAddress(A) = 64</code>.</li>
+<li><code>blockIndex()</code>: Extract the block index of an address. For example, <code>blockIndex(A) = 1</code>.</li>
+<li><code>pageAddress()</code>: Extract the page base of an address.</li>
+<li><code>pageOffset()</code>: Extract the offset of an address in its page.</li>
+</ul>
+<p>Please note that <code>Base</code> doesn't provide a method like <code>pageIndex()</code>. By default, the page size is configured to <code>4kiB</code>. Thus, you can implement this method on your own (for example, <code>pageIndex(Addr a) { return a &gt;&gt; 12; }</code>).</p>
+<p>The <code>CacheAccessor</code> provides some interfaces to allow you check the cache status (for example, whether an address is in the cache), they are defined in <code>src/mem/cache/cache_probe_arg.hh</code>.</p>
+<p><code>Tagged</code> doesn't uses <code>notifyFill()</code>. We can found the defination in <code>base.hh</code>:</p>
+<pre><code class="language-cpp">// src/mem/cache/prefetch/base.hh
+virtual void notifyFill(const CacheAccessProbeArg &amp;acc) {}
+</code></pre>
+<p>The <code>CacheAccessProbeArg</code> records the memory packet that triggers the fill event, and a <code>CacheAccessor</code> that allows you to check the cache. This class can also be found in <code>src/mem/cache/cache_probe_arg.hh</code>. For the packet, <code>CacheAccessProbeArg</code> provide a pointer <code>PacketPtr pkt</code>. The two useful interfaces are:</p>
+<ul>
+<li><code>pkt-&gt;getAddr()</code>: get the address of this data fill.</li>
+<li><code>pkt-&gt;cmd.isHWPrefetech()</code>: check if the filled data are prefetched from your hardware prefetcher.</li>
+</ul>
+<p>Please note that, when <code>notifyFill()</code> is called, the address of the filled data is <strong>the block base address</strong>. Thus, when you want to record accesses and check them in <code>notifyFill()</code>, you may want to record them in their block base address.</p>
+<div id="admonition-info" class="admonition admonish-info" role="note" aria-labelledby="admonition-info-title">
+<div class="admonition-title">
+<div id="admonition-info-title">
+<p>Info</p>
+</div>
+<a class="admonition-anchor-link" href="proj3/part3.html#admonition-info"></a>
+</div>
+<div>
+<p>If you check the defination of <code>CacheAccessor</code> and <code>PrefetchInfo</code>, you may find that there are more information recorded, including <code>isSecure</code> and <code>requestorID</code>. In this project, you can simply ignore them. You may only use the interfaces that doesn't require specifying <code>requestorID</code>, and always treat <code>isSecure</code> as <code>false</code>. For example, to check whether an address has been prefetched, you can just use <code>cache.hasBeenPrefetched(addr, false)</code>.</p>
+<p>Also, in next part, you will need to record the "timestamp" of several events. In <code>gem5</code>, we can disrectly use the function <code>curTick()</code> to get the exact current timestamp. An <code>uint64_t</code> value will be returned.</p>
+</div>
+</div>
+<p>In summary, you only need to work with <code>calculatePrefetch()</code> and <code>notifyFull()</code> when you are implementing prefetcher in this part. The provided arguments can help you to determine what type of access (hit on prefetch, data fill or demand miss) calls these methods. All the structures can be implemented as private members and methods, ensuring high flexibility.</p>
+<h2 id="reading-the-paper-and-implementing-hyperion-prefetcher"><a class="header" href="#reading-the-paper-and-implementing-hyperion-prefetcher">Reading the paper and implementing Hyperion prefetcher</a></h2>
+<div id="admonition-cite" class="admonition admonish-quote" role="note" aria-labelledby="admonition-cite-title">
+<div class="admonition-title">
+<div id="admonition-cite-title">
+<p>Cite</p>
+</div>
+<a class="admonition-anchor-link" href="proj3/part3.html#admonition-cite"></a>
+</div>
+<div>
+<p>Cui, Y., Chen, W., Cheng, X., &amp; Yi, J. (2024). Hyperion: A Highly Effective Page and PC Based Delta Prefetcher. ACM Transactions on Architecture and Code Optimization.</p>
+<p><a href="https://dl.acm.org/doi/10.1145/3675398">get the pdf</a></p>
+</div>
+</div>
+<p>In this part, you are required to read the paper cited above, summarize the method described in the paper, and implement the Hyperion prefetcher in <code>gem5</code>. For your convenience, an Appendix provides a brief description of the method. We've already provided a code skeleton. Please check <code>Lab3Hyperion</code> in <code>Prefetcher.py</code>, <code>mem/cache/prefetch/lab3_pf.hh</code> and <code>mem/cache/prefetch/lab3_pf.cc</code>. You can follow the tutorial in project 2 to add useful parameters to <code>Lab3Hyperion</code> and implement C++ codes.</p>
+<div id="admonition-delieverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-delieverables-title">
+<div class="admonition-title">
+<div id="admonition-delieverables-title">
+<p>Delieverables</p>
+</div>
+<a class="admonition-anchor-link" href="proj3/part3.html#admonition-delieverables"></a>
+</div>
+<div>
+<p>Please run two prefetch-sensitive workloads, i.e., <code>shell_sort</code> and <code>gemm</code>, with your Hyperion prefetcher. Please (at least) include figures or tables, which show the IPC of CPU, accuracy, coverage and late count of <code>Lab3Hyperion</code> on executables listed below, in your <em><strong>report</strong></em>:</p>
+<ul>
+<li>prefetch: <code>Lab3Hyperion</code>.</li>
+<li>exe: <code>shell_sort</code>, <code>gemm</code>.</li>
+<li>With default CPU and Memory (O3 and DDR4).</li>
+<li>Use the cache hierarchy described in part 1, and attach the prefetcher to <code>cpu.dcache</code>.</li>
+</ul>
+<p>In total you need to run <code>gem5</code> twice.</p>
+<p>In this part, you also need to submit:</p>
+<ul>
+<li><em><strong>your codes</strong></em>, including <code>Pretecher.py</code>, <code>lab3_pf.hh</code> and <code>lab3_pf.cc</code>.</li>
+<li><em><strong>paper summary</strong></em>, which summarizes the cited paper, including background and designs (the motivation is not required considering the paper length).</li>
+</ul>
+</div>
+</div>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="submission"><a class="header" href="#submission">Submission</a></h1>
+<div id="admonition-submission" class="admonition admonish-note" role="note" aria-labelledby="admonition-submission-title">
+<div class="admonition-title">
+<div id="admonition-submission-title">
+<p>Submission</p>
+</div>
+<a class="admonition-anchor-link" href="proj3/submit.html#admonition-submission"></a>
+</div>
+<div>
+<ul>
+<li>Please submit the deliverables for each part in order and clearly defined in a report form (e.g., PDF or Word). Please give a brief description of the results in your report. You also <strong>NEED</strong> to submit your codes and paper summary.</li>
+<li>Please pack your report, codes and summary in an archive and submit it as an attachment at <a href="https://course.pku.edu.cn">course.pku.edu.cn</a>. The title of the attachment should be Student-ID_Name_Proj3 (e.g., 123456789_WangXiaoming_Proj3).</li>
+<li>You can also send the archive to <a href="proj3/">ca2024fall@163.com</a>. The titles of your email AND attachment should both be Student-ID_Name_Proj3.</li>
+<li><strong>DO NOT PLAGIARIZE</strong>. We will select 10 students randomly and ask them to answer our questions related to their results.</li>
+</ul>
+</div>
+</div>
+<div id="admonition-late-policy" class="admonition admonish-warning" role="note" aria-labelledby="admonition-late-policy-title">
+<div class="admonition-title">
+<div id="admonition-late-policy-title">
+<p>Late policy</p>
+</div>
+<a class="admonition-anchor-link" href="proj3/submit.html#admonition-late-policy"></a>
+</div>
+<div>
+<ul>
+<li>You will be given <strong>3 slip days</strong> (shared by all projects), which can be used to extend project deadlines, e.g., 1 project extended by 3 days or 3 projects each extended by 1 day.</li>
+<li>Projects are due at 23:59:59, no exceptions; 20% off per day late, 1 second late = 1 hour late = 1 day late.</li>
+</ul>
+</div>
+</div>
+<div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
+<div class="admonition-title">
+<div id="admonition-deliverables-title">
+<p>Deliverables</p>
+</div>
+<a class="admonition-anchor-link" href="proj3/submit.html#admonition-deliverables"></a>
+</div>
+<div>
+<p>You need to submit <em><strong>report</strong></em>, <em><strong>codes</strong></em> and <em><strong>paper summary</strong></em> in this project. The required contents are listed as follows:</p>
+<ul>
+<li>report:</li>
+<li>
+<ul>
+<li>Figures and tables which show the CPU IPC and the accuracy, coverage and late count of following prefetch configurations on <code>shell_sort</code> and <code>gemm</code>: no prefetcher, <code>StridePrefetcher</code>, <code>AMPMPrefetcher</code>, <code>Lab3Hyperion</code>. Please run with <code>O3CPU</code> and <code>DDR4</code> memory, and with the cache configurations described in part 1.</li>
+</ul>
+</li>
+<li>codes:</li>
+<li>
+<ul>
+<li>Your implementation, i.e., <code>Prefetcher.py</code>, <code>lab3_pf.hh</code> and <code>lab3_pf.cc</code>.</li>
+</ul>
+</li>
+<li>summary:</li>
+<li>
+<ul>
+<li>A summary of the cited paper including background and designs.</li>
+</ul>
+</li>
+</ul>
+<p>Please pack all files in an archive and submit the archive.</p>
+</div>
+</div>
+<div id="admonition-grading" class="admonition admonish-success" role="note" aria-labelledby="admonition-grading-title">
+<div class="admonition-title">
+<div id="admonition-grading-title">
+<p>Grading</p>
+</div>
+<a class="admonition-anchor-link" href="proj3/submit.html#admonition-grading"></a>
+</div>
+<div>
+<p>In this project, the grading is partially based on the performance of your implementation. The details are (15 points in total):</p>
+<ul>
+<li>Screenshot that proves you have successfully built a cache hierarchy:</li>
+<li>
+<ul>
+<li><strong>5pts</strong>.</li>
+</ul>
+</li>
+<li><em><strong>PLUS</strong></em> resonable performance statistics of <strong>no prefetcher</strong>, <code>StridePrefetcher</code> and <code>AMPMPrefetcher</code>:</li>
+<li>
+<ul>
+<li><strong>9pts</strong>.</li>
+</ul>
+</li>
+<li><em><strong>PLUS</strong></em> a compilable Hyperion prefetcher implementation:</li>
+<li>
+<ul>
+<li><strong>12pts</strong>.</li>
+</ul>
+</li>
+<li><em><strong>PLUS</strong></em> a comparable performance with <code>StridePrefetcher</code> of your Hyperion prefetcher:</li>
+<li>
+<ul>
+<li><strong>14pts</strong>.</li>
+</ul>
+</li>
+<li><em><strong>PLUS</strong></em> a comparable performance with <code>AMPMPrefetcher</code> of your Hyperion prefetcher:</li>
+<li>
+<ul>
+<li><strong>15pts</strong>.</li>
+</ul>
+</li>
+</ul>
+<p>There are additional <strong>5pts</strong> based on your paper summary. A comprehensive summary including background and designs will get 5pts. Lack of any single part will cause <strong>-1pt</strong>.</p>
+</div>
+</div>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="appendix-a-introduction-to-cache-prefetchers"><a class="header" href="#appendix-a-introduction-to-cache-prefetchers">Appendix A: Introduction to Cache Prefetchers</a></h1>
+<p>In modern memory hierarchy, the penalty of cache misses can be extremely large. This motivates designers to reduce the cache miss rate. Typically, some workloads show predictable memory access patterns, like sequentially accessing an array (address sequence as <code>A, A+1, ...</code>). In such cases, a previous access can inform the CPU about the potential following accesses (e.g., <code>A</code> can lead to <code>A+1</code>). The cache prefetchers are designed for these scenarios, which extract the workloads' access patterns, and load the following data before the CPU explicitly accesses them, eliminating cache misses.</p>
+<p>The simplest implementation of prefetcher is the "next-line prefetcher", as shown in Fig (a) below. When the CPU access a block (cacheline) <code>A</code>, the next-line prefetcher will load the next block <code>A+1</code> to the cache. Note that in cache hierarchy, the access granualrity will always be block (typically 64B), so there is no concept like "next-byte prefetcher".</p>
+<p><img src="proj3/./prefetcher.svg" alt="Fig" /></p>
+<p>However, next-line prefetcher cannot perform well on some workloads. As a simple example, some workloads access the memory in a strided pattern, such as <code>A, A+2, A+4,...</code> (here we have <code>stride = 2</code>). In such scenarios, next-line prefetcher will never prefetch the being-used data. To serve these workloads, "stride prefetcher", as shown in Fig (b), is proposed, which can <em>learn</em> the actual stride from the memory access history, and perform useful prefetches.</p>
+<p>The "degree" denotes the depth of prefetching. For example, the next-line prefetcher has <code>degree = 1</code>, for it prefetches one line per issue. If it has larger degree, it can be named as "next-N-line prefetcher".</p>
+<h2 id="metrics-to-evaluate-prefetchers"><a class="header" href="#metrics-to-evaluate-prefetchers">Metrics to evaluate prefetchers</a></h2>
+<p>In the text above, we claim that stride prefetcher can perform better than next-line prefetcher. As a question, how can we determine the "performance" of a prefetcher? Basically, we have several values or metrics to evaluate prefetchers. Here we list them with their name in <code>stats.txt</code> of <code>gem5</code> output:</p>
+<ul>
+<li><code>pfIssued</code>: The number of prefetches issued by prefetcher.</li>
+<li><code>pfUseful</code>: The number of prefetches that are useful (i.e., the prefetched data are accessed in the cache before being evicted).</li>
+<li><code>pfUnused</code>: The number of prefetches that actually fill data into cache, but the data are not accessed before being evicted.</li>
+<li><code>pfLate</code>: The number of prefetches that are issued lately (the prefetched data are in cache, MSHRs or write buffer).</li>
+<li><code>demandMshrMisses</code>: The number of cache misses, no prefetch were issued to cover them.</li>
+<li><code>accuracy</code>: The accuracy of the prefetcher, equivalent to <code>pfUseful / pfIssued</code>.</li>
+<li><code>coverage</code>: The coverage of the prefetcher, equivalent to <code>pfUseful / potentialMisses</code>, where <code>potentialMisses = pfUseful + demandMshrMisses</code>. Here, "potential misses" refers to the accesses that would miss if there were no prefetcher. Therefore, the number of potential misses is the number of useful prefetches plus actual misses.</li>
+</ul>
+<p>The most important metrics are <code>accuracy</code> and <code>coverage</code>. There is a trade-off between them. More aggressive prefetching will fetch more addresses, whether useful of not. Many of the actual accesses can be covered by prefetches, but many useless data are also prefetched, thus, increasing the <code>coverage</code> but decreasing <code>accuracy</code>. More conservative prefetching may increase <code>accuracy</code> but decrease <code>coverage</code>.</p>
+<p>With these metrics, we can compare between next-line prefetcher and stride prefetcher: stride prefetcher can have higher <code>accuracy</code> and <code>coverage</code> than next-line prefetcher under strided accesses, since next-line prefetcher cannot prefetch any useful data.</p>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="appendix-b-hyperion-prefetcher-brief-description"><a class="header" href="#appendix-b-hyperion-prefetcher-brief-description">Appendix B: Hyperion Prefetcher Brief Description</a></h1>
+<p>In this appendix, we will briefly describe the concepts of delta prefetching and timely prefetch. Based on these information, we describe the Hyperion prefetcher. Finally, we list the features that are proposed in the paper but you don't need to implement in your codes.</p>
+<h2 id="delta-prefetching-and-local-delta-prefetching"><a class="header" href="#delta-prefetching-and-local-delta-prefetching">Delta prefetching and local-delta prefetching</a></h2>
+<p>To introduce delta prefetching, let's first consider a workload that performs an "irregular" memory access pattern: <code>A, A+1, A+3, A+4, A+6, ...</code>. The stride sequence of this stream is <code>+1, +2, +1, +2, ...</code>. Patterns that vary their strides like this are called irregular patterns. A normal stride prefetcher (<em>check Appendix A for details</em>) cannot provide any coverage for irregular patterns, since it cannot learn enough confidence for any individual stride value.</p>
+<p><img src="proj3/./delta.svg" alt="fig" /></p>
+<p>Delta prefetching is proposed to handle these irregular patterns. Conceptually, a "delta" is the address difference of current demand access with any previous accesses, as shown in the left figure above. The principle of delta prefetching is to learn among all existing deltas and issue prefetch based on deltas with the highest confidence. As shown in the right figure, with <code>+1, +2, +1, +2, ...</code> pattern, a delta prefetcher can learn that <code>+1</code> and <code>+2</code> has same confidence. It can then prefetch both <code>+1</code> and <code>+2</code>, increasing the coverage (though may decrease accuracy).</p>
+<p>Similar to branch predictors, prefetchers can also learn deltas based on local contexts, such as access history of individual PCs, or history inside individual pages.</p>
+<h2 id="timely-prefetch"><a class="header" href="#timely-prefetch">Timely prefetch</a></h2>
+<p>In Appendix A, we introduced the concept of late prefetches. An example is illustrated in figure below. Late prefetch happens because fetching data from lower levels of memory hierarchy requires time. For example, under the simplest pattern <code>+1, +1, +1, ...</code>, if the access interval is less than the fetch latency, next-line prefetcher can only provide zero coverage because all prefetches will be late. The principle of timely prefetch is to take prefetch latency into consideration. As shown in the right figure, timely prefetches can provide enough coverage.</p>
+<p><img src="proj3/./timely.svg" alt="fig" /></p>
+<p>To find the best timely delta for prefetch, prefetchers can estimate the fetch latency from accesses and data fills. When a delta prefetcher records previous accesses, it will also record a <strong>timestamp</strong> of the access's arrival. When the data <strong>is filled</strong> into the cache (green part in the figure), the fetch latency can be estimated with <code>current timestamp - arrival timestamp</code>. Based on these information, when an access <code>B</code> arrives, the best delta <code>d</code> should meet the following constraints:</p>
+<ul>
+<li>In histories, the access interval between <code>A</code> and <code>A+d</code> is larger than the fetch latency (<code>+2</code> and <code>+3</code> in the figure).</li>
+<li>The <code>d</code> is the minimal delta that meet the above constraint (<code>+2 &lt; +3</code>).</li>
+</ul>
+<p>Once the best delta is learned, the prefetcher can issue timely prefetches.</p>
+<h2 id="hyperion"><a class="header" href="#hyperion">Hyperion</a></h2>
+<p>Hyperion is a local-delta-based L1D prefetcher that generates timely prefetches to enhance both the accuracy and coverage. The figure below shows the overview of Hyperion's structure and methods.</p>
+<p><img src="proj3/./hyperion.svg" alt="fig" /></p>
+<p>Hyperion contains two kind of tables: history tables and delta tables. Each individual PC and page has its own history table and delta table. The history tables record the recent potential misses (demand miss and hit on prefetch) with its address and access timestamp. The delta tables record the recent occurred timely deltas. Each table has a total counter, and each delta has its local counter. These counters are used to calculate the confidence of deltas.</p>
+<p>Three types of cache events can trigger Hyperion:</p>
+<ol>
+<li>When there is a demand miss, Hyperion first updates the history tables (both PC and Page) with the address and timestamp. If a table is full, it will evict the earliest history (i.e., <strong>FIFO eviction</strong>). Then, Hyperion find both the PC delta table and Page delta table for the delta with highest confidence, and prefetch with this delta. This find-prefetch cycle will perform 12 times.</li>
+<li>When there is a demand fill (i.e., filling the data required by demand miss to cache), Hyperion will find the demand miss on this filled address in the history tables. The latency can be estimated by <code>lat = current - timestamp</code>. Then, it will scan the history tables and learn the best delta. Then, it will update the delta tables with this learnt delta. If the delta is already recorded in the table, the total counter and its local counter are plused by 1. If the delta is not recorded, the old delta with lowest confidence will be evicted, and the counters are updated (new local counter is 1).</li>
+<li>When there is a hit on prefetched data, which indicates a potential miss, Hyperion will also estimate the latency (the timestamp of fetch-beginning can be found in the prefetch queue), learn best delta and update delta tables, like in scenario 2. It will also update history tables and issue prefetches, like in secnario 1.</li>
+</ol>
+<div id="admonition-tip" class="admonition admonish-tip" role="note" aria-labelledby="admonition-tip-title">
+<div class="admonition-title">
+<div id="admonition-tip-title">
+<p>Tip</p>
+</div>
+<a class="admonition-anchor-link" href="proj3/appendix2.html#admonition-tip"></a>
+</div>
+<div>
+<ul>
+<li><strong>Use block base address</strong>: In cache context, all operations are in block granularity. The most important issue is that <code>notifyFill()</code> will pass block base address to the arguments. If you forget to use block base address, you may miss information in <code>notifyFill()</code>. So it's better to transform any address to block base address firstly (you can use <code>blockAddress()</code> or <code>blockIndex()</code>).</li>
+<li><strong>Record more information</strong>: The Hyperion is a hardware prefetcher. To mitigate its usage of hardware resources, it records only neccessary information. However, in your simulator, you can use much more memory. Feel free to record useful information to improve your prefetcher. The approaches Hyperion uses to mitigate hardware overheads are not neccessary in your implementation. We've listed them in next section.</li>
+<li><strong>Use larger degree</strong>: Hyperion is a degree-1 prefetcher, that is, for each selected delta, it prefetches only one block. However, increasing the degree may improve the performance under our specific test executables. You can use larger degree as long as it doesn't severely pollute the cache (leading to low accuracy and high cache miss rate). For example, <code>gem5</code>'s default stride perfetcher uses <code>degree = 4</code>.</li>
+<li><strong>Use lower threshold</strong>: Hyperion uses 0.8 as the L1D prefetch confidence threshold to avoid L1D cache pollution. However, such high confidence may lead to low coverage. You can use lower confidence during testing.</li>
+</ul>
+</div>
+</div>
+<h2 id="features-that-are-not-required-to-implement"><a class="header" href="#features-that-are-not-required-to-implement">Features that are not required to implement</a></h2>
+<p>As a hardware design, Hyperion takes multiple approaches to reduce the hardware overheads. However, in <code>gem5</code> simulator, hardware overhead is not a critical concern if we primarily focus on the logical performance of a design. Moreover, some designs modify basic cache implementation, which can be challenging in <code>gem5</code>. For your convenience, you don't need to implement the following features:</p>
+<ul>
+<li><strong>Unified tables</strong>: As described, Hyperion records histories and deltas for both individual PCs and individual pages. However, this can lead to redundant records. To reduce the used hardware, Hyperion merges the actual entries of PC and page tables into unified history/delta tables, and only uses separate indexing tables. In your implementation, you can just use two separate tables.</li>
+<li><strong>Prefetch buffer</strong>: Hyperion issues multiple prefetches each round. However, hardware prefetch queue can be full and some prefetches may not have the chance to be issued. Hyperion introduces a prefetch buffer to temporarily records these prefetches. Our software impelementation can ignore this constraint.</li>
+<li><strong>Timestamp and latency recording</strong>: Hyperion add some bits to cache blocks and MSHR entries to record the timestamps and latencies. This is more hardware-efficient than use new tables. However, it will be difficult to modify the cache and MSHR implementation in <code>gem5</code>. You can just use tables in your prefetcher to record timestamps and latencies.</li>
+<li><strong>Dynamic cache-level selection</strong>: Hyperion will select the level of prefetches according to the delta confidence. Delta with low confidence may be filled into L2 cache. However, implementing this feature may be difficult in <code>gem5</code>, since the framework doesn't provide to prefetchers for a global access of all caches. You are not required to implement this feature.</li>
+<li><strong>Event on fill of prefetched data</strong>: Hyperion will trigger additional events when a prefetched block is filled, due to limited PQ size. In your implementation, you don't need to implement this feature. In <code>notifyFill()</code>, you can use the interface <code>acc.pkt-&gt;cmd.isHWPrefetch()</code> to identify if the fill is from prefetching.</li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+        <script>
+        window.addEventListener('load', function() {
+            MathJax.Hub.Register.StartupHook('End', function() {
+                window.setTimeout(window.print, 100);
+            });
+        });
+        </script>
+
+
+    </div>
+    </body>
+</html>

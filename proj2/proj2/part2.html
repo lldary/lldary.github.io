@@ -1,0 +1,445 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Part 2: Implement a Simple BP - Archlab gem5 Project 2</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../../mdbook-admonish.css">
+
+        <!-- MathJax -->
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Archlab gem5 Project 2</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="part-2-implement-a-simple-bp"><a class="header" href="#part-2-implement-a-simple-bp">Part 2: Implement a Simple BP</a></h1>
+<p>A prediction result of a BP can be 'take', which means the branch instruction should take the branch and jump to the branch target, or 'not take', which means the branch instruction should not branch. In this part, we will build a <em>simple static branch predictor</em>, which always predicts 'take'.</p>
+<p><code>gem5</code> has provided many types of BP. The source codes can be found in <code>gem5/src/cpu/pred</code>. The definitions of all BP <code>SimObject</code> can be found in <code>gem5/src/cpu/pred/BranchPredictor.py</code>, and a Python abstact class <code>BranchPredictor</code> is provided to describe basic BP structure. You can also find <code>LocalBP</code>, <code>BiModeBP</code> and <code>TournamentBP</code> in <code>BranchPredictor.py</code>. For example, <code>LocalBP</code> is defined as follows:</p>
+<pre><code class="language-py">class LocalBP(BranchPredictor):
+    type = "LocalBP"
+    cxx_class = "gem5::branch_prediction::LocalBP"
+    cxx_header = "cpu/pred/2bit_local.hh"
+
+    localPredictorSize = Param.Unsigned(2048, "Size of local predictor")
+    localCtrBits = Param.Unsigned(2, "Bits per counter")
+</code></pre>
+<p>Almost all <code>SimObject</code> are defined with these contents, which our simple BP will also follow:</p>
+<ul>
+<li><code>type</code>: the typename of this Python object.</li>
+<li><code>cxx_class</code>: the typename of the C++ class that defines this object.</li>
+<li><code>cxx_header</code>: the header file includes the defination of the C++ class.</li>
+<li><code>&lt;name&gt; = Param.&lt;type&gt;(default, description)</code>: a list of configurable parameters, use the <code>Param</code> type provided by <code>gem5</code>.</li>
+</ul>
+<div id="admonition-note" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-title">
+<div class="admonition-title">
+<div id="admonition-note-title">
+<p>Note</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-note"></a>
+</div>
+<div>
+<p>We've provided a skeleton code for you, which includes blank implementations that you need to fill when you reproduce the papers, so that the complicated <code>gem5</code> interfaces will not bother you. However, to show you the basic steps of defining a new <code>SimObject</code>, you will implement the simple BP from scratch in this part. It will be easy if you follow the tutorial below.</p>
+</div>
+</div>
+<p>To add our simple BP, let's start with adding a new Python class to <code>BranchPredictor.py</code>, inheriting from <code>BranchPredictor</code>:</p>
+<pre><code class="language-py"># src/cpu/pred/BranchPredictor.py
+class SimpleBP(BranchPredictor):
+    type = 'SimpleBP'
+    cxx_class = 'gem5::branch_prediction::SimpleBP'
+    cxx_header = 'cpu/pred/simplebp.hh'
+</code></pre>
+<p>Next, we need to create <code>simplebp.hh</code> and <code>simplebp.cc</code>, which contains the codes of the implementation. First, create <code>simplebp.hh</code>:</p>
+<pre><code class="language-cpp">// src/cpu/pred/simplebp.hh
+#ifndef __CPU_PRED_SIMPLE_BP_HH__
+#define __CPU_PRED_SIMPLE_BP_HH__
+
+#include "base/types.hh"
+#include "cpu/pred/bpred_unit.hh"
+#include "params/SimpleBP.hh"
+
+namespace gem5 {
+namespace branch_prediction {
+class SimpleBP : public BPredUnit {
+public:
+  SimpleBP(const SimpleBPParams &amp;params);
+
+  bool lookup(ThreadID tid, Addr pc, void *&amp;bp_history) override;
+  void updateHistories(ThreadID tid, Addr pc, bool uncond, bool taken,
+                       Addr target, void *&amp;bp_history) override;
+  void update(ThreadID tid, Addr pc, bool taken, void *&amp;bp_history,
+              bool squashed, const StaticInstPtr &amp;inst, Addr target) override;
+  void squash(ThreadID tid, void *&amp;bp_history) override;
+};
+} // namespace branch_prediction
+} // namespace gem5
+
+#endif // __CPU_PRED_SIMPLE_BP_HH__
+</code></pre>
+<p>The definition of <code>SimpleBP</code> should be in namespace <code>gem5::branch_prediction</code>. The file should include <code>base/types.hh</code> and <code>cpu/pred/bpred_unit.hh</code> for base class definations.</p>
+<p>As we described above, the Python class in <code>BranchPredictor.py</code> defines multiple configurable parameters, and <code>SimpleBP</code> inherits the parameters from <code>BranchPredictor</code> (<code>BPredUnit</code> in C++ codes). When starting the simulation, <code>gem5</code> reads these parameters from Python scripts (including the configuration scripts like we created in Project 1) and passes them to C++ classes.</p>
+<p>To achieve this, SCons will automatically generate parameter headers and implementations from Python scripts, which can be included by your C++ codes. The generated codes are under <code>build/ARM/params</code>. Specifically, in code above, we firstly include <code>params/SimpleBP.hh</code>. Then, we defines a constructor with an argument <code>const SimpleBPParams &amp;params</code>.</p>
+<div id="admonition-tip" class="admonition admonish-tip" role="note" aria-labelledby="admonition-tip-title">
+<div class="admonition-title">
+<div id="admonition-tip-title">
+<p>Tip</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-tip"></a>
+</div>
+<div>
+<p>For your convenience, if you are using code editors/IDEs, you can add the special include paths of <code>gem5</code> to your tools, so that C++ code completion can work. The paths are <code>src/</code>, <code>build/ARM</code>, <code>ext/</code> and <code>ext/pybind11/include</code>.</p>
+</div>
+</div>
+<p>Basically, the <code>params</code> will contains all parameters defined and configured in Python scripts. For example. if we defined <code>pred_result</code> in the <code>BranchPredictor.py</code>, we can use it in the constructor:</p>
+<pre><code class="language-py"># BranchPredictor.py
+class SimpleBP(BranchPredictor):
+    type = 'SimpleBP'
+    cxx_class = 'gem5::branch_prediction::SimpleBP'
+    cxx_header = 'cpu/pred/simplebp.hh'
+
+    pred_result = Param.Bool(True, "True = always take, False = always not take")
+</code></pre>
+<pre><code class="language-cpp">// simplebp.hh
+class SimpleBP : public BPredUnit {
+    ...
+    bool pred_result;
+};
+// simplebp.cc
+SimpleBP::SimpleBP(const SimpleBPParams &amp;params)
+  : BPredUnit(params), pred_result(params.pred_result){}
+</code></pre>
+<div id="admonition-important-note" class="admonition admonish-warning" role="note" aria-labelledby="admonition-important-note-title">
+<div class="admonition-title">
+<div id="admonition-important-note-title">
+<p>Important note</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-important-note"></a>
+</div>
+<div>
+<p>Basically, the parameter passing procedure makes two constrains (for <strong><em>Python</em></strong> type <code>MyObj</code>):</p>
+<ul>
+<li>The included file is always <code>params/MyObj.hh</code>.</li>
+<li>The parameter typename is always <code>MyObjParams</code>.</li>
+</ul>
+<p>If you violate these constraints, compilation will fail.
+Any function signature that mismatches with base class will also fail compilation, and produce error message related to <code>MyObjParams</code> like the following:</p>
+<pre><code>/gem5/ext/pybind11/include/pybind11/pybind11.h:223: undefined reference to gem5::SimpleBPParams::create() const'
+collect2: error: ld returned 1 exit status
+</code></pre>
+<p>If you get this error, consider to double check your function signatures.</p>
+</div>
+</div>
+<p>In addition to the parameter, we also define four methods. These methods are defined as pure-abstract methods in <code>BPredUnit</code>, which can be found in <code>bpred_unit.hh</code>. These functions should be implemented as described:</p>
+<ul>
+<li><code>lookup()</code> is used to predict a conditional branch. The branch is specified by its PC. All conditional branches will call this method after they are fetched to the CPU. Also, BPs may want to record useful information of a certain branch. <code>lookup()</code> gives a pointer <code>bp_history</code> to store these information. It points to <code>nullptr</code>, and you need to create an instance with the <code>new</code> operator and assign it to the <code>bp_history</code>. When the actual outcome of this branch is known, the instance will be passed back to your BP with this pointer.</li>
+<li><code>updateHistories()</code> is used to update only the branch histories recorded by BP. Most of the modern BPs records the actual outcomes of previous branches as "history" (different from the word in <code>bp_history</code>) to improve the prediction. Once the outcome is known, a branch will call this method. The <code>bp_history</code> you've created in <code>lookup()</code> will be passed back. You <strong>should not</strong> delete the <code>bp_history</code>. Specifically, unconditional branches (<code>uncond==true</code>) will also call this method, but because they don't call <code>lookup()</code>, the <code>bp_history</code> will be <code>nullptr</code>. However, since they may call other methods that use <code>bp_history</code>, you need to create instances for unconditional branches in this method.</li>
+<li><code>squash()</code> is used to stop an ongoing prediction, suppress BP update, and restore the BP to previous state. This may happen when an earlier branch is mispredicted, and the branch instruction of the squashed prediction will not be executed anymore. Specifically, there is a pereiod between a branch's acutal outcome is known and the branch is finally committed. <code>squash()</code> may happen in this period, when <code>updateHistories()</code> is already called. This method passes the <code>bp_history</code> you created in <code>lookup()</code> back. You need to restore BP's state from <code>bp_history</code> and delete the <code>bp_history</code>. Notice that unconditional branches that previously called <code>updateHistories()</code> may call this method, too.</li>
+<li><code>update()</code> is used to update BP when the outcome (<code>taken</code>) of a branch is known, and the branch is going to be committed. If the prediction is incorrect, and causes squash of other branches, <code>update(squashed=true)</code> will be called first. Otherwise, no additional call happens. Then, under whatever condition, <code>update(squashed=false)</code> will be called to update the BP, then delete the <code>bp_history</code>.</li>
+</ul>
+<p>Here is a diagram that further describes the working flow of BP and these four methods under different conditions:</p>
+<p><img src="./proj2part2.svg" alt="Fig" /></p>
+<div id="admonition-bug" class="admonition admonish-bug" role="note" aria-labelledby="admonition-bug-title">
+<div class="admonition-title">
+<div id="admonition-bug-title">
+<p>Bug</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-bug"></a>
+</div>
+<div>
+<p>Here are some known bugs in <code>gem5</code> that make the behavior violates the descriptions above:</p>
+<ul>
+<li>It is claimed that all conditional branches call <code>lookup()</code> firstly and <code>update()</code> finally. However, the first few branches may directly call <code>update()</code>, and pass an uninitialized <code>bp_history</code>.</li>
+<li>When a branch is mispredicted and cause squash of other branches, it will call <code>update()</code> twice, <code>update(squashed=true)</code> then <code>update(squashed=false)</code>. We expect the <code>bp_history</code> in these two calls are the same. However, some branches pass different <code>bp_history</code>.</li>
+</ul>
+<p>The frequency of these events is below 0.1%, so they won't impact the performance of your BPs, but may cause fatal errors if you don't check the <code>bp_history</code>. One way to avoid fatal errors is to record a magic number in your <code>bp_history</code> and check it before you use them.</p>
+</div>
+</div>
+<p>These descriptions may be hard to understand. When you are implementing a "not simple" BP, you can learn the basic implementation principles of these functions from <code>bimode.cc</code> or <code>tournament.cc</code>. However, in <code>SimpleBP</code>, we do not care about any history or BP state. The implementation in <code>simplebp.cc</code> will be the simplest. We just return <code>true</code> in <code>lookup()</code>, and leave blank implementations in other functions:</p>
+<pre><code class="language-cpp">// src/cpu/pred/simplebp.cc
+#include "cpu/pred/simplebp.hh"
+
+namespace gem5 {
+namespace branch_prediction {
+SimpleBP::SimpleBP(const SimpleBPParams &amp;params) : BPredUnit(params) {}
+
+bool SimpleBP::lookup(ThreadID tid, Addr pc, void *&amp;bp_history) { return true; }
+void SimpleBP::updateHistories(ThreadID tid, Addr pc, bool uncond, bool taken,
+                               Addr target, void *&amp;bp_history) {}
+
+void SimpleBP::update(ThreadID tid, Addr pc, bool taken, void *&amp;bp_history,
+                      bool squashed, const StaticInstPtr &amp;inst, Addr target) {}
+void SimpleBP::squash(ThreadID tid, void *&amp;bp_history) {}
+} // namespace branch_prediction
+} // namespace gem5
+</code></pre>
+<p>Now we've finished the C++ implementation, the next thing we need to do is to register <code>SimpleBP</code> in the SCons script to let it be compiled. In <code>cpu/pred/SConscript</code>, we need to add <code>SimpleBP</code> to the list of <code>SimObject</code>, and register the source code <code>simplebp.cc</code>:</p>
+<pre><code class="language-py"># src/cpu/pred/SConscript
+SimObject('BranchPredictor.py',
+    sim_objects=[
+    # add this
+    'SimpleBP',
+    ...])
+
+# add this
+Source('simplebp.cc')
+...
+</code></pre>
+<p>Finally, we configure the CPU with our <code>SimpleBP</code> in the configuration script:</p>
+<pre><code class="language-py"># configs/proj2/simple.py
+bp_types = {
+    ...
+    "simple": SimpleBP,
+}
+</code></pre>
+<p>And we can compile and run the <code>gem5</code>:</p>
+<pre><code class="language-sh">scons build/ARM/gem5.opt -j8
+build/ARM/gem5.opt configs/proj2/simple.py tests/labexe/hello --bp simple
+</code></pre>
+<p>If everything goes correctly, we can see the <code>cpu.branchPred</code> has changed in <code>config.ini</code>.</p>
+<div id="admonition-important-note-1" class="admonition admonish-warning" role="note" aria-labelledby="admonition-important-note-1-title">
+<div class="admonition-title">
+<div id="admonition-important-note-1-title">
+<p>Important note</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-important-note-1"></a>
+</div>
+<div>
+<p>You may have noticed that the SCons again generates a lot of outputs while compiling. This is because we've modified <code>BranchPredictor.py</code>, and SCons needs to re-generate the py-cpp binding codes. Actually, any modification to Python scripts under <code>src</code> will cause SCons to re-generate all binding codes, which takes very long time. So when you are implementing other new components, try to design all the required parameters first, and modify Python scripts only once to save compile time.</p>
+</div>
+</div>
+<div id="admonition-delieverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-delieverables-title">
+<div class="admonition-title">
+<div id="admonition-delieverables-title">
+<p>Delieverables</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-delieverables"></a>
+</div>
+<div>
+<p>Please run two BP-sensitive workloads, i.e., <code>shell_sort</code> and <code>spfa</code>, with your <code>SimpleBP</code>. In this part, please (at least) include figures or tables, which show the accuracy of <code>SimpleBP</code> and IPC of CPU on workloads listed below, in your <em><strong>report</strong></em>:</p>
+<ul>
+<li>BPs: <code>SimpleBP</code>.</li>
+<li>exe: <code>shell_sort</code>, <code>spfa</code>.</li>
+<li>With default CPU and Memory (O3 and DDR4).</li>
+</ul>
+<p>In total, you need to run <code>gem5</code> twice.</p>
+</div>
+</div>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../proj2/part1.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../proj2/part3.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../proj2/part1.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../proj2/part3.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>
