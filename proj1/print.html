@@ -65,7 +65,7 @@
                 }
             });
         </script>
-    <div style="display: none"><a href="#proj1">proj1</a><a href="#proj1-setup">proj1-setup</a><a href="#proj1-part1">proj1-part1</a><a href="#proj1-part2">proj1-part2</a><a href="#proj1-part3">proj1-part3</a><a href="#proj1-submit">proj1-submit</a><a href="#proj1-appendix">proj1-appendix</a></div>
+    <div style="display: none"><a href="#proj1">proj1</a><a href="#proj1-setup">proj1-setup</a><a href="#proj1-part1">proj1-part1</a><a href="#proj1-part2">proj1-part2</a><a href="#proj1-part3">proj1-part3</a><a href="#proj1-submit">proj1-submit</a><a href="#proj1-vscode-settings">proj1-vscode-settings</a><a href="#proj1-appendix">proj1-appendix</a></div>
         <!-- Start loading toc.js asap -->
         <script src="toc.js"></script>
     </head>
@@ -220,12 +220,12 @@
 # You'll see contents like the following:
 Docker version 24.0.2, build cb74dfc
 </code></pre>
-<div id="admonition-note" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-title">
+<div id="admonition-docker-install-tips" class="admonition admonish-tip" role="note" aria-labelledby="admonition-docker-install-tips-title">
 <div class="admonition-title">
-<div id="admonition-note-title">
-<p>Note</p>
+<div id="admonition-docker-install-tips-title">
+<p>Docker Install tips</p>
 </div>
-<a class="admonition-anchor-link" href="proj1/setup.html#admonition-note"></a>
+<a class="admonition-anchor-link" href="proj1/setup.html#admonition-docker-install-tips"></a>
 </div>
 <div>
 <p>On Windows system, pay particular attention to verifying whether <strong>WSL2</strong> is already installed on your computer or whether <strong>Hyper-V</strong> functionality is enabled. Failure to do so may result in various unexpected issues during the installation process. We recommend using WSL2 to support Docker. You can verify if WSL2 is installed with the following command:</p>
@@ -234,15 +234,14 @@ Docker version 24.0.2, build cb74dfc
 </div>
 </div>
 Once you've installed Docker, you can pull our image with the following command:
-```sh
-docker pull chaselab/archlab
-```
-<div id="admonition-note-1" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-1-title">
+<pre><code class="language-sh">docker pull chaselab/archlab
+</code></pre>
+<div id="admonition-note" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-title">
 <div class="admonition-title">
-<div id="admonition-note-1-title">
+<div id="admonition-note-title">
 <p>Note</p>
 </div>
-<a class="admonition-anchor-link" href="proj1/setup.html#admonition-note-1"></a>
+<a class="admonition-anchor-link" href="proj1/setup.html#admonition-note"></a>
 </div>
 <div>
 <p>If you can't connect to Docker Hub, you can also download the image archive from our <a href="https://disk.pku.edu.cn/link/AA8F735492EA4048A282AA5A7B9820B521">PKU Disk</a> and load it with the following command:</p>
@@ -258,12 +257,12 @@ docker pull chaselab/archlab
 REPOSITORY         TAG           IMAGE ID       CREATED        SIZE
 chaselab/archlab   latest        c028b12a3ac4   1 second ago   1.8GB
 </code></pre>
-<div id="admonition-note-2" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-2-title">
+<div id="admonition-note-1" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-1-title">
 <div class="admonition-title">
-<div id="admonition-note-2-title">
+<div id="admonition-note-1-title">
 <p>Note</p>
 </div>
-<a class="admonition-anchor-link" href="proj1/setup.html#admonition-note-2"></a>
+<a class="admonition-anchor-link" href="proj1/setup.html#admonition-note-1"></a>
 </div>
 <div>
 <p>If you prefer to install the prerequisites for <code>gem5</code> manually, you can follow the commands listed below.</p>
@@ -277,6 +276,20 @@ sudo apt install build-essential git m4 scons zlib1g zlib1g-dev libprotobuf-dev 
 </div>
 </div>
 <p>After preparing the environment, you should clone the codes of <code>gem5</code>. We have provided a skeleton code which you can clone from its <a href="https://github.com/ChaseLab-PKU/archlab-gem5">repo</a>, or download the code package from <a href="https://disk.pku.edu.cn/link/AA8F735492EA4048A282AA5A7B9820B521">PKU Disk</a> and then extract the codes to a directory.</p>
+<div id="admonition-code-clone-tips" class="admonition admonish-tip" role="note" aria-labelledby="admonition-code-clone-tips-title">
+<div class="admonition-title">
+<div id="admonition-code-clone-tips-title">
+<p>code clone tips</p>
+</div>
+<a class="admonition-anchor-link" href="proj1/setup.html#admonition-code-clone-tips"></a>
+</div>
+<div>
+<p>On Windows system, please run the following command before cloning the code repository:</p>
+<pre><code class="language-sh">git config --global core.autocrlf false
+</code></pre>
+<p>This will prevent compilation issues caused by differences in line ending definitions between Windows and Linux.</p>
+</div>
+</div>
 <p>Once you have the codes, you are able to compile <code>gem5</code>. If you are using Docker (if not you can skip this part), you need to firstly create a container to setup the environment. Also, you need to mount the code onto the container when you start it, so that you can read and modify the code files inside the container. The command is as follows:</p>
 <pre><code class="language-sh">docker run -it --name &lt;container name&gt; -v &lt;local path&gt;:&lt;container path&gt; chaselab/archlab /bin/bash
 </code></pre>
@@ -308,16 +321,17 @@ CONTAINER ID   IMAGE                  COMMAND       CREATED          STATUS     
 <div>
 <p>After starting the container, you can run any commands in it. However, you need to know more docker commands when meeting other situations:</p>
 <ul>
-<li>If you've closed the container by running <code>exit</code> and want to run the lab again, you do not need to create another container with <code>docker run</code>. Instead, you can use the following command to restart your container and attach stdin, stdout and stderr to your terminal:</li>
-</ul>
+<li>If you've closed the container by running <code>exit</code> and want to run the lab again, you do not need to create another container with <code>docker run</code>. Instead, you can use the following command to restart your container and attach stdin, stdout and stderr to your terminal:
 <pre><code class="language-sh">docker start -ia &lt;container ID/name&gt;
 </code></pre>
-<ul>
-<li>If you start the simulation and want to close the terminal while keeping <code>gem5</code> running, you can type <code>ctrl+p+q</code> to stop the interactive evironment and return to your own terminal. Then, when you want to return to the container, you can use the following commands:</li>
-</ul>
+If you are using a Windows system, you can also launch the corresponding container directly from the graphical interface of the Docker Desktop software.</li>
+<li>If you start the simulation and want to close the terminal while keeping <code>gem5</code> running, you can type <code>ctrl+p+q</code> to stop the interactive evironment and return to your own terminal. Then, when you want to return to the container, you can use the following commands:
 <pre><code class="language-sh">docker attach &lt;container ID/name&gt; # return to the original container terminal
 docker exec -it &lt;container ID/name&gt; &lt;command&gt; # start a new container terminal
 </code></pre>
+</li>
+<li>If you want to make accessing Docker feel similar to accessing a remote server, you can use the <em>Dev Containers</em> extension for <a href="proj1/./vscode-settings.html">VS Code</a>. This allows you to directly access the running container through VS Code, and use VS Code to edit code and execute command-line commands.</li>
+</ul>
 </div>
 </div>
 <h2 id="compile-gem5"><a class="header" href="#compile-gem5">Compile <code>gem5</code></a></h2>
@@ -325,6 +339,26 @@ docker exec -it &lt;container ID/name&gt; &lt;command&gt; # start a new containe
 <pre><code class="language-sh">cd gem5
 scons build/ARM/gem5.opt -j $(nproc) # use all your cores to compile
 </code></pre>
+<div id="admonition-compile-tips" class="admonition admonish-tip" role="note" aria-labelledby="admonition-compile-tips-title">
+<div class="admonition-title">
+<div id="admonition-compile-tips-title">
+<p>compile tips</p>
+</div>
+<a class="admonition-anchor-link" href="proj1/setup.html#admonition-compile-tips"></a>
+</div>
+<div>
+<p>If you run <code>scons</code> to compile and are warned with <code>Cannot find 'pre-commit'</code> (messages like the following), you can ignore the message (press enter and then press y). This is only required for contributing to <code>gem5</code> and will not prevent the compilation.</p>
+<pre><code>You're missing the pre-commit/commit-msg hooks. These hook help to ensure your
+code follows gem5's style rules on git commit and your commit messages follow
+our commit message requirements. This script will now install these hooks in
+your .git/hooks/ directory.
+Press enter to continue, or ctrl-c to abort:
+ Cannot find 'pre-commit'. Please ensure all Python requirements are
+installed. This can be done via 'pip install -r requirements.txt'.
+It is strongly recommended you install the pre-commit hooks before working with gem5. Do you want to continue compilation (y/n)?
+</code></pre>
+</div>
+</div>
 <p>Building <code>gem5</code> may take you <em>more than 30 minutes</em> on your PC. If it completes successfully, you will see the following results:</p>
 <pre><code> [     CXX] ARM/base/date.cc -&gt; .o
  [    LINK]  -&gt; ARM/gem5.opt
@@ -747,6 +781,23 @@ done
 <p>You <strong>DO NOT</strong> need to submit your configuration script <strong>in this project</strong>.</p>
 </div>
 </div>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="appendix-vscode-and-docker-working-together-on-windows"><a class="header" href="#appendix-vscode-and-docker-working-together-on-windows">Appendix: VSCode and Docker Working Together on Windows</a></h1>
+<p>First, you need to install Docker and Visual Studio Code and ensure they are functioning properly.</p>
+<h2 id="install-the-dev-containers-plugin"><a class="header" href="#install-the-dev-containers-plugin">Install the Dev Containers plugin</a></h2>
+<ul>
+<li>Open Visual Studio Code</li>
+<li>click the Extensions icon in the left sidebar</li>
+<li>Search for “Dev Containers” in the search bar at the top of the Extensions list that appears</li>
+<li>select the desired extension from the search results and click the Install button on the opened page</li>
+</ul>
+<p><img src="proj1/./devcontainersinstall.png" alt="" /></p>
+<h2 id="connecting-to-a-container-using-vs-code"><a class="header" href="#connecting-to-a-container-using-vs-code">Connecting to a container using VS Code</a></h2>
+<ul>
+<li>Launch the container using the method described earlier</li>
+<li>Launch VS Code, then click the green “Open a Remote Window” button in the bottom-left corner
+<img src="proj1/./opencontainerviavscode.png" alt="" /></li>
+<li>Then it will display a list of currently running containers at the top. Select the container you want to enter and click on it</li>
+</ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="appendix-common-questions"><a class="header" href="#appendix-common-questions">Appendix: Common Questions</a></h1>
 <p>Here are some common questions that we collected on Part 1, especially for installing environment and compiling <code>gem5</code>:</p>
 <h2 id="pull-image-issue"><a class="header" href="#pull-image-issue">Pull image issue</a></h2>
