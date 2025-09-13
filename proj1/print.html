@@ -65,7 +65,7 @@
                 }
             });
         </script>
-    <div style="display: none"><a href="#proj1">proj1</a><a href="#proj1-setup">proj1-setup</a><a href="#proj1-part1">proj1-part1</a><a href="#proj1-part2">proj1-part2</a><a href="#proj1-part3">proj1-part3</a><a href="#proj1-submit">proj1-submit</a><a href="#proj1-vscode-settings">proj1-vscode-settings</a><a href="#proj1-appendix">proj1-appendix</a></div>
+    <div style="display: none"><a href="#proj1">proj1</a><a href="#proj1-setup">proj1-setup</a><a href="#proj1-part1">proj1-part1</a><a href="#proj1-part2">proj1-part2</a><a href="#proj1-part3">proj1-part3</a><a href="#proj1-submit">proj1-submit</a><a href="#proj1-vscode-settings">proj1-vscode-settings</a><a href="#proj1-vscode-login">proj1-vscode-login</a><a href="#proj1-appendix">proj1-appendix</a></div>
         <!-- Start loading toc.js asap -->
         <script src="toc.js"></script>
     </head>
@@ -798,7 +798,59 @@ done
 <img src="proj1/./opencontainerviavscode.png" alt="" /></li>
 <li>Then it will display a list of currently running containers at the top. Select the container you want to enter and click on it</li>
 </ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="appendix-common-questions"><a class="header" href="#appendix-common-questions">Appendix: Common Questions</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="appendix-log-in-to-the-server-account-provided-to-you-using-visual-studio-code"><a class="header" href="#appendix-log-in-to-the-server-account-provided-to-you-using-visual-studio-code">Appendix: Log in to the server account provided to you using Visual Studio Code</a></h1>
+<h2 id="create-configuration-command"><a class="header" href="#create-configuration-command">Create configuration command</a></h2>
+<p>If you have applied to the teaching assistant for a server account, we will typically return two commands similar to those shown below, along with their corresponding passwords.</p>
+<pre><code class="language-sh">ssh -p &lt;port1&gt; jzlab@&lt;IP&gt;
+ssh -p &lt;port2&gt; root@127.0.0.1
+</code></pre>
+<p>Based on these two commands, we need to assemble a new string in the following format:</p>
+<pre><code class="language-sh">Host &lt;your favourite name&gt;
+	Hostname 127.0.0.1
+	User root
+	Port &lt;port2&gt;
+	ProxyJump jzlab@&lt;IP&gt;:&lt;port1&gt;
+</code></pre>
+<p>For example, if the command you receive is</p>
+<pre><code class="language-sh">ssh -p 11451 jzlab@114.514.114.514
+ssh -p 14514 root@127.0.0.1
+</code></pre>
+<p>Then you can obtain the string</p>
+<pre><code class="language-sh">Host helloworld
+	Hostname 127.0.0.1
+	User root
+	Port 14514
+	ProxyJump jzlab@114.514.114.514:11451
+
+</code></pre>
+<h2 id="install-visual-studio-code"><a class="header" href="#install-visual-studio-code">Install Visual Studio Code</a></h2>
+<p>Visit the official <a href="https://code.visualstudio.com/">Visual Studio Code website</a>, where you will find the download button readily available. Please ensure you download the appropriate version for your operating system.</p>
+<p>Then open the installation package you have downloaded and follow the step-by-step instructions to complete the installation.</p>
+<h2 id="install-the-remote-ssh-plugin"><a class="header" href="#install-the-remote-ssh-plugin">Install the remote-ssh plugin</a></h2>
+<p>Once you've downloaded Visual Studio Code, you'll need to install the SSH-related extensions. First, open your Visual Studio Code. Then locate the extensions icon in the left-hand sidebar. Upon clicking the icon, an expanded list and a search box appeared. Enter <strong>“remote-SSH”</strong> in the search box to locate the corresponding plugin.Finally, select the corresponding result and click “Install”.
+<img src="proj1/./remoteSSHinstall.png" alt="" /></p>
+<h2 id="add-configuration-command"><a class="header" href="#add-configuration-command">Add configuration command</a></h2>
+<p>Upon installing the Remote-SSH extension, a new icon resembling a monitor symbol appears in the left-hand pane of VS Code, labelled Remote Explorer. Clicking this icon displays all SSH connections previously accessed through VS Code. When you hover your mouse over the SSH folder, you will notice a gear icon appearing to the right of SSH.
+<img src="proj1/./remoteSSHconfig.png" alt="" /></p>
+<p>Clicking this gear icon will prompt you to select a configuration file. Simply choose the default option, and you will then open the SSH configuration file.
+<img src="proj1/./sshconfigchoice.png" alt="" /></p>
+<p>Next, paste the newly acquired configuration command onto the last newly created line, maintaining its formatting.</p>
+<p><img src="proj1/./sshconfigfill.png" alt="" /></p>
+<p>Finally, remember to save!</p>
+<h2 id="start-your-journey"><a class="header" href="#start-your-journey">Start your journey</a></h2>
+<p>When you wish to connect to your server account, open Visual Studio Code and click the green or blue square in the bottom-left corner, which represents the creation of a new remote connection. A list will then appear at the top; select “Connect to Host”. You will then notice “helloworld” (or your select name) appearing in this list. Click on it to initiate the SSH connection. Please note you will need to enter your password twice: once for <code>ssh -p &lt;port1&gt; jzlab@&lt;IP&gt;</code> and once for <code>ssh -p &lt;port2&gt; root@127.0.0.1</code>. If all proceeds smoothly, you will enter the VSCode workspace and can now try this lab.</p>
+<div id="admonition-password-input-tip" class="admonition admonish-tip" role="note" aria-labelledby="admonition-password-input-tip-title">
+<div class="admonition-title">
+<div id="admonition-password-input-tip-title">
+<p>password input tip</p>
+</div>
+<a class="admonition-anchor-link" href="proj1/vscode-login.html#admonition-password-input-tip"></a>
+</div>
+<div>
+<p>If you're unsure which password the VSCode prompt is asking for, delete all characters you've entered into the password field. You'll notice a prompt appears in the field.
+<img src="proj1/./passwordtip.png" alt="" /></p>
+</div>
+</div><div style="break-before: page; page-break-before: always;"></div><h1 id="appendix-common-questions"><a class="header" href="#appendix-common-questions">Appendix: Common Questions</a></h1>
 <p>Here are some common questions that we collected on Part 1, especially for installing environment and compiling <code>gem5</code>:</p>
 <h2 id="pull-image-issue"><a class="header" href="#pull-image-issue">Pull image issue</a></h2>
 <p>If you failed to pull the Docker image with <code>docker pull</code>, it is probably because the Docker Hub is blocked currently. Try to use VPN or download the image from our <a href="https://disk.pku.edu.cn/link/AA8F735492EA4048A282AA5A7B9820B521">PKU Disk</a>.</p>
@@ -848,8 +900,8 @@ autoMemoryReclaim=gradual
 <p>If you still cannot compile or cannot setup WSL and Docker Desktop, feel free to contact TA for a server account. However, please note:</p>
 <ul>
 <li>You still need to <strong>use docker image</strong>, since the environment on the server is not checked.</li>
-<li>You <strong>DO NOT need to pull</strong> the image again. Just clone the codes and use <code>docker run</code>.</li>
-<li>Because you can see all existing containers on the server, please assign an <em><strong>UNIQUE NAME</strong></em> to your new container with <code>--name</code> in <code>docker run</code>. If you use a name same with an existing one, you will not be able to start the new container.</li>
+<li>You <strong>DO NOT need to pull</strong> the image again. Just use ssh to log in your container and clone code and all operations requiring storage space within the <code>/workspace</code> directory.</li>
+<li>We recommend using <strong>Visual Studio Code</strong> to log into the container assigned to you. As the login process involves SSH jump server principles, we advise you to consult <a href="proj1/./vscode-login.html">relevant tutorials</a>.</li>
 <li><strong>DO NOT MALICIOUSLY ENTER OTHER STUDENTS' CONTAINERS OR MODIFY THEIR CODES!</strong></li>
 </ul>
 
