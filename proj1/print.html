@@ -295,15 +295,14 @@ sudo apt install build-essential git m4 scons zlib1g zlib1g-dev libprotobuf-dev 
 </code></pre>
 <ul>
 <li>The <code>-it</code> option means to attach stdin, stdout and stderr to current terminal, so you can operate the container interactively.</li>
-<li>The <code>--name &lt;container name&gt;</code> option specifies the name of the new container. It may be useful when you try to run other commands on the container, but it is rather optional, because you can always specify a container by its individual ID. You can see the IDs and names of all existing containers with this command:</li>
-</ul>
+<li>The <code>--name &lt;container name&gt;</code> option specifies the name of the new container. It may be useful when you try to run other commands on the container, but it is rather optional, because you can always specify a container by its individual ID. You can see the IDs and names of all existing containers with this command:
 <pre><code class="language-sh">docker ps -a
 
 # you'll see contents like the following:
 CONTAINER ID   IMAGE                  COMMAND       CREATED          STATUS                      PORTS     NAMES
 43518d84eb29   chaselab/archlab       "/bin/bash"   14 seconds ago   Exited (0) 14 seconds ago             lab1
 </code></pre>
-<ul>
+</li>
 <li>The <code>-v &lt;local path&gt;:&lt;container path&gt;</code> allows you to mount a local directory to a directory in the container. Here, you need to specify the <code>local path</code> as the path to your <code>gem5</code> code, for example, <code>C:\Users\myname\gem5</code>. The <code>container path</code> can be simple, for example, <code>/gem5</code>. When you enter the container, you can see all the codes under container path. Please note that this option <strong>only accepts absolute paths</strong>, otherwise the contents in the directory will not be correctly mounted.</li>
 <li>The first argument after the options is the image name, here is <code>chaselab/archlab</code>.</li>
 <li>The second argument is the command you want to run upon container start. Here we use <code>/bin/bash</code> to start an interactive terminal.</li>
@@ -880,11 +879,10 @@ It is strongly recommended you install the pre-commit hooks before working with 
 <p>If you use Docker Desktop on a Windows system, you may meet a file format issue during compilation, especially when you clone the codes under Windows using <code>git</code>. <code>git</code> will automatically replace <code>\n</code> (LF) with <code>\r\n</code> (CRLF) for you. SCons may report the occurance of <code>\r</code> (or <code>^M</code>) and throw an error. Here's three possible solutions:</p>
 <ul>
 <li>Disable the auto replacement by <code>git config --global core.autocrlf false</code>, and clone (re-clone) the codes.</li>
-<li>Use <code>dos2unix</code> under your container (you need to firstly install it using <code>apt</code>) to transform <code>\r\n</code> to <code>\n</code>. The command referring to this <a href="https://www.cnblogs.com/JasonCeng/p/15806834.html">blog</a> can be</li>
-</ul>
+<li>Use <code>dos2unix</code> under your container (you need to firstly install it using <code>apt</code>) to transform <code>\r\n</code> to <code>\n</code>. The command referring to this <a href="https://www.cnblogs.com/JasonCeng/p/15806834.html">blog</a> can be
 <pre><code>find . -type f -print0 | xargs -0 dos2unix
 </code></pre>
-<ul>
+</li>
 <li>Clone the codes inside container. Be careful, <strong>you will lose your codes when you remove the container</strong> if you choose this solution.</li>
 </ul>
 <h2 id="run-out-of-memory-scons-killed-issue"><a class="header" href="#run-out-of-memory-scons-killed-issue">Run out of memory (SCons killed) issue</a></h2>
