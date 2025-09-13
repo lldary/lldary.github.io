@@ -184,15 +184,29 @@
 # You'll see contents like the following:
 Docker version 24.0.2, build cb74dfc
 </code></pre>
-<p>Once you've installed Docker, you can pull our image with the following command:</p>
-<pre><code class="language-sh">docker pull chaselab/archlab
-</code></pre>
 <div id="admonition-note" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-title">
 <div class="admonition-title">
 <div id="admonition-note-title">
 <p>Note</p>
 </div>
 <a class="admonition-anchor-link" href="#admonition-note"></a>
+</div>
+<div>
+<p>If you are using a Windows system, please carefully review the official installation guide provided on the website before installing Docker Desktop. Pay particular attention to verifying whether WSL2 is already installed on your computer or whether Hyper-V functionality is enabled. Failure to do so may result in various unexpected issues during the installation process. We recommend using WSL2 to support Docker. To verify if WSL2 is installed, use the following command:</p>
+<pre><code class="language-sh">wsl --version
+</code></pre>
+</div>
+</div>
+Once you've installed Docker, you can pull our image with the following command:
+```sh
+docker pull chaselab/archlab
+```
+<div id="admonition-note-1" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-1-title">
+<div class="admonition-title">
+<div id="admonition-note-1-title">
+<p>Note</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-note-1"></a>
 </div>
 <div>
 <p>If you can't connect to Docker Hub, you can also download the image archive from our <a href="https://disk.pku.edu.cn/link/AA8F735492EA4048A282AA5A7B9820B521">PKU Disk</a> and load it with the following command:</p>
@@ -208,12 +222,12 @@ Docker version 24.0.2, build cb74dfc
 REPOSITORY         TAG           IMAGE ID       CREATED        SIZE
 chaselab/archlab   latest        c028b12a3ac4   1 second ago   1.8GB
 </code></pre>
-<div id="admonition-note-1" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-1-title">
+<div id="admonition-note-2" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-2-title">
 <div class="admonition-title">
-<div id="admonition-note-1-title">
+<div id="admonition-note-2-title">
 <p>Note</p>
 </div>
-<a class="admonition-anchor-link" href="#admonition-note-1"></a>
+<a class="admonition-anchor-link" href="#admonition-note-2"></a>
 </div>
 <div>
 <p>If you prefer to install the prerequisites for <code>gem5</code> manually, you can follow the commands listed below.</p>
