@@ -279,12 +279,14 @@ def init_process(root, args):
 </div>
 <div>
 <ul>
-<li>Except the <code>hello</code>, other executables are quite complex, and will take hours for <code>gem5</code> to finish simulation. You can early-stop the simulation with all statistics printed by specifying the <code>max_insts_any_thread</code> in CPU, which will shutdown the CPU when that many instructions are already executed (you can also set an option for this parameter):</li>
-</ul>
+<li>
+<p>Except the <code>hello</code>, other executables are quite complex, and will take hours for <code>gem5</code> to finish simulation. You can early-stop the simulation with all statistics printed by specifying the <code>max_insts_any_thread</code> in CPU, which will shutdown the CPU when that many instructions are already executed (you can also set an option for this parameter):</p>
 <pre><code class="language-python">system.cpu.max_insts_any_thread = 1e+9
 </code></pre>
-<ul>
-<li>Find the proper <code>max_insts_any_thread</code> number for your PC that allows a fast simulation, but still generate reasonable statistics (warmup phases in executables may show quite different performance statistics compared to real execution phases). A <strong>recommended number is <code>5e+8</code></strong> for this project.</li>
+</li>
+<li>
+<p>Find the proper <code>max_insts_any_thread</code> number for your PC that allows a fast simulation, but still generate reasonable statistics (warmup phases in executables may show quite different performance statistics compared to real execution phases). A <strong>recommended number is <code>5e+8</code></strong> for this project.</p>
+</li>
 </ul>
 </div>
 </div>
