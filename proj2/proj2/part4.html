@@ -180,8 +180,8 @@
                     <main>
                         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="part-4-optimize-a-program-segment-using-branch-optimization-techniques"><a class="header" href="#part-4-optimize-a-program-segment-using-branch-optimization-techniques">Part 4: Optimize a Program Segment Using Branch Optimization Techniques</a></h1>
-<p>It is well known that branch instructions cause pauses, significantly impacting program performance. To address this issue, hardware manufacturers have developed various branch predictors that reduce pauses by anticipating branches in advance. So, as software developers, can we further optimize program performance at the software level by understanding these branch predictors? The answer is yes.
-In this experiment, we also hope students will gain an initial understanding of how branch optimization enhances program efficiency and appreciate its unique appeal. While compilers may already implement some optimization techniques, we still encourage students to delve into the principles behind these techniques through hands-on practice, thereby gaining a deeper understanding of the importance of branches in CPU architecture.</p>
+<p>It is well known that branch instructions cause pauses, significantly impacting program performance. To address this issue, hardware manufacturers have developed various branch predictors that reduce pauses by anticipating branches in advance. So, as software developers, can we further optimize program performance at the software level by understanding these branch predictors? The answer is yes.</p>
+<p>In this experiment, we also hope students will gain an initial understanding of how branch optimization enhances program efficiency and appreciate its unique appeal. While compilers may already implement some optimization techniques, we still encourage students to delve into the principles behind these techniques through hands-on practice, thereby gaining a deeper understanding of the importance of branches in CPU architecture.</p>
 <h2 id="lab-setup-preparation"><a class="header" href="#lab-setup-preparation">Lab Setup Preparation</a></h2>
 <p>We need to obtain three files from <a href="https://disk.pku.edu.cn/link/AA8F735492EA4048A282AA5A7B9820B521">PKU Disk</a> or the <a href="https://course.pku.edu.cn/">teaching and learning network</a> for this part of the experiment. These files are <code>branch_optimize.c</code>, <code>branch_optimize_gen.cc</code>, and <code>branch_optimize.h</code>, which we will place in the <code>tests/labexe/</code>. The specific directory structure is shown in the diagram below:</p>
 <pre><code class="language-sh">gem5-root
@@ -202,6 +202,7 @@ TGT = shell_sort gemm binary_search spfa branch_optimize # ADD
 ...
 lz77_args = 1000000
 branch_optimize_args = 500000 # ADD
+...
 </code></pre>
 <p>You can enter <code>make -j $(nproc)</code> to compile the target program after modifying it. The generated binary file will be located in <code>tests/labexe/branch_optimize</code>.</p>
 <h2 id="our-goal"><a class="header" href="#our-goal">Our Goal</a></h2>
