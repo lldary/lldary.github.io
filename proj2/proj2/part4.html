@@ -275,23 +275,23 @@ enum City {
 <pre><code class="language-sh">build/ARM/gem5.opt configs/proj2/simple.py tests/labexe/branch_optimize --bp local --cpu o3 --mem DDR4 &amp;
 </code></pre>
 <p>You can evaluate the actual runtime of your code using the <code>simSounnds</code> in the <code>stat.txt</code> file output by <code>gem5</code>. Our performance evaluation is also based on this metric.</p>
+<div id="admonition-note" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-title">
+<div class="admonition-title">
+<div id="admonition-note-title">
+<p>Note</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-note"></a>
+</div>
+<div>
+<p>In this part, the <code>system.cpu.max_insts_any_thread</code> should be set 5e8.</p>
+</div>
+</div>
 <div id="admonition-tip" class="admonition admonish-tip" role="note" aria-labelledby="admonition-tip-title">
 <div class="admonition-title">
 <div id="admonition-tip-title">
 <p>Tip</p>
 </div>
 <a class="admonition-anchor-link" href="#admonition-tip"></a>
-</div>
-<div>
-<p>In this part, the <code>system.cpu.max_insts_any_thread</code> should be set 5e8.</p>
-</div>
-</div>
-<div id="admonition-tip-1" class="admonition admonish-tip" role="note" aria-labelledby="admonition-tip-1-title">
-<div class="admonition-title">
-<div id="admonition-tip-1-title">
-<p>Tip</p>
-</div>
-<a class="admonition-anchor-link" href="#admonition-tip-1"></a>
 </div>
 <div>
 <p>Our performance test consists of <em><strong>a single test case</strong></em> generated from <code>tests/labexe/branch_optimize_gen.cc</code>, which can be vviewed in the <code>tests/labexe/branch_optimize.in</code>.</p>
