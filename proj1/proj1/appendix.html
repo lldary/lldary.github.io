@@ -223,9 +223,9 @@ autoMemoryReclaim=gradual
 <p>Remember to use the same <code>&lt;container path&gt;</code> in <code>-v</code>, otherwise compilation may fail. Or you can delete <code>build/</code> and re-compile completely.</p>
 <h2 id="use-docker-on-server"><a class="header" href="#use-docker-on-server">Use docker on server</a></h2>
 <p>If you still cannot compile or cannot setup WSL and Docker Desktop, feel free to contact TA for a server account. However, please note:</p>
+<!-- - You still need to **use docker image**, since the environment on the server is not checked. -->
 <ul>
-<li>You still need to <strong>use docker image</strong>, since the environment on the server is not checked.</li>
-<li>You <strong>DO NOT need to pull</strong> the image again. Just use ssh to log in your container and clone code and all operations requiring storage space within the <code>/workspace</code> directory.</li>
+<li>You <strong>DO NOT need to pull</strong> the image again. Just use ssh to log in your container and clone code and all operations requiring storage space within the <code>~/workspace</code> directory.</li>
 <li>We recommend using <strong>Visual Studio Code</strong> to log into the container assigned to you. As the login process involves SSH jump server principles, we advise you to consult <a href="./vscode-login.html">relevant tutorials</a>.</li>
 <li><strong>DO NOT MALICIOUSLY ENTER OTHER STUDENTS' CONTAINERS OR MODIFY THEIR CODES!</strong></li>
 </ul>
