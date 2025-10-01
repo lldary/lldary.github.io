@@ -59,7 +59,7 @@
                 }
             });
         </script>
-    <div style="display: none"><a href="#proj2">proj2</a><a href="#proj2-part1">proj2-part1</a><a href="#proj2-part2">proj2-part2</a><a href="#proj2-part3">proj2-part3</a><a href="#proj2-submit">proj2-submit</a><a href="#proj2-appendix">proj2-appendix</a></div>
+    <div style="display: none"><a href="#proj2">proj2</a><a href="#proj2-part1">proj2-part1</a><a href="#proj2-part2">proj2-part2</a><a href="#proj2-part3">proj2-part3</a><a href="#proj2-part4">proj2-part4</a><a href="#proj2-submit">proj2-submit</a><a href="#proj2-appendix">proj2-appendix</a></div>
 
         <!-- Provide site root and default themes to javascript -->
         <script>
@@ -571,6 +571,122 @@ build/ARM/gem5.opt configs/proj2/simple.py tests/labexe/hello --bp simple
 </div>
 </div>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="part-4-optimize-a-program-segment-using-branch-optimization-techniques"><a class="header" href="#part-4-optimize-a-program-segment-using-branch-optimization-techniques">Part 4: Optimize a Program Segment Using Branch Optimization Techniques</a></h1>
+<p>It is well known that branch instructions cause pauses, significantly impacting program performance. To address this issue, hardware manufacturers have developed various branch predictors that reduce pauses by anticipating branches in advance. So, as software developers, can we further optimize program performance at the software level by understanding these branch predictors? The answer is yes.
+In this experiment, we also hope students will gain an initial understanding of how branch optimization enhances program efficiency and appreciate its unique appeal. While compilers may already implement some optimization techniques, we still encourage students to delve into the principles behind these techniques through hands-on practice, thereby gaining a deeper understanding of the importance of branches in CPU architecture.</p>
+<h2 id="lab-setup-preparation"><a class="header" href="#lab-setup-preparation">Lab Setup Preparation</a></h2>
+<p>We need to obtain three files from <a href="https://disk.pku.edu.cn/link/AA8F735492EA4048A282AA5A7B9820B521">PKU Disk</a> or the <a href="https://course.pku.edu.cn/">teaching and learning network</a> for this part of the experiment. These files are <code>branch_optimize.c</code>, <code>branch_optimize_gen.cc</code>, and <code>branch_optimize.h</code>, which we will place in the <code>tests/labexe/</code>. The specific directory structure is shown in the diagram below:</p>
+<pre><code class="language-sh">gem5-root
+    |
+    |---tests
+          |
+          |---labexe
+                |
+                |---branch_optimize.c
+                |---branch_optimize_gen.cc
+                |---branch_optimizze.h
+</code></pre>
+<p>At the same time, we need to modify the <code>tests/labexe/makefile</code> file to support the normal compilation of these newly added files:</p>
+<pre><code class="language-makefile">...
+# tests/labexe/makefile
+# DELETE: TGT = shell_sort gemm binary_search spfa
+TGT = shell_sort gemm binary_search spfa branch_optimize # ADD
+...
+lz77_args = 1000000
+branch_optimize_args = 500000 # ADD
+</code></pre>
+<p>You can enter <code>make -j $(nproc)</code> to compile the target program after modifying it. The generated binary file will be located in <code>tests/labexe/branch_optimize</code>.</p>
+<h2 id="our-goal"><a class="header" href="#our-goal">Our Goal</a></h2>
+<p>In this part, we generated a fictional weather database, with each entry defined as follows:</p>
+<pre><code class="language-c">typedef struct WeatherData {
+    int year;
+    int month;
+    int day;
+    int temperature;
+    enum WeatherCondition condition;
+    enum City city;
+    float humidity;
+    float windSpeed;
+    int is_scanned;
+} WeatherData;
+</code></pre>
+<p>The city and weather fields utilize enumeration types, defined as follows:</p>
+<pre><code class="language-c">enum WeatherCondition {
+    SUNNY = 0002,
+    CLOUDY = 1009,
+    RAINY = 1511,
+    STORMY = 3011,
+    SNOWY = 4003
+};
+
+enum City {
+    NEW_YORK = 1,
+    LOS_ANGELES = 2,
+    CHICAGO = 3,
+    HOUSTON = 4,
+    MIAMI = 5
+};
+</code></pre>
+<p>We need to optimize a target program for processing this weather data. The program's primary functions are:</p>
+<ul>
+<li>Exclude entries with outliers from all subsequent statistical calculations</li>
+<li>Count the number of data entries for the period from 2012 to 2024</li>
+<li>Count the number of data entries for the period from June to August</li>
+<li>Count the number of data entries for each city</li>
+<li>Count the frequency of occurrence for each type of weather</li>
+<li>Count the frequency of occurrence for each wind force category, grouping those above force 10 into a single category</li>
+<li>Record the minimum and maximum temperatures observed across all entries</li>
+<li>Record the absolute maximum temperature value</li>
+<li>Count the frequency of humidity levels below 50%</li>
+<li>Count the frequency of temperatures exceeding 30 degrees Celsius</li>
+<li>Mark the entry as scanned</li>
+</ul>
+<p>In <code>tests/labexe/branch_optimize.c</code>, we present a straightforward approach that does not achieve optimal performance. Students can optimize this performance by modifying the code in the designed area.</p>
+<pre><code class="language-c">|        NO MODIFICATINS ALLOWED         |
+/*   START position of editable area    */
+|                 ...                    |
+|            EDITABLE AREA               |
+|                 ...                    |
+/*    END position of editable area     */
+|        NO MODIFICATINS ALLOWED         |
+</code></pre>
+<p>The following requirements apply during this process:</p>
+<ul>
+<li>Multithreading or multiprocessing is not permitted</li>
+<li>No libraries import (via <code>#include</code>)</li>
+<li>Parallel commands such as vectorization are prohibited</li>
+<li><strong>NO loop unrolling technique</strong></li>
+<li>The original program semantics must not be altered</li>
+</ul>
+<h2 id="test"><a class="header" href="#test">Test</a></h2>
+<p>After modifying the code at the specified area, run the following command at <code>tests/labexe/branch_optimize</code> to compile the binary file:</p>
+<pre><code class="language-sh">make -j $(nproc)
+</code></pre>
+<p>Next, you can execute the following command at <code>gem5/</code> to test the code's performance:</p>
+<pre><code class="language-sh">build/ARM/gem5.opt configs/proj2/simple.py tests/labexe/branch_optimize --bp local --cpu o3 --mem DDR4 &amp;
+</code></pre>
+<p>You can evaluate the actual runtime of your code using the <code>simSounnds</code> in the <code>stat.txt</code> file output by <code>gem5</code>. Our performance evaluation is also based on this metric.</p>
+<div id="admonition-delieverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-delieverables-title">
+<div class="admonition-title">
+<div id="admonition-delieverables-title">
+<p>Delieverables</p>
+</div>
+<a class="admonition-anchor-link" href="proj2/part4.html#admonition-delieverables"></a>
+</div>
+<div>
+<p>Please run our target workloads, <code>branch_optimize</code>, with <code>LocalBP</code>. In this part, please (at least) include figures or tables, which show the actual runtime of <code>branch_optimize</code> and IPC of CPU on executables listed below, in your <em><strong>report</strong></em>:</p>
+<ul>
+<li>BPs: <code>LocalBP</code>.</li>
+<li>exe: <code>branch_optimize</code>.</li>
+<li>With default CPU and Memory (O3 and DDR4).</li>
+</ul>
+<p>In this part, you also need to submit:</p>
+<ul>
+<li><em><strong>your codes</strong></em>, including <code>branch_optimize.c</code>.</li>
+<li><em><strong>technical introduction</strong></em>, which analyzes the optimization techniques used in your code and explain why they improve performance. (Unexplained code or techniques are permitted, but they should constitute <em><strong>less than 50%</strong></em> of the total.)</li>
+</ul>
+</div>
+</div><div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="submission"><a class="header" href="#submission">Submission</a></h1>
 <div id="admonition-submission" class="admonition admonish-note" role="note" aria-labelledby="admonition-submission-title">
 <div class="admonition-title">
@@ -581,9 +697,9 @@ build/ARM/gem5.opt configs/proj2/simple.py tests/labexe/hello --bp simple
 </div>
 <div>
 <ul>
-<li>Please submit the deliverables for each part in order and clearly defined in a report form (e.g., PDF or Word). Please give a brief description of the results in your report. You also <strong>NEED</strong> to submit your codes and paper summary.</li>
-<li>Please pack your report, codes and summary in an archive and submit it as an attachment at <a href="https://course.pku.edu.cn">course.pku.edu.cn</a>. The title of the attachment should be Student-ID_Name_Proj2 (e.g., 123456789_WangXiaoming_Proj2).</li>
-<li>You can also send the archive to <a href="proj2/">ca2024fall@163.com</a>. The titles of your email AND attachment should both be Student-ID_Name_Proj2.</li>
+<li>Please submit the deliverables for each part in order and clearly defined in a report form (e.g., PDF or Word). Please give a brief description of the results in your report. You also <strong>NEED</strong> to submit your codes, technical introduction and paper summary.</li>
+<li>Please pack your report, codes, technical introduction and summary in an archive and submit it as an attachment at <a href="https://course.pku.edu.cn">course.pku.edu.cn</a>. The title of the attachment should be Student-ID_Name_Proj2 (e.g., 123456789_WangXiaoming_Proj2).</li>
+<li>You can also send the archive to <a href="proj2/">2501112042@stu.pku.edu.cn</a>. The titles of your email AND attachment should both be Student-ID_Name_Proj2.</li>
 <li><strong>DO NOT PLAGIARIZE</strong>. We will select 10 students randomly and ask them to answer our questions related to their results.</li>
 </ul>
 </div>
@@ -610,7 +726,7 @@ build/ARM/gem5.opt configs/proj2/simple.py tests/labexe/hello --bp simple
 <a class="admonition-anchor-link" href="proj2/submit.html#admonition-deliverables"></a>
 </div>
 <div>
-<p>You need to submit <em><strong>report</strong></em>, <em><strong>codes</strong></em> and <em><strong>paper summary</strong></em> in this project. The required contents are listed as follows:</p>
+<p>You need to submit <em><strong>report</strong></em>, <em><strong>codes</strong></em>, <em><strong>technical introduction</strong></em> and <em><strong>paper summary</strong></em> in this project. The required contents are listed as follows:</p>
 <ul>
 <li>report:</li>
 <li>
@@ -630,6 +746,12 @@ build/ARM/gem5.opt configs/proj2/simple.py tests/labexe/hello --bp simple
 <li>A summary of the cited paper including motivations, challenges and designs.</li>
 </ul>
 </li>
+<li>technical introduction:</li>
+<li>
+<ul>
+<li>A report of the optimization techniques used in your code and explanation why they improve performance. (Unexplained code or techniques are permitted, but they should constitute <em><strong>less than 50%</strong></em> of the total.)</li>
+</ul>
+</li>
 </ul>
 <p>Please pack all files in an archive and submit the archive.</p>
 </div>
@@ -647,28 +769,34 @@ build/ARM/gem5.opt configs/proj2/simple.py tests/labexe/hello --bp simple
 <li>Resonable performance statistics of <code>LocalBP</code>, <code>BiModeBP</code> and <code>TournamentBP</code>:</li>
 <li>
 <ul>
-<li><strong>5pts</strong>.</li>
+<li><strong>3pts</strong>.</li>
 </ul>
 </li>
 <li><em><strong>PLUS</strong></em> reasonable performance statistics of <code>SimpleBP</code>:</li>
 <li>
 <ul>
-<li><strong>6pts</strong>.</li>
+<li><strong>4pts</strong>.</li>
 </ul>
 </li>
 <li><em><strong>PLUS</strong></em> a compilable perceptron BP implementation:</li>
 <li>
 <ul>
-<li><strong>9pts</strong>.</li>
+<li><strong>7pts</strong>.</li>
 </ul>
 </li>
 <li><em><strong>PLUS</strong></em> a comparable performance with <code>LocalBP</code> of your perceptron BP:</li>
 <li>
 <ul>
-<li><strong>13pts</strong>.</li>
+<li><strong>11pts</strong>.</li>
 </ul>
 </li>
 <li><em><strong>PLUS</strong></em> a comparable performance with <code>BiModeBP</code> or <code>TournamentBP</code> of your perceptron BP:</li>
+<li>
+<ul>
+<li><strong>13pts</strong>.</li>
+</ul>
+</li>
+<li><em><strong>PLUS</strong></em> reasonable performance improvements (minimum 7%) and corresponding technical explanations:</li>
 <li>
 <ul>
 <li><strong>15pts</strong>.</li>

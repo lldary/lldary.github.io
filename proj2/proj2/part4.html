@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Part 3: Read Paper, Implement and Evaluate Perceptron BP - Archlab gem5 Project 2</title>
+        <title>Part 4: Optimize a Program Segment Using Branch Optimization Techniques - Archlab gem5 Project 2</title>
 
 
         <!-- Custom HTML head -->
@@ -179,41 +179,101 @@
                 <div id="content" class="content">
                     <main>
                         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<h1 id="part-3-read-paper-implement-and-evaluate-perceptron-bp"><a class="header" href="#part-3-read-paper-implement-and-evaluate-perceptron-bp">Part 3: Read Paper, Implement and Evaluate Perceptron BP</a></h1>
-<h2 id="a-brief-introduction-to-2-bit-local-bp-and-gshare-predictor"><a class="header" href="#a-brief-introduction-to-2-bit-local-bp-and-gshare-predictor">A brief introduction to 2-bit local BP and GShare predictor</a></h2>
-<p>Before introducing perceptron BP, we first describe two basic branch predictors, i.e., the <strong>2-bit local BP</strong> and the <strong>GShare predictor</strong>.</p>
-<p><img src="./proj2part3.svg" alt="Fig" /></p>
-<p>As shown in Fig (a) above, the 2-bit local BP contains a saturating counter table. When a branch instruction is executed, the BP indexes into the counter table based on the instruction’s PC. The BP predicts 'take' if the counter is 2 (<code>10</code>) or 3 (<code>11</code>), and 'not take' otherwise. When the actual branch outcome is known, the counter in the saturating counter table will be updated. The counter is increased by 1 (will not exceed 3) if the actual outcome is 'taken', and vice versa.</p>
-<p>Note that the behavior of one branch is usually correlated to the behavior of the most recent branches. However, a predictor that uses the behavior of only a single branch to predict (e.g., 2-bit BP) can never capture this feature. To be aware of the most recent branches (i.e., branch <strong>history</strong> pattern), the GShare predictor proposes to add a global history register (GHR) to the BP as shown in Fig (b) above. The GHR records the history of each most recent branch instruction <strong>with a single bit</strong> and updates itself when an actual branch outcome is known. The GHR has a <strong>fixed bit length</strong>, and when it updates, it will <strong>shift by one bit</strong> to remove the earliest history from it. Consequently, the updating is similar to <code>GHR &lt;&lt;= 1; GHR |= outcome (1 if taken, else 0)</code>. Further, when indexing into the counter table, the PC is first hashed (i.e., XOR) with GHR, thus the history information is taken into consideration. It is also possible to replace GHR with a table of local history registers (LHRs), which will be indexed by PC. More information about these branch predictors can be found in this <a href="https://zhuanlan.zhihu.com/p/602635898">blog</a>.</p>
-<h2 id="a-brief-introduction-to-perceptron-bp"><a class="header" href="#a-brief-introduction-to-perceptron-bp">A brief introduction to perceptron BP</a></h2>
-<p>Now, we introduce the simple perceptron BP, which is first described in the paper.</p>
-<div id="admonition-cite" class="admonition admonish-quote" role="note" aria-labelledby="admonition-cite-title">
-<div class="admonition-title">
-<div id="admonition-cite-title">
-<p>Cite</p>
-</div>
-<a class="admonition-anchor-link" href="#admonition-cite"></a>
-</div>
-<div>
-<p>Jiménez, Daniel A. and Calvin Lin. “Dynamic branch prediction with perceptrons.” Proceedings HPCA Seventh International Symposium on High-Performance Computer Architecture (2001): 197-206.</p>
-<p><a href="https://www.cs.utexas.edu/~lin/papers/hpca01.pdf">get the pdf</a></p>
-</div>
-</div>
-<p>The simple perceptron BP replaces the 2-bit counters with perceptrons. A perceptron is a vector of signed integers, i.e., its weights. When predicts, the BP computes the <strong>dot product</strong> of the weight vector and GHR (regard the bits as integers, and '0' as '-1'), instead of checking the saturating counter. If the dot product is non-negative, the BP predicts 'take', and vice versa.</p>
-<p>The BP updates the perceptron with a 'training' method when an actual branch outcome is known. The weights will be increased or decreased by 1 according to the GHR history, the prediction correctness and the actual outcome. The BP also has a threshold for the weights. If the absolute value of the dot product reaches the threshold, the BP will not further train the perceptron if its prediction is correct.</p>
-<h2 id="reading-the-paper-and-implementing-perceptron-bp"><a class="header" href="#reading-the-paper-and-implementing-perceptron-bp">Reading the paper and implementing perceptron BP</a></h2>
-<p>In this part, you are required to read the paper listed above, summarize the method described in the paper, and implement the perceptron BP in <code>gem5</code>. For your convenience, an Appendix provides a brief description of the method. We've already provided a code skeleton. Please check <code>Lab2PerceptronBP</code> in <code>BranchPredictor.py</code>, <code>cpu/pred/lab2_bp.hh</code> and <code>cpu/pred/lab2_bp.cc</code>. You can follow the tutorial in part 2 to add useful parameters to <code>Lab2PerceptronBP</code> and implement C++ codes.</p>
-<div id="admonition-tip" class="admonition admonish-tip" role="note" aria-labelledby="admonition-tip-title">
-<div class="admonition-title">
-<div id="admonition-tip-title">
-<p>Tip</p>
-</div>
-<a class="admonition-anchor-link" href="#admonition-tip"></a>
-</div>
-<div>
-<p>If you cannot figure out how to implement, you can check the implementation of <code>BiModeBP</code> and <code>TournamentBP</code>. They are simple enough, and include all necessary steps to implement a global-history-aware BP in <code>gem5</code>.</p>
-</div>
-</div>
+<h1 id="part-4-optimize-a-program-segment-using-branch-optimization-techniques"><a class="header" href="#part-4-optimize-a-program-segment-using-branch-optimization-techniques">Part 4: Optimize a Program Segment Using Branch Optimization Techniques</a></h1>
+<p>It is well known that branch instructions cause pauses, significantly impacting program performance. To address this issue, hardware manufacturers have developed various branch predictors that reduce pauses by anticipating branches in advance. So, as software developers, can we further optimize program performance at the software level by understanding these branch predictors? The answer is yes.
+In this experiment, we also hope students will gain an initial understanding of how branch optimization enhances program efficiency and appreciate its unique appeal. While compilers may already implement some optimization techniques, we still encourage students to delve into the principles behind these techniques through hands-on practice, thereby gaining a deeper understanding of the importance of branches in CPU architecture.</p>
+<h2 id="lab-setup-preparation"><a class="header" href="#lab-setup-preparation">Lab Setup Preparation</a></h2>
+<p>We need to obtain three files from <a href="https://disk.pku.edu.cn/link/AA8F735492EA4048A282AA5A7B9820B521">PKU Disk</a> or the <a href="https://course.pku.edu.cn/">teaching and learning network</a> for this part of the experiment. These files are <code>branch_optimize.c</code>, <code>branch_optimize_gen.cc</code>, and <code>branch_optimize.h</code>, which we will place in the <code>tests/labexe/</code>. The specific directory structure is shown in the diagram below:</p>
+<pre><code class="language-sh">gem5-root
+    |
+    |---tests
+          |
+          |---labexe
+                |
+                |---branch_optimize.c
+                |---branch_optimize_gen.cc
+                |---branch_optimizze.h
+</code></pre>
+<p>At the same time, we need to modify the <code>tests/labexe/makefile</code> file to support the normal compilation of these newly added files:</p>
+<pre><code class="language-makefile">...
+# tests/labexe/makefile
+# DELETE: TGT = shell_sort gemm binary_search spfa
+TGT = shell_sort gemm binary_search spfa branch_optimize # ADD
+...
+lz77_args = 1000000
+branch_optimize_args = 500000 # ADD
+</code></pre>
+<p>You can enter <code>make -j $(nproc)</code> to compile the target program after modifying it. The generated binary file will be located in <code>tests/labexe/branch_optimize</code>.</p>
+<h2 id="our-goal"><a class="header" href="#our-goal">Our Goal</a></h2>
+<p>In this part, we generated a fictional weather database, with each entry defined as follows:</p>
+<pre><code class="language-c">typedef struct WeatherData {
+    int year;
+    int month;
+    int day;
+    int temperature;
+    enum WeatherCondition condition;
+    enum City city;
+    float humidity;
+    float windSpeed;
+    int is_scanned;
+} WeatherData;
+</code></pre>
+<p>The city and weather fields utilize enumeration types, defined as follows:</p>
+<pre><code class="language-c">enum WeatherCondition {
+    SUNNY = 0002,
+    CLOUDY = 1009,
+    RAINY = 1511,
+    STORMY = 3011,
+    SNOWY = 4003
+};
+
+enum City {
+    NEW_YORK = 1,
+    LOS_ANGELES = 2,
+    CHICAGO = 3,
+    HOUSTON = 4,
+    MIAMI = 5
+};
+</code></pre>
+<p>We need to optimize a target program for processing this weather data. The program's primary functions are:</p>
+<ul>
+<li>Exclude entries with outliers from all subsequent statistical calculations</li>
+<li>Count the number of data entries for the period from 2012 to 2024</li>
+<li>Count the number of data entries for the period from June to August</li>
+<li>Count the number of data entries for each city</li>
+<li>Count the frequency of occurrence for each type of weather</li>
+<li>Count the frequency of occurrence for each wind force category, grouping those above force 10 into a single category</li>
+<li>Record the minimum and maximum temperatures observed across all entries</li>
+<li>Record the absolute maximum temperature value</li>
+<li>Count the frequency of humidity levels below 50%</li>
+<li>Count the frequency of temperatures exceeding 30 degrees Celsius</li>
+<li>Mark the entry as scanned</li>
+</ul>
+<p>In <code>tests/labexe/branch_optimize.c</code>, we present a straightforward approach that does not achieve optimal performance. Students can optimize this performance by modifying the code in the designed area.</p>
+<pre><code class="language-c">|        NO MODIFICATINS ALLOWED         |
+/*   START position of editable area    */
+|                 ...                    |
+|            EDITABLE AREA               |
+|                 ...                    |
+/*    END position of editable area     */
+|        NO MODIFICATINS ALLOWED         |
+</code></pre>
+<p>The following requirements apply during this process:</p>
+<ul>
+<li>Multithreading or multiprocessing is not permitted</li>
+<li>No libraries import (via <code>#include</code>)</li>
+<li>Parallel commands such as vectorization are prohibited</li>
+<li><strong>NO loop unrolling technique</strong></li>
+<li>The original program semantics must not be altered</li>
+</ul>
+<h2 id="test"><a class="header" href="#test">Test</a></h2>
+<p>After modifying the code at the specified area, run the following command at <code>tests/labexe/branch_optimize</code> to compile the binary file:</p>
+<pre><code class="language-sh">make -j $(nproc)
+</code></pre>
+<p>Next, you can execute the following command at <code>gem5/</code> to test the code's performance:</p>
+<pre><code class="language-sh">build/ARM/gem5.opt configs/proj2/simple.py tests/labexe/branch_optimize --bp local --cpu o3 --mem DDR4 &amp;
+</code></pre>
+<p>You can evaluate the actual runtime of your code using the <code>simSounnds</code> in the <code>stat.txt</code> file output by <code>gem5</code>. Our performance evaluation is also based on this metric.</p>
 <div id="admonition-delieverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-delieverables-title">
 <div class="admonition-title">
 <div id="admonition-delieverables-title">
@@ -222,30 +282,28 @@
 <a class="admonition-anchor-link" href="#admonition-delieverables"></a>
 </div>
 <div>
-<p>Please run two BP-sensitive workloads, i.e., <code>shell_sort</code> and <code>spfa</code>, with your <code>LabPerceptronBP</code>. In this part, please (at least) include figures or tables, which show the accuracy of <code>Lab2PerceptronBP</code> and IPC of CPU on executables listed below, in your <em><strong>report</strong></em>:</p>
+<p>Please run our target workloads, <code>branch_optimize</code>, with <code>LocalBP</code>. In this part, please (at least) include figures or tables, which show the actual runtime of <code>branch_optimize</code> and IPC of CPU on executables listed below, in your <em><strong>report</strong></em>:</p>
 <ul>
-<li>BPs: <code>Lab2PerceptronBP</code>.</li>
-<li>exe: <code>shell_sort</code>, <code>spfa</code>.</li>
+<li>BPs: <code>LocalBP</code>.</li>
+<li>exe: <code>branch_optimize</code>.</li>
 <li>With default CPU and Memory (O3 and DDR4).</li>
 </ul>
-<p>You are encouraged to try different parameters, including perceptron threshold, number of perceptrons, and GHR length. However, since running multiple epoches to adjust parameters may take tremendous time, it's ok for you to simply try a set of default parameters. Thus, at lease you need to run <code>gem5</code> twice.</p>
 <p>In this part, you also need to submit:</p>
 <ul>
-<li><em><strong>your codes</strong></em>, including <code>BranchPredictor.py</code>, <code>lab2_bp.hh</code> and <code>lab2_bp.cc</code>.</li>
-<li><em><strong>paper summary</strong></em>, which summarizes the cited paper, including motivations, challenges and designs.</li>
+<li><em><strong>your codes</strong></em>, including <code>branch_optimize.c</code>.</li>
+<li><em><strong>technical introduction</strong></em>, which analyzes the optimization techniques used in your code and explain why they improve performance. (Unexplained code or techniques are permitted, but they should constitute <em><strong>less than 50%</strong></em> of the total.)</li>
 </ul>
 </div>
 </div>
-
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../proj2/part2.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../proj2/part3.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../proj2/part4.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../proj2/submit.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -255,11 +313,11 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../proj2/part2.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../proj2/part3.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../proj2/part4.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../proj2/submit.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
