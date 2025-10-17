@@ -584,7 +584,7 @@ build/ARM/gem5.opt configs/proj2/simple.py tests/labexe/hello --bp simple
                 |
                 |---branch_optimize.c
                 |---branch_optimize_gen.cc
-                |---branch_optimizze.h
+                |---branch_optimize.h
 </code></pre>
 <p>At the same time, we need to modify the <code>tests/labexe/makefile</code> file to support the normal compilation of these newly added files:</p>
 <pre><code class="language-makefile">...
@@ -596,7 +596,7 @@ lz77_args = 1000000
 branch_optimize_args = 500000 # ADD
 ...
 </code></pre>
-<p>You can enter <code>make -j $(nproc)</code> to compile the target program after modifying it. The generated binary file will be located in <code>tests/labexe/branch_optimize</code>.</p>
+<p>You can enter <code>make -j $(nproc)</code> in directory <code>/gem5/tests/labexe/</code> to compile the target program after modifying it. The generated binary file will be located in <code>tests/labexe/branch_optimize</code>.</p>
 <h2 id="our-goal"><a class="header" href="#our-goal">Our Goal</a></h2>
 <p>In this part, we generated a fictional weather database, with each entry defined as follows:</p>
 <pre><code class="language-c">typedef struct WeatherData {
