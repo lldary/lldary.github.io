@@ -498,7 +498,7 @@ virtual void notifyFill(const CacheAccessProbeArg &amp;acc) {}
 <h2 id="lab-setup-preparation"><a class="header" href="#lab-setup-preparation">Lab Setup Preparation</a></h2>
 <p>First, we need to compile the m5-related time measurement auxiliary functions, which will be used to measure the execution time of a specific section of code in detail. We need to run the following command in the <code>/gem5</code> root directory:</p>
 <pre><code class="language-sh">cd util/m5
-scons build/arm64/out/m5
+scons build/thumb/out/m5
 </code></pre>
 <p>Next, we need to obtain three files from <a href="https://disk.pku.edu.cn/link/AA8F735492EA4048A282AA5A7B9820B521">PKU Disk</a> or the <a href="https://course.pku.edu.cn/">teaching and learning network</a> for this part of the experiment. These files are <code>cache_optimize.c</code>, <code>cache_optimize_gen.cc</code>, and <code>cache_optimize.h</code>, which we will place in the <code>tests/labexe/</code>. The specific directory structure is shown in the diagram below:</p>
 <pre><code class="language-sh">gem5-root
@@ -530,6 +530,17 @@ cache_optimize: cache_optimize.c cache_optimize_gen.cc # ADD
 ...
 </code></pre>
 <p>You can enter <code>make -j $(nproc)</code> or <code>make cache_optimize</code> in directory <code>/gem5/tests/labexe/</code> to compile the target program after modifying it. The generated binary file will be located in <code>tests/labexe/cache_optimize</code>.</p>
+<div id="admonition-note" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-title">
+<div class="admonition-title">
+<div id="admonition-note-title">
+<p>Note</p>
+</div>
+<a class="admonition-anchor-link" href="proj3/part4.html#admonition-note"></a>
+</div>
+<div>
+<p>When using Makefile, the error <code>Makefile:32: *** missing separator. Stop.</code> typically occurs because a necessary separator is missing in a rule or command line within the Makefile. In Makefile, command lines must begin with a <strong>tab</strong> character, not a space. This is a strict requirement of the make tool.</p>
+</div>
+</div>
 <h2 id="our-goal"><a class="header" href="#our-goal">Our Goal</a></h2>
 <p>In this part, we implement a simulation engine for a bird flock algorithm, modeling the movement state of a flock under predator pressure. Both the flock and the predator are defined using the <code>GameObject</code> class, with each entry defined as follows:</p>
 <pre><code class="language-c">typedef struct GameObject {
@@ -581,12 +592,12 @@ cache_optimize: cache_optimize.c cache_optimize_gen.cc # ADD
 </code></pre>
 <p>It should be noted that <strong>only code invoked within the timing area will record the time</strong>. At the end of the program, there is a function <code>int checkResult(GameObject gameObjects[], GameObject expected[], int32_t count)</code> to verify the correctness of the operation. If an error occurs during execution, the following will be displayed on the command line:
 <code>Result check failed with error code: errorcode</code>. Once you pass this function, we will consider the program to be correct.</p>
-<div id="admonition-note" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-title">
+<div id="admonition-note-1" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-1-title">
 <div class="admonition-title">
-<div id="admonition-note-title">
+<div id="admonition-note-1-title">
 <p>Note</p>
 </div>
-<a class="admonition-anchor-link" href="proj3/part4.html#admonition-note"></a>
+<a class="admonition-anchor-link" href="proj3/part4.html#admonition-note-1"></a>
 </div>
 <div>
 <p>It should be noted that the runtime for the non-optimized version is 20 minutes (at 5.5GHz). You can estimate the potential runtime on your own computer by checking its CPU Turbo Boost frequency. For example, if the Turbo Boost is 4.5GHz, the approximate runtime would be 20 * 5.5 / 4.5 = 24.44 min.</p>
@@ -608,12 +619,12 @@ cache_optimize: cache_optimize.c cache_optimize_gen.cc # ADD
 <pre><code class="language-sh">build/ARM/gem5.opt -d lab3out/part4/cache_optimize configs/proj3/simple.py tests/labexe/cache_optimize --pf=ampm
 </code></pre>
 <p>You can evaluate the actual runtime of your code using the <code>simSeconds</code> at <strong>first line</strong> in the stat.txt file output by gem5. <strong>Our performance evaluation is also based on this metric</strong>.</p>
-<div id="admonition-note-1" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-1-title">
+<div id="admonition-note-2" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-2-title">
 <div class="admonition-title">
-<div id="admonition-note-1-title">
+<div id="admonition-note-2-title">
 <p>Note</p>
 </div>
-<a class="admonition-anchor-link" href="proj3/part4.html#admonition-note-1"></a>
+<a class="admonition-anchor-link" href="proj3/part4.html#admonition-note-2"></a>
 </div>
 <div>
 <p>In this part, the <code>system.cpu.max_insts_any_thread</code> should be set <code>1e9</code>.</p>
