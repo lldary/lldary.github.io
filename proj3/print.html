@@ -59,7 +59,7 @@
                 }
             });
         </script>
-    <div style="display: none"><a href="#proj3">proj3</a><a href="#proj3-part1">proj3-part1</a><a href="#proj3-part2">proj3-part2</a><a href="#proj3-part3">proj3-part3</a><a href="#proj3-submit">proj3-submit</a><a href="#proj3-appendix1">proj3-appendix1</a><a href="#proj3-appendix2">proj3-appendix2</a></div>
+    <div style="display: none"><a href="#proj3">proj3</a><a href="#proj3-part1">proj3-part1</a><a href="#proj3-part2">proj3-part2</a><a href="#proj3-part3">proj3-part3</a><a href="#proj3-part4">proj3-part4</a><a href="#proj3-submit">proj3-submit</a><a href="#proj3-appendix1">proj3-appendix1</a><a href="#proj3-appendix2">proj3-appendix2</a></div>
 
         <!-- Provide site root and default themes to javascript -->
         <script>
@@ -492,6 +492,167 @@ virtual void notifyFill(const CacheAccessProbeArg &amp;acc) {}
 </div>
 </div>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="part-4-optimize-a-program-segment-using-cache-optimization-techniques"><a class="header" href="#part-4-optimize-a-program-segment-using-cache-optimization-techniques">Part 4: Optimize a Program Segment Using Cache Optimization Techniques</a></h1>
+<p>The cache mechanism was introduced to bridge the significant speed gap between storage devices and processors. By temporarily storing frequently accessed data in the cache, it reduces the number of accesses to storage devices, thereby accelerating data retrieval. However, different data layouts result in markedly distinct patterns of data storage and access within the cache, which in turn impacts cache hit rates and overall efficiency. A well-designed, cache-friendly data layout can fully leverage cache advantages, significantly boosting application performance. Conversely, an ill-suited layout may cause frequent cache misses, resulting in numerous cache failures that slow application execution and potentially create system performance bottlenecks.</p>
+<p>In this experiment, we aim for students to gain an initial understanding of how cache optimization schemes enhance program efficiency and appreciate their unique advantages. Although compilers may already implement certain optimization techniques, we still encourage students to delve deeper into the underlying principles through hands-on practice, thereby gaining a more profound understanding of the importance of cache systems within CPU architectures.</p>
+<h2 id="lab-setup-preparation"><a class="header" href="#lab-setup-preparation">Lab Setup Preparation</a></h2>
+<p>First, we need to compile the m5-related time measurement auxiliary functions, which will be used to measure the execution time of a specific section of code in detail. We need to run the following command in the <code>/gem5</code> root directory:</p>
+<pre><code class="language-shell">cd util/m5
+scons build/arm64/out/m5
+</code></pre>
+<p>Next, we need to obtain three files from <a href="proj3/">PKU Disk</a> or the <a href="proj3/">teaching and learning network</a> for this part of the experiment. These files are <code>cache_optimize.c</code>, <code>cache_optimize_gen.cc</code>, and <code>cache_optimize.h</code>, which we will place in the <code>tests/labexe/</code>. The specific directory structure is shown in the diagram below:</p>
+<pre><code class="language-shell">gem5-root
+    |
+    |---tests
+          |
+          |---labexe
+                |
+                |---cache_optimize.c
+                |---cache_optimize_gen.cc
+                |---cache_optimize.h
+</code></pre>
+<p>At the same time, we need to modify the tests/labexe/makefile file to support the normal compilation of these newly added files:</p>
+<pre><code class="language-shell"># tests/labexe/makefile
+···
+lz77_args = 1000000
+cache_optimize_args = 300 # ADD
+···
+# DELETE: all: $(TGT) hello
+all: $(TGT) hello cache_optimize # ADD
+...
+hello: hello.c
+	$(CC) $(CFLAGS) $&lt; -o $@
+
+cache_optimize: cache_optimize.c cache_optimize_gen.cc # ADD
+	$(CXX) $(CXXFLAGS) cache_optimize_gen.cc -o cache_optimize_gen # ADD
+	./cache_optimize_gen cache_optimize.in $(shell echo $(cache_optimize_args)) # ADD
+	$(CC) $(CFLAGS) cache_optimize.c -I ../../include -L ../../util/m5/build/thumb/out/ -lm5 -o cache_optimize # ADD
+...
+</code></pre>
+<p>You can enter <code>make -j $(nproc)</code> or <code>make cache_optimize</code> in directory <code>/gem5/tests/labexe/</code> to compile the target program after modifying it. The generated binary file will be located in <code>tests/labexe/cache_optimize</code>.</p>
+<h2 id="our-goal"><a class="header" href="#our-goal">Our Goal</a></h2>
+<p>In this part, we implement a simulation engine for a bird flock algorithm, modeling the movement state of a flock under predator pressure. Both the flock and the predator are defined using the <code>GameObject</code> class, with each entry defined as follows:</p>
+<pre><code class="language-c">typedef struct GameObject {
+    int32_t id;             // Unique identifier for the game object
+    enum ObjectType type;   // Type of the game object (bird or predator)
+    Transform transform;    // Transformation data (position, rotation, scale)
+    Material material;      // Material properties (color and reflectivity)
+    AIState aiState;        // Artificial intelligence state
+    int32_t health_points;  // Health points of the game object
+    double awarenessRadius; // Radius within which the object is aware of its surroundings
+    MeshData mesh;          // Mesh data for rendering
+    double attackRadius;    // Radius within which the object can attack
+    PhysicsData physics;    // Physics properties (e.g., mass, velocity, acceleration)
+} GameObject;
+</code></pre>
+<p>The program also allows external users to input settings for certain behaviors. User-input behavior streams are predefined in an array, with each entry represented by the <code>UserAction</code> class. Specific details for each entry are as follows:</p>
+<pre><code class="language-c">typedef struct UserAction {
+    enum ActionType actionType; // action type (change maxspeed or color)
+    double args[4];
+} UserAction;
+</code></pre>
+<p>We need to optimize the target program for this simulated bird flock algorithm, which primarily consists of two parts: updating the logic frame and physics frame, and processing user input. The physics frame updates every 20 frames, while the logic frame updates once per physics frame. External user input is processed synchronously during logic frame updates. Currently, within <code>cache_optimize.c</code>, we provide a straightforward approach, but this method is not cache-friendly. Students can modify the code within the specified area to optimize performance:</p>
+<pre><code class="language-c">|        NO MODIFICATINS ALLOWED         |
+/*   START position of editable area    */
+|                 ...                    |
+|            EDITABLE AREA               |
+|                 ...                    |
+/*    END position of editable area     */
+|        NO MODIFICATINS ALLOWED         |
+/*   START position of editable area    */
+|                 ...                    |
+|     EDITABLE AREA (Preprocessing)      |
+|                 ...                    |
+/*    END position of editable area     */
+|        m5_reset_stats(0, 0);           |
+/*   START position of editable area    */
+|                 ...                    |
+|      EDITABLE AREA (**Timing Area**)       |
+|                 ...                    |
+/*    END position of editable area     */
+|        m5_dump_stats(0, 0);            |
+/*   START position of editable area    */
+|                 ...                    |
+|    EDITABLE AREA (Postprocessing)      |
+|                 ...                    |
+/*    END position of editable area     */
+|              m5_exit(0);               |
+
+
+</code></pre>
+<p>It should be noted that <strong>only code invoked within the timing area will record the time</strong>. At the end of the program, there is a function <code>int checkResult(GameObject gameObjects[], GameObject expected[], int32_t count)</code> to verify the correctness of the operation. If an error occurs during execution, the following will be displayed on the command line:
+<code>Result check failed with error code: errorcode</code>. Once you pass this function, we will consider the program to be correct.</p>
+<div id="admonition-note" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-title">
+<div class="admonition-title">
+<div id="admonition-note-title">
+<p>Note</p>
+</div>
+<a class="admonition-anchor-link" href="proj3/part4.html#admonition-note"></a>
+</div>
+<div>
+<p>It should be noted that the runtime for the non-optimized version is 33 minutes (at 5.5GHz). You can estimate the potential runtime on your own computer by checking its CPU Turbo Boost frequency. For example, if the Turbo Boost is 4.5GHz, the approximate runtime would be 33 * 5.5 / 4.5 =</p>
+</div>
+</div>
+<p>The following requirements apply during this process:</p>
+<ul>
+<li>Multithreading or multiprocessing is not permitted</li>
+<li>No libraries import (via #include)</li>
+<li>Parallel commands such as vectorization are prohibited</li>
+<li><strong>NO loop unrolling technique</strong></li>
+<li>The original program semantics must not be altered</li>
+</ul>
+<h2 id="test"><a class="header" href="#test">Test</a></h2>
+<p>After modifying the code at the specified area, run the following command at <code>tests/labexe/</code> to compile the binary file:</p>
+<pre><code class="language-shell">make cache_optimize
+</code></pre>
+<p>Next, you can execute the following command at gem5/ to test the code's performance:</p>
+<pre><code class="language-shell">build/ARM/gem5.opt -d lab3out/part4/cache_optimize configs/proj3/simple.py tests/labexe/cache_optimize --pf=ampm
+</code></pre>
+<p>You can evaluate the actual runtime of your code using the <code>simSeconds</code> at <strong>first line</strong> in the stat.txt file output by gem5. <strong>Our performance evaluation is also based on this metric</strong>.</p>
+<div id="admonition-note-1" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-1-title">
+<div class="admonition-title">
+<div id="admonition-note-1-title">
+<p>Note</p>
+</div>
+<a class="admonition-anchor-link" href="proj3/part4.html#admonition-note-1"></a>
+</div>
+<div>
+<p>In this part, the <code>system.cpu.max_insts_any_thread</code> should be set <code>1e9</code>.</p>
+</div>
+</div>
+<div id="admonition-tip" class="admonition admonish-tip" role="note" aria-labelledby="admonition-tip-title">
+<div class="admonition-title">
+<div id="admonition-tip-title">
+<p>Tip</p>
+</div>
+<a class="admonition-anchor-link" href="proj3/part4.html#admonition-tip"></a>
+</div>
+<div>
+<p>Our performance test consists of <strong>a single test</strong> case generated from <code>tests/labexe/cache_optimize_gen.cc</code>, which can be viewed in the <code>tests/labexe/cache_optimize.in</code>.</p>
+<p>Only code within the timing area is included in <code>simSeconds</code>. Therefore, you can rearrange data before the block and run code after it to restore the original data structure for correctness checks without affecting simSeconds.</p>
+</div>
+</div>
+<div id="admonition-delieverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-delieverables-title">
+<div class="admonition-title">
+<div id="admonition-delieverables-title">
+<p>Delieverables</p>
+</div>
+<a class="admonition-anchor-link" href="proj3/part4.html#admonition-delieverables"></a>
+</div>
+<div>
+<p>Please run our target workloads, <code>cache_optimize</code>, with <code>AMPMPrefetcher</code>. In this part, please (at least) include figures or tables, which show the actual runtime of <code>cache_optimize</code> on executables listed below, in your report:</p>
+<ul>
+<li>prefetch: <code>AMPMPrefetcher</code>.</li>
+<li>exe: <code>cache_optimize</code>.</li>
+<li>With default CPU and Memory (O3 and DDR4).</li>
+</ul>
+<p>In this part, you also need to submit:</p>
+<ul>
+<li><em><strong>your codes</strong></em>, including <code>cache_optimize.c</code>.</li>
+<li><em><strong>technical introduction</strong></em>, which analyzes the optimization techniques used in your code and explain why they improve performance. (Unexplained code or techniques are permitted, but they should constitute less than 50% of the total.)</li>
+</ul>
+</div>
+</div><div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="submission"><a class="header" href="#submission">Submission</a></h1>
 <div id="admonition-submission" class="admonition admonish-note" role="note" aria-labelledby="admonition-submission-title">
 <div class="admonition-title">
@@ -504,7 +665,7 @@ virtual void notifyFill(const CacheAccessProbeArg &amp;acc) {}
 <ul>
 <li>Please submit the deliverables for each part in order and clearly defined in a report form (e.g., PDF or Word). Please give a brief description of the results in your report. You also <strong>NEED</strong> to submit your codes and paper summary.</li>
 <li>Please pack your report, codes and summary in an archive and submit it as an attachment at <a href="https://course.pku.edu.cn">course.pku.edu.cn</a>. The title of the attachment should be Student-ID_Name_Proj3 (e.g., 123456789_WangXiaoming_Proj3).</li>
-<li>You can also send the archive to <a href="proj3/">ca2024fall@163.com</a>. The titles of your email AND attachment should both be Student-ID_Name_Proj3.</li>
+<li>You can also send the archive to <a href="proj3/">2501112042@stu.pku.edu.cn</a>. The titles of your email AND attachment should both be Student-ID_Name_Proj3.</li>
 <li><strong>DO NOT PLAGIARIZE</strong>. We will select 10 students randomly and ask them to answer our questions related to their results.</li>
 </ul>
 </div>
@@ -542,13 +703,19 @@ virtual void notifyFill(const CacheAccessProbeArg &amp;acc) {}
 <li>codes:</li>
 <li>
 <ul>
-<li>Your implementation, i.e., <code>Prefetcher.py</code>, <code>lab3_pf.hh</code> and <code>lab3_pf.cc</code>.</li>
+<li>Your implementation, i.e., <code>Prefetcher.py</code>, <code>lab3_pf.hh</code>, <code>lab3_pf.cc</code> and <code>cache_optimize.c</code>.</li>
 </ul>
 </li>
 <li>summary:</li>
 <li>
 <ul>
 <li>A summary of the cited paper including background and designs.</li>
+</ul>
+</li>
+<li>technical introduction:</li>
+<li>
+<ul>
+<li>A report of the optimization techniques used in your code and explain why they improve performance. (Unexplained code or techniques are permitted, but they should constitute less than 50% of the total.)</li>
 </ul>
 </li>
 </ul>
@@ -568,28 +735,34 @@ virtual void notifyFill(const CacheAccessProbeArg &amp;acc) {}
 <li>Screenshot that proves you have successfully built a cache hierarchy:</li>
 <li>
 <ul>
-<li><strong>5pts</strong>.</li>
+<li><strong>3pts</strong>.</li>
 </ul>
 </li>
 <li><em><strong>PLUS</strong></em> resonable performance statistics of <strong>no prefetcher</strong>, <code>StridePrefetcher</code> and <code>AMPMPrefetcher</code>:</li>
 <li>
 <ul>
-<li><strong>9pts</strong>.</li>
+<li><strong>6pts</strong>.</li>
 </ul>
 </li>
 <li><em><strong>PLUS</strong></em> a compilable Hyperion prefetcher implementation:</li>
 <li>
 <ul>
-<li><strong>12pts</strong>.</li>
+<li><strong>9pts</strong>.</li>
 </ul>
 </li>
 <li><em><strong>PLUS</strong></em> a comparable performance with <code>StridePrefetcher</code> of your Hyperion prefetcher:</li>
 <li>
 <ul>
-<li><strong>14pts</strong>.</li>
+<li><strong>11pts</strong>.</li>
 </ul>
 </li>
 <li><em><strong>PLUS</strong></em> a comparable performance with <code>AMPMPrefetcher</code> of your Hyperion prefetcher:</li>
+<li>
+<ul>
+<li><strong>12pts</strong>.</li>
+</ul>
+</li>
+<li><em><strong>PLUS</strong></em> reasonable performance improvements (<strong>minimum 7%</strong>) and corresponding technical explanations:</li>
 <li>
 <ul>
 <li><strong>15pts</strong>.</li>

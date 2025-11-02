@@ -1,0 +1,394 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Part 4: Optimize a Program Segment Using Cache Optimization Techniques - Archlab gem5 Project 3</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="highlight-css" href="../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href=".././mdbook-admonish.css">
+
+        <!-- MathJax -->
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Archlab gem5 Project 3</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <i class="fa fa-spinner fa-spin"></i>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="part-4-optimize-a-program-segment-using-cache-optimization-techniques"><a class="header" href="#part-4-optimize-a-program-segment-using-cache-optimization-techniques">Part 4: Optimize a Program Segment Using Cache Optimization Techniques</a></h1>
+<p>The cache mechanism was introduced to bridge the significant speed gap between storage devices and processors. By temporarily storing frequently accessed data in the cache, it reduces the number of accesses to storage devices, thereby accelerating data retrieval. However, different data layouts result in markedly distinct patterns of data storage and access within the cache, which in turn impacts cache hit rates and overall efficiency. A well-designed, cache-friendly data layout can fully leverage cache advantages, significantly boosting application performance. Conversely, an ill-suited layout may cause frequent cache misses, resulting in numerous cache failures that slow application execution and potentially create system performance bottlenecks.</p>
+<p>In this experiment, we aim for students to gain an initial understanding of how cache optimization schemes enhance program efficiency and appreciate their unique advantages. Although compilers may already implement certain optimization techniques, we still encourage students to delve deeper into the underlying principles through hands-on practice, thereby gaining a more profound understanding of the importance of cache systems within CPU architectures.</p>
+<h2 id="lab-setup-preparation"><a class="header" href="#lab-setup-preparation">Lab Setup Preparation</a></h2>
+<p>First, we need to compile the m5-related time measurement auxiliary functions, which will be used to measure the execution time of a specific section of code in detail. We need to run the following command in the <code>/gem5</code> root directory:</p>
+<pre><code class="language-shell">cd util/m5
+scons build/arm64/out/m5
+</code></pre>
+<p>Next, we need to obtain three files from <a href="">PKU Disk</a> or the <a href="">teaching and learning network</a> for this part of the experiment. These files are <code>cache_optimize.c</code>, <code>cache_optimize_gen.cc</code>, and <code>cache_optimize.h</code>, which we will place in the <code>tests/labexe/</code>. The specific directory structure is shown in the diagram below:</p>
+<pre><code class="language-shell">gem5-root
+    |
+    |---tests
+          |
+          |---labexe
+                |
+                |---cache_optimize.c
+                |---cache_optimize_gen.cc
+                |---cache_optimize.h
+</code></pre>
+<p>At the same time, we need to modify the tests/labexe/makefile file to support the normal compilation of these newly added files:</p>
+<pre><code class="language-shell"># tests/labexe/makefile
+···
+lz77_args = 1000000
+cache_optimize_args = 300 # ADD
+···
+# DELETE: all: $(TGT) hello
+all: $(TGT) hello cache_optimize # ADD
+...
+hello: hello.c
+	$(CC) $(CFLAGS) $&lt; -o $@
+
+cache_optimize: cache_optimize.c cache_optimize_gen.cc # ADD
+	$(CXX) $(CXXFLAGS) cache_optimize_gen.cc -o cache_optimize_gen # ADD
+	./cache_optimize_gen cache_optimize.in $(shell echo $(cache_optimize_args)) # ADD
+	$(CC) $(CFLAGS) cache_optimize.c -I ../../include -L ../../util/m5/build/thumb/out/ -lm5 -o cache_optimize # ADD
+...
+</code></pre>
+<p>You can enter <code>make -j $(nproc)</code> or <code>make cache_optimize</code> in directory <code>/gem5/tests/labexe/</code> to compile the target program after modifying it. The generated binary file will be located in <code>tests/labexe/cache_optimize</code>.</p>
+<h2 id="our-goal"><a class="header" href="#our-goal">Our Goal</a></h2>
+<p>In this part, we implement a simulation engine for a bird flock algorithm, modeling the movement state of a flock under predator pressure. Both the flock and the predator are defined using the <code>GameObject</code> class, with each entry defined as follows:</p>
+<pre><code class="language-c">typedef struct GameObject {
+    int32_t id;             // Unique identifier for the game object
+    enum ObjectType type;   // Type of the game object (bird or predator)
+    Transform transform;    // Transformation data (position, rotation, scale)
+    Material material;      // Material properties (color and reflectivity)
+    AIState aiState;        // Artificial intelligence state
+    int32_t health_points;  // Health points of the game object
+    double awarenessRadius; // Radius within which the object is aware of its surroundings
+    MeshData mesh;          // Mesh data for rendering
+    double attackRadius;    // Radius within which the object can attack
+    PhysicsData physics;    // Physics properties (e.g., mass, velocity, acceleration)
+} GameObject;
+</code></pre>
+<p>The program also allows external users to input settings for certain behaviors. User-input behavior streams are predefined in an array, with each entry represented by the <code>UserAction</code> class. Specific details for each entry are as follows:</p>
+<pre><code class="language-c">typedef struct UserAction {
+    enum ActionType actionType; // action type (change maxspeed or color)
+    double args[4];
+} UserAction;
+</code></pre>
+<p>We need to optimize the target program for this simulated bird flock algorithm, which primarily consists of two parts: updating the logic frame and physics frame, and processing user input. The physics frame updates every 20 frames, while the logic frame updates once per physics frame. External user input is processed synchronously during logic frame updates. Currently, within <code>cache_optimize.c</code>, we provide a straightforward approach, but this method is not cache-friendly. Students can modify the code within the specified area to optimize performance:</p>
+<pre><code class="language-c">|        NO MODIFICATINS ALLOWED         |
+/*   START position of editable area    */
+|                 ...                    |
+|            EDITABLE AREA               |
+|                 ...                    |
+/*    END position of editable area     */
+|        NO MODIFICATINS ALLOWED         |
+/*   START position of editable area    */
+|                 ...                    |
+|     EDITABLE AREA (Preprocessing)      |
+|                 ...                    |
+/*    END position of editable area     */
+|        m5_reset_stats(0, 0);           |
+/*   START position of editable area    */
+|                 ...                    |
+|      EDITABLE AREA (**Timing Area**)       |
+|                 ...                    |
+/*    END position of editable area     */
+|        m5_dump_stats(0, 0);            |
+/*   START position of editable area    */
+|                 ...                    |
+|    EDITABLE AREA (Postprocessing)      |
+|                 ...                    |
+/*    END position of editable area     */
+|              m5_exit(0);               |
+
+
+</code></pre>
+<p>It should be noted that <strong>only code invoked within the timing area will record the time</strong>. At the end of the program, there is a function <code>int checkResult(GameObject gameObjects[], GameObject expected[], int32_t count)</code> to verify the correctness of the operation. If an error occurs during execution, the following will be displayed on the command line:
+<code>Result check failed with error code: errorcode</code>. Once you pass this function, we will consider the program to be correct.</p>
+<div id="admonition-note" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-title">
+<div class="admonition-title">
+<div id="admonition-note-title">
+<p>Note</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-note"></a>
+</div>
+<div>
+<p>It should be noted that the runtime for the non-optimized version is 33 minutes (at 5.5GHz). You can estimate the potential runtime on your own computer by checking its CPU Turbo Boost frequency. For example, if the Turbo Boost is 4.5GHz, the approximate runtime would be 33 * 5.5 / 4.5 =</p>
+</div>
+</div>
+<p>The following requirements apply during this process:</p>
+<ul>
+<li>Multithreading or multiprocessing is not permitted</li>
+<li>No libraries import (via #include)</li>
+<li>Parallel commands such as vectorization are prohibited</li>
+<li><strong>NO loop unrolling technique</strong></li>
+<li>The original program semantics must not be altered</li>
+</ul>
+<h2 id="test"><a class="header" href="#test">Test</a></h2>
+<p>After modifying the code at the specified area, run the following command at <code>tests/labexe/</code> to compile the binary file:</p>
+<pre><code class="language-shell">make cache_optimize
+</code></pre>
+<p>Next, you can execute the following command at gem5/ to test the code's performance:</p>
+<pre><code class="language-shell">build/ARM/gem5.opt -d lab3out/part4/cache_optimize configs/proj3/simple.py tests/labexe/cache_optimize --pf=ampm
+</code></pre>
+<p>You can evaluate the actual runtime of your code using the <code>simSeconds</code> at <strong>first line</strong> in the stat.txt file output by gem5. <strong>Our performance evaluation is also based on this metric</strong>.</p>
+<div id="admonition-note-1" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-1-title">
+<div class="admonition-title">
+<div id="admonition-note-1-title">
+<p>Note</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-note-1"></a>
+</div>
+<div>
+<p>In this part, the <code>system.cpu.max_insts_any_thread</code> should be set <code>1e9</code>.</p>
+</div>
+</div>
+<div id="admonition-tip" class="admonition admonish-tip" role="note" aria-labelledby="admonition-tip-title">
+<div class="admonition-title">
+<div id="admonition-tip-title">
+<p>Tip</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-tip"></a>
+</div>
+<div>
+<p>Our performance test consists of <strong>a single test</strong> case generated from <code>tests/labexe/cache_optimize_gen.cc</code>, which can be viewed in the <code>tests/labexe/cache_optimize.in</code>.</p>
+<p>Only code within the timing area is included in <code>simSeconds</code>. Therefore, you can rearrange data before the block and run code after it to restore the original data structure for correctness checks without affecting simSeconds.</p>
+</div>
+</div>
+<div id="admonition-delieverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-delieverables-title">
+<div class="admonition-title">
+<div id="admonition-delieverables-title">
+<p>Delieverables</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-delieverables"></a>
+</div>
+<div>
+<p>Please run our target workloads, <code>cache_optimize</code>, with <code>AMPMPrefetcher</code>. In this part, please (at least) include figures or tables, which show the actual runtime of <code>cache_optimize</code> on executables listed below, in your report:</p>
+<ul>
+<li>prefetch: <code>AMPMPrefetcher</code>.</li>
+<li>exe: <code>cache_optimize</code>.</li>
+<li>With default CPU and Memory (O3 and DDR4).</li>
+</ul>
+<p>In this part, you also need to submit:</p>
+<ul>
+<li><em><strong>your codes</strong></em>, including <code>cache_optimize.c</code>.</li>
+<li><em><strong>technical introduction</strong></em>, which analyzes the optimization techniques used in your code and explain why they improve performance. (Unexplained code or techniques are permitted, but they should constitute less than 50% of the total.)</li>
+</ul>
+</div>
+</div>
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../proj3/part3.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../proj3/submit.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../proj3/part3.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../proj3/submit.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>
