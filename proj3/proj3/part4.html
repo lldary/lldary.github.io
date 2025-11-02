@@ -184,11 +184,11 @@
 <p>In this experiment, we aim for students to gain an initial understanding of how cache optimization schemes enhance program efficiency and appreciate their unique advantages. Although compilers may already implement certain optimization techniques, we still encourage students to delve deeper into the underlying principles through hands-on practice, thereby gaining a more profound understanding of the importance of cache systems within CPU architectures.</p>
 <h2 id="lab-setup-preparation"><a class="header" href="#lab-setup-preparation">Lab Setup Preparation</a></h2>
 <p>First, we need to compile the m5-related time measurement auxiliary functions, which will be used to measure the execution time of a specific section of code in detail. We need to run the following command in the <code>/gem5</code> root directory:</p>
-<pre><code class="language-shell">cd util/m5
+<pre><code class="language-sh">cd util/m5
 scons build/arm64/out/m5
 </code></pre>
 <p>Next, we need to obtain three files from <a href="">PKU Disk</a> or the <a href="">teaching and learning network</a> for this part of the experiment. These files are <code>cache_optimize.c</code>, <code>cache_optimize_gen.cc</code>, and <code>cache_optimize.h</code>, which we will place in the <code>tests/labexe/</code>. The specific directory structure is shown in the diagram below:</p>
-<pre><code class="language-shell">gem5-root
+<pre><code class="language-sh">gem5-root
     |
     |---tests
           |
@@ -199,7 +199,7 @@ scons build/arm64/out/m5
                 |---cache_optimize.h
 </code></pre>
 <p>At the same time, we need to modify the tests/labexe/makefile file to support the normal compilation of these newly added files:</p>
-<pre><code class="language-shell"># tests/labexe/makefile
+<pre><code class="language-sh"># tests/labexe/makefile
 ···
 lz77_args = 1000000
 cache_optimize_args = 300 # ADD
@@ -254,7 +254,7 @@ cache_optimize: cache_optimize.c cache_optimize_gen.cc # ADD
 |        m5_reset_stats(0, 0);           |
 /*   START position of editable area    */
 |                 ...                    |
-|      EDITABLE AREA (**Timing Area**)       |
+|      EDITABLE AREA (Timing Area)       |
 |                 ...                    |
 /*    END position of editable area     */
 |        m5_dump_stats(0, 0);            |
@@ -277,7 +277,7 @@ cache_optimize: cache_optimize.c cache_optimize_gen.cc # ADD
 <a class="admonition-anchor-link" href="#admonition-note"></a>
 </div>
 <div>
-<p>It should be noted that the runtime for the non-optimized version is 33 minutes (at 5.5GHz). You can estimate the potential runtime on your own computer by checking its CPU Turbo Boost frequency. For example, if the Turbo Boost is 4.5GHz, the approximate runtime would be 33 * 5.5 / 4.5 =</p>
+<p>It should be noted that the runtime for the non-optimized version is 20 minutes (at 5.5GHz). You can estimate the potential runtime on your own computer by checking its CPU Turbo Boost frequency. For example, if the Turbo Boost is 4.5GHz, the approximate runtime would be 20 * 5.5 / 4.5 = 24.44 min.</p>
 </div>
 </div>
 <p>The following requirements apply during this process:</p>
@@ -290,10 +290,10 @@ cache_optimize: cache_optimize.c cache_optimize_gen.cc # ADD
 </ul>
 <h2 id="test"><a class="header" href="#test">Test</a></h2>
 <p>After modifying the code at the specified area, run the following command at <code>tests/labexe/</code> to compile the binary file:</p>
-<pre><code class="language-shell">make cache_optimize
+<pre><code class="language-sh">make cache_optimize
 </code></pre>
 <p>Next, you can execute the following command at gem5/ to test the code's performance:</p>
-<pre><code class="language-shell">build/ARM/gem5.opt -d lab3out/part4/cache_optimize configs/proj3/simple.py tests/labexe/cache_optimize --pf=ampm
+<pre><code class="language-sh">build/ARM/gem5.opt -d lab3out/part4/cache_optimize configs/proj3/simple.py tests/labexe/cache_optimize --pf=ampm
 </code></pre>
 <p>You can evaluate the actual runtime of your code using the <code>simSeconds</code> at <strong>first line</strong> in the stat.txt file output by gem5. <strong>Our performance evaluation is also based on this metric</strong>.</p>
 <div id="admonition-note-1" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-1-title">
