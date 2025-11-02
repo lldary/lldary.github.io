@@ -552,7 +552,8 @@ cache_optimize: cache_optimize.c cache_optimize_gen.cc # ADD
 } UserAction;
 </code></pre>
 <p>We need to optimize the target program for this simulated bird flock algorithm, which primarily consists of two parts: updating the logic frame and physics frame, and processing user input. The physics frame updates every 20 frames, while the logic frame updates once per physics frame. External user input is processed synchronously during logic frame updates. Currently, within <code>cache_optimize.c</code>, we provide a straightforward approach, but this method is not cache-friendly. Students can modify the code within the specified area to optimize performance:</p>
-<pre><code class="language-c">|        NO MODIFICATINS ALLOWED         |
+<pre><code class="language-c">// tests/labexe/cache_optimize.c
+|        NO MODIFICATINS ALLOWED         |
 /*   START position of editable area    */
 |                 ...                    |
 |            EDITABLE AREA               |
@@ -577,8 +578,6 @@ cache_optimize: cache_optimize.c cache_optimize_gen.cc # ADD
 |                 ...                    |
 /*    END position of editable area     */
 |              m5_exit(0);               |
-
-
 </code></pre>
 <p>It should be noted that <strong>only code invoked within the timing area will record the time</strong>. At the end of the program, there is a function <code>int checkResult(GameObject gameObjects[], GameObject expected[], int32_t count)</code> to verify the correctness of the operation. If an error occurs during execution, the following will be displayed on the command line:
 <code>Result check failed with error code: errorcode</code>. Once you pass this function, we will consider the program to be correct.</p>
