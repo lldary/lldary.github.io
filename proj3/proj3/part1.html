@@ -195,7 +195,8 @@ cp configs/proj1/simple.py configs/proj3
 <li><code>tgts_per_mshr</code>: the max number of accesses per MSHR.</li>
 </ul>
 <p>To create <code>SimObject</code> of caches, we need to define our specific non-abstract classes first. Let's add the following classes at the beginning of our configuration script (right after the <code>import</code> statements):</p>
-<pre><code class="language-py">class L1D(Cache):
+<pre><code class="language-py"># configs/proj3/simple.py
+class L1D(Cache):
     size = '48kB'
     assoc = 12
     tag_latency = 3
