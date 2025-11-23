@@ -243,7 +243,7 @@ virtual void notifyFill(const CacheAccessProbeArg &amp;acc) {}
 <p>The <code>CacheAccessProbeArg</code> records the memory packet that triggers the fill event, and a <code>CacheAccessor</code> that allows you to check the cache. This class can also be found in <code>src/mem/cache/cache_probe_arg.hh</code>. For the packet, <code>CacheAccessProbeArg</code> provide a pointer <code>PacketPtr pkt</code>. The two useful interfaces are:</p>
 <ul>
 <li><code>pkt-&gt;getAddr()</code>: get the address of this data fill.</li>
-<li><code>pkt-&gt;cmd.isHWPrefetech()</code>: check if the filled data are prefetched from your hardware prefetcher.</li>
+<li><code>pkt-&gt;cmd.isHWPrefetech() || pkt-&gt;req-&gt;taskId() == context_switch_task_id::Prefetcher</code>: check if the filled data are prefetched from your hardware prefetcher.</li>
 </ul>
 <p>Please note that, when <code>notifyFill()</code> is called, the address of the filled data is <strong>the block base address</strong>. Thus, when you want to record accesses and check them in <code>notifyFill()</code>, you may want to record them in their block base address.</p>
 <div id="admonition-info" class="admonition admonish-info" role="note" aria-labelledby="admonition-info-title">
