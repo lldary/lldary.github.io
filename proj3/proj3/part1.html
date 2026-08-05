@@ -179,30 +179,16 @@
                 <div id="content" class="content">
                     <main>
                         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<h1 id="part-1-add-caches-in-the-configuration-script"><a class="header" href="#part-1-add-caches-in-the-configuration-script">Part 1: Add Caches in the Configuration Script</a></h1>
-<p>In this part, we will extend our configuration with a custom cache hierarchy in <strong>ChampSim</strong>. Let's start by copying the template configuration file to create your new configuration:</p>
+<h1 id="part-1-custom-cache-hierarchy--multi-core-optimization"><a class="header" href="#part-1-custom-cache-hierarchy--multi-core-optimization">Part 1: Custom Cache Hierarchy &amp; Multi-Core Optimization</a></h1>
+<p>In this part, you will extend ChampSim with a custom cache hierarchy and explore cache allocation strategies for multi-core parallel execution (<code>multi_run</code>).</p>
+<p>Copy the template configuration file to create your working configuration:</p>
 <pre><code class="language-sh">cp lab2_config.json lab3_config.json
 
 </code></pre>
-<p>In ChampSim, the cache hierarchy and component parameters are specified via a <strong>JSON configuration file</strong> (e.g., <code>lab3_config.json</code>). ChampSim automatically parses this configuration during the build phase to generate the corresponding C++ source files and headers.</p>
-<p>There are several critical parameters that define the geometry and performance of a given cache level (<code>L1I</code>, <code>L1D</code>, <code>L2C</code>, <code>LLC</code>):</p>
-<ul>
-<li><code>sets</code>: The number of sets in the cache.</li>
-<li><code>ways</code>: The associativity of the cache (the number of blocks/lines per set).</li>
-</ul>
-<blockquote>
-<p><strong>Note</strong>: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord text"><span class="mord">Total Cache Size</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6984em;vertical-align:-0.0833em;"></span><span class="mord text"><span class="mord">sets</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7778em;vertical-align:-0.1944em;"></span><span class="mord text"><span class="mord">ways</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.0044em;vertical-align:-0.31em;"></span><span class="mord text"><span class="mord">block_size</span></span></span></span></span> (ChampSim's default <code>block_size</code> is 64 bytes).</p>
-</blockquote>
-<ul>
-<li><code>hit_latency</code>: The cycles required to look up tags and access data upon a hit.</li>
-<li><code>fill_latency</code>: The additional cycles required when filling a cache line from a lower memory level.</li>
-<li><code>mshr_size</code>: The number of Miss Status Holding Registers (MSHRs) to track in-flight misses.</li>
-<li><code>rq_size</code> / <code>wq_size</code> / <code>pq_size</code>: The capacity of the Read Queue, Write Queue, and Prefetch Queue.</li>
-<li><code>prefetcher</code>: The prefetcher module assigned to this cache (e.g., <code>"no"</code> or <code>"next_line"</code>).</li>
-<li><code>replacement</code>: The cache line replacement policy (e.g., <code>"lru"</code>).</li>
-</ul>
-<h3 id="defining-the-cache-hierarchy"><a class="header" href="#defining-the-cache-hierarchy">Defining the Cache Hierarchy</a></h3>
-<p>Open <code>lab3_config.json</code> and configure the CPU, <code>L1I</code>, <code>L1D</code>, and <code>L2C</code> modules as follows. Be sure to specify <code>"executable_name"</code> so <code>config.sh</code> outputs the correct binary target:</p>
+<p>ChampSim parses a JSON configuration file to set up the memory geometry and auto-generate the underlying C++ source files during the build phase.</p>
+<hr />
+<h2 id="1-single-core-baseline-setup"><a class="header" href="#1-single-core-baseline-setup">1. Single-Core Baseline Setup</a></h2>
+<p>Configure <code>lab3_config.json</code> with the following parameters:</p>
 <pre><code class="language-json">{
   "block_size": 64,
   "cpu": [
@@ -247,29 +233,67 @@
 <blockquote>
 <p><strong>Calculation Check</strong>:</p>
 <ul>
-<li><strong>L1D Size</strong>: 64 sets <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6667em;vertical-align:-0.0833em;"></span><span class="mord">×</span></span></span></span> 12 ways <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6667em;vertical-align:-0.0833em;"></span><span class="mord">×</span></span></span></span> 64 bytes = 48 KB</li>
-<li><strong>L2C Size</strong>: 2048 sets <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6667em;vertical-align:-0.0833em;"></span><span class="mord">×</span></span></span></span> 16 ways <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6667em;vertical-align:-0.0833em;"></span><span class="mord">×</span></span></span></span> 64 bytes = 2 MB</li>
+<li><strong>L1I Size</strong>: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">64</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">8</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">64</span><span class="mord text"><span class="mord"> B</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">32</span><span class="mord text"><span class="mord"> KB</span></span></span></span></span></li>
+<li><strong>L1D Size</strong>: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">64</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">12</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">64</span><span class="mord text"><span class="mord"> B</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">48</span><span class="mord text"><span class="mord"> KB</span></span></span></span></span></li>
+<li><strong>L2C Size</strong>: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">2048</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">16</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">64</span><span class="mord text"><span class="mord"> B</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">2</span><span class="mord text"><span class="mord"> MB</span></span></span></span></span></li>
+<li><strong>Total Baseline Capacity</strong>: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">2.08</span><span class="mord text"><span class="mord"> MB</span></span></span></span></span></li>
 </ul>
 </blockquote>
 <h3 id="building-and-running-the-simulation"><a class="header" href="#building-and-running-the-simulation">Building and Running the Simulation</a></h3>
-<p>Once you have defined your JSON configuration, generate the C++ modules using <code>config.sh</code> and build the binary:</p>
+<p>Generate the C++ modules using <code>config.sh</code> and build the binary:</p>
 <pre><code class="language-sh">./config.sh lab3_config.json
 make -j $(nproc)
 
 </code></pre>
-<p>After compilation, run the generated binary (<code>./bin/champsim_proj3</code>) with your target ChampSim workload trace (e.g., <code>gemm.champsimtrace.xz</code>):</p>
+<p>Run the generated executable (<code>./bin/champsim_proj3</code>) on <code>gemm.champsimtrace.xz</code>:</p>
 <pre><code class="language-sh">./bin/champsim_proj3 --warmup_instructions 20000000 --simulation_instructions 100000000 traces/gemm.champsimtrace.xz
 
 </code></pre>
-<p>Upon completion, ChampSim outputs detailed statistics directly to standard output (<code>stdout</code>), including IPC, cache hit rates, and MSHR occupancy:</p>
-<pre><code class="language-text">...
-=== CPU 0 ===
-CPU 0 cumulative IPC: 1.423 Instructions per cycle: 1.423
-L1D TOTAL     ACCESS:    1245020  HIT:    1102340  MISS:     142680
-L2C TOTAL     ACCESS:     142680  HIT:     118920  MISS:      23760
-...
+<hr />
+<h2 id="2-multi-core-expansion--cache-budget-optimization-task"><a class="header" href="#2-multi-core-expansion--cache-budget-optimization-task">2. Multi-Core Expansion &amp; Cache Budget Optimization Task</a></h2>
+<h3 id="setting-up-4-cores-in-champsim"><a class="header" href="#setting-up-4-cores-in-champsim">Setting Up 4 Cores in ChampSim</a></h3>
+<p>To evaluate parallel workload behavior (<code>multi_run</code>), ChampSim requires defining multiple core objects inside the <code>"cpu"</code> array and routing their requests to private or shared cache instances.</p>
+<p>Below is an example structure configuring <strong>4 CPU cores</strong>:</p>
+<pre><code class="language-json">{
+  "block_size": 64,
+  "cpu": [
+    { "name": "cpu0", "frequency": 4000, "l1i": "L1I_0", "l1d": "L1D_0", "l2c": "L2C_0" },
+    { "name": "cpu1", "frequency": 4000, "l1i": "L1I_1", "l1d": "L1D_1", "l2c": "L2C_1" },
+    { "name": "cpu2", "frequency": 4000, "l1i": "L1I_2", "l1d": "L1D_2", "l2c": "L2C_2" },
+    { "name": "cpu3", "frequency": 4000, "l1i": "L1I_3", "l1d": "L1D_3", "l2c": "L2C_3" }
+  ],
+  "L1I_0": { "sets": 64, "ways": 8, "mshr_size": 16, "hit_latency": 3, "fill_latency": 1, "prefetcher": "no", "replacement": "lru" },
+  "L1D_0": { "sets": 64, "ways": 8, "mshr_size": 16, "hit_latency": 3, "fill_latency": 1, "prefetcher": "no", "replacement": "lru" },
+  "L2C_0": { "sets": 512, "ways": 8, "mshr_size": 16, "hit_latency": 10, "fill_latency": 1, "lower_level": "LLC", "prefetcher": "no", "replacement": "lru" },
+  "...": "Repeat L1I_x, L1D_x, L2C_x for cores 1 to 3",
+  "LLC": {
+    "sets": 4096,
+    "ways": 16,
+    "mshr_size": 32,
+    "hit_latency": 20,
+    "fill_latency": 1,
+    "prefetcher": "no", "replacement": "lru"
+  }
+}
 
 </code></pre>
+<h3 id="problem-statement-fixed-cache-capacity-allocation-strategy"><a class="header" href="#problem-statement-fixed-cache-capacity-allocation-strategy">Problem Statement: Fixed Cache Capacity Allocation Strategy</a></h3>
+<p>Suppose you are given a <strong>fixed total cache capacity budget</strong> <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">total</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> (e.g., <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">total</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">8</span><span class="mord text"><span class="mord"> MB</span></span></span></span></span> aggregated across all L1, L2, and shared LLC caches for 4 cores).</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">total</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.3521em;vertical-align:-1.3021em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.05em;"><span style="top:-1.8479em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">all cores</span></span></span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.3021em;"><span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">L1I</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">L1D</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">L2C</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">LLC</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span></p>
+<p>Where <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">level</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6984em;vertical-align:-0.0833em;"></span><span class="mord text"><span class="mord">sets</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7778em;vertical-align:-0.1944em;"></span><span class="mord text"><span class="mord">ways</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">64</span><span class="mord text"><span class="mord"> B</span></span></span></span></span>.</p>
+<p>When running 4 instances of memory-intensive tasks in parallel (<code>multi_run</code>), design and test different cache allocation strategies under the <strong>same total capacity <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">total</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></strong>:</p>
+<ol>
+<li><strong>Strategy A (Heavy Private L2, Small LLC):</strong> Give each core a larger private L2 cache (e.g., <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">1</span><span class="mord text"><span class="mord"> MB</span></span></span></span></span> per core) and a small shared LLC (<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">4</span><span class="mord text"><span class="mord"> MB</span></span></span></span></span>).</li>
+<li><strong>Strategy B (Lean Private L2, Large LLC):</strong> Give each core a small private L2 cache (e.g., <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">256</span><span class="mord text"><span class="mord"> KB</span></span></span></span></span> per core) and devote the remaining budget to a larger shared LLC (<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">6.5</span><span class="mord text"><span class="mord"> MB</span></span></span></span></span>).</li>
+<li><strong>Strategy C (Varied L1D vs. L2/LLC sizing):</strong> Analyze how increasing L1D size (which affects access latency in practice) compares to giving that capacity to L2C/LLC.</li>
+</ol>
+<blockquote>
+<p><strong>Optimization Questions to Answer</strong>:</p>
+<ul>
+<li>How should the fixed capacity budget be split between private caches (L1/L2) and shared cache (LLC) to maximize throughput (total or cumulative IPC across all 4 cores)?</li>
+<li>What trade-offs arise between private cache isolation and shared LLC capacity utilization during memory-bound workload execution?</li>
+</ul>
+</blockquote>
 <div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
 <div class="admonition-title">
 <div id="admonition-deliverables-title">
@@ -278,10 +302,16 @@ L2C TOTAL     ACCESS:     142680  HIT:     118920  MISS:      23760
 <a class="admonition-anchor-link" href="#admonition-deliverables"></a>
 </div>
 <div>
-<p>Please run the memory-sensitive workload, i.e., <code>gemm.champsimtrace.xz</code>, with the two-level cache hierarchy defined above. In this part, please include the following contents in your <em><strong>report</strong></em>:</p>
+<p>Please run the memory-sensitive workload (<code>gemm.champsimtrace.xz</code> or parallel <code>multi_run</code> traces) and include the following in your <strong>report</strong>:</p>
+<ol>
+<li><strong>Build Verification</strong>: A screenshot of your single-core <code>lab3_config.json</code> file and the terminal output confirming a successful compilation.</li>
+<li><strong>Single-Core IPC Comparison</strong>: A figure or table comparing <code>CPU 0 cumulative IPC</code> on <code>gemm</code> across baseline vs. modified cache configurations.</li>
+<li><strong>4-Core Optimization &amp; Allocation Analysis</strong>:</li>
+</ol>
 <ul>
-<li>A screenshot of your <code>lab3_config.json</code> file and the terminal output confirming a successful build.</li>
-<li>A figure or table comparing the <code>CPU 0 cumulative IPC</code> on workload <code>gemm</code> across different cache hierarchy configurations (e.g., baseline vs. custom cache size/latency setups).</li>
+<li>Show your 4-core JSON configuration setup (specifying 4 cores and their corresponding cache hierarchy routing).</li>
+<li>Present a comparative table/chart of execution performance (total IPC / cycles) under <strong>at least 2 different cache allocation schemes</strong> using the <strong>same total cache capacity budget</strong>.</li>
+<li>Explain <em>why</em> the optimal hierarchy allocation achieves the highest performance for parallel execution.</li>
 </ul>
 </div>
 </div>
