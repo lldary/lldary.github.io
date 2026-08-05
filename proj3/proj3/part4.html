@@ -179,175 +179,86 @@
                 <div id="content" class="content">
                     <main>
                         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<h1 id="part-4-optimize-a-program-segment-using-cache-optimization-techniques"><a class="header" href="#part-4-optimize-a-program-segment-using-cache-optimization-techniques">Part 4: Optimize a Program Segment Using Cache Optimization Techniques</a></h1>
-<p>The cache mechanism was introduced to bridge the significant speed gap between storage devices and processors. By temporarily storing frequently accessed data in the cache, it reduces the number of accesses to storage devices, thereby accelerating data retrieval. However, different data layouts result in markedly distinct patterns of data storage and access within the cache, which in turn impacts cache hit rates and overall efficiency. A well-designed, cache-friendly data layout can fully leverage cache advantages, significantly boosting application performance. Conversely, an ill-suited layout may cause frequent cache misses, resulting in numerous cache failures that slow application execution and potentially create system performance bottlenecks.</p>
-<p>In this experiment, we aim for students to gain an initial understanding of how cache optimization schemes enhance program efficiency and appreciate their unique advantages. Although compilers may already implement certain optimization techniques, we still encourage students to delve deeper into the underlying principles through hands-on practice, thereby gaining a more profound understanding of the importance of cache systems within CPU architectures.</p>
-<h2 id="lab-setup-preparation"><a class="header" href="#lab-setup-preparation">Lab Setup Preparation</a></h2>
-<p>First, we need to compile the m5-related time measurement auxiliary functions, which will be used to measure the execution time of a specific section of code in detail. We need to run the following command in the <code>/gem5</code> root directory:</p>
-<pre><code class="language-sh">cd util/m5
-scons build/thumb/out/m5
-</code></pre>
-<p>Next, we need to obtain three files from <a href="https://disk.pku.edu.cn/link/AA8F735492EA4048A282AA5A7B9820B521">PKU Disk</a> or the <a href="https://course.pku.edu.cn/">teaching and learning network</a> for this part of the experiment. These files are <code>cache_optimize.c</code>, <code>cache_optimize_gen.cc</code>, and <code>cache_optimize.h</code>, which we will place in the <code>tests/labexe/</code>. The specific directory structure is shown in the diagram below:</p>
-<pre><code class="language-sh">gem5-root
-    |
-    |---tests
-          |
-          |---labexe
-                |
-                |---cache_optimize.c
-                |---cache_optimize_gen.cc
-                |---cache_optimize.h
-</code></pre>
-<p>At the same time, we need to modify the tests/labexe/makefile file to support the normal compilation of these newly added files:</p>
-<pre><code class="language-sh"># tests/labexe/makefile
-···
-lz77_args = 1000000
-cache_optimize_args = 300 # ADD
-···
-# DELETE: all: $(TGT) hello
-all: $(TGT) hello cache_optimize # ADD
-...
-hello: hello.c
-	$(CC) $(CFLAGS) $&lt; -o $@
+<h1 id="part-4-crafting-a-hard-trace-cache--prefetcher-stress-testing"><a class="header" href="#part-4-crafting-a-hard-trace-cache--prefetcher-stress-testing">Part 4: Crafting a Hard Trace (Cache &amp; Prefetcher Stress Testing)</a></h1>
+<p>In this final part, you will flip the perspective from <strong>defender</strong> (building a prefetcher) to <strong>adversary</strong> (constructing a cache-hostile memory trace). Your goal is to design a synthetic workload or memory access trace that stresses the cache hierarchy, maximizes cache misses, and fools standard prefetchers (such as Next-Line or Stride prefetchers).</p>
+<p>Grading for this part will be determined by the <strong>difficulty score</strong> of your trace—specifically, how effectively it degrades baseline system performance and challenges hardware prefetching mechanisms.</p>
+<h2 id="trace-generation-overview"><a class="header" href="#trace-generation-overview">Trace Generation Overview</a></h2>
+<p>ChampSim traces (<code>.champsimtrace.xz</code>) capture dynamic execution streams, including instruction PCs, register usage, branch directions, and memory access addresses.</p>
+<p>You can generate your custom trace in the below way:</p>
+<p><strong>Benchmark C Code + Tracer</strong>: Write a custom C/C++ program (e.g., <code>stress_test.c</code>) that implements cache-unfriendly access patterns (e.g., prime-strided array traversals, pointer chasing through randomized linked lists, or dynamic access stride switching), and use the lab-provided Pin/DynamoRIO tracer script to generate <code>stress_test.champsimtrace.xz</code>:</p>
+<pre><code class="language-sh"># Compile your stress test workload
+gcc -O2 stress_test.c -o stress_test
+# Generate ChampSim trace using the provided tracer script
+./scripts/generate_trace.sh ./stress_test -o traces/custom_stress.champsimtrace.xz
 
-cache_optimize: cache_optimize.c cache_optimize_gen.cc # ADD
-	$(CXX) $(CXXFLAGS) cache_optimize_gen.cc -o cache_optimize_gen # ADD
-	./cache_optimize_gen cache_optimize.in $(shell echo $(cache_optimize_args)) # ADD
-	$(CC) $(CFLAGS) cache_optimize.c -I ../../include -L ../../util/m5/build/thumb/out/ -lm5 -o cache_optimize # ADD
-...
 </code></pre>
-<p>You can enter <code>make -j $(nproc)</code> or <code>make cache_optimize</code> in directory <code>/gem5/tests/labexe/</code> to compile the target program after modifying it. The generated binary file will be located in <code>tests/labexe/cache_optimize</code>.</p>
-<div id="admonition-note" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-title">
-<div class="admonition-title">
-<div id="admonition-note-title">
-<p>Note</p>
-</div>
-<a class="admonition-anchor-link" href="#admonition-note"></a>
-</div>
-<div>
-<p>When using Makefile, the error <code>Makefile:32: *** missing separator. Stop.</code> typically occurs because a necessary separator is missing in a rule or command line within the Makefile. In Makefile, command lines must begin with a <strong>tab</strong> character, not a space. This is a strict requirement of the make tool.</p>
-</div>
-</div>
-<h2 id="our-goal"><a class="header" href="#our-goal">Our Goal</a></h2>
-<p>In this part, we implement a simulation engine for a bird flock algorithm, modeling the movement state of a flock under predator pressure. Both the flock and the predator are defined using the <code>GameObject</code> class, with each entry defined as follows:</p>
-<pre><code class="language-c">typedef struct GameObject {
-    int32_t id;             // Unique identifier for the game object
-    enum ObjectType type;   // Type of the game object (bird or predator)
-    Transform transform;    // Transformation data (position, rotation, scale)
-    Material material;      // Material properties (color and reflectivity)
-    AIState aiState;        // Artificial intelligence state
-    int32_t health_points;  // Health points of the game object
-    double awarenessRadius; // Radius within which the object is aware of its surroundings
-    MeshData mesh;          // Mesh data for rendering
-    double attackRadius;    // Radius within which the object can attack
-    PhysicsData physics;    // Physics properties (e.g., mass, velocity, acceleration)
-} GameObject;
-</code></pre>
-<p>The program also allows external users to input settings for certain behaviors. User-input behavior streams are predefined in an array, with each entry represented by the <code>UserAction</code> class. Specific details for each entry are as follows:</p>
-<pre><code class="language-c">typedef struct UserAction {
-    enum ActionType actionType; // action type (change maxspeed or color)
-    double args[4];
-} UserAction;
-</code></pre>
-<p>We need to optimize the target program for this simulated bird flock algorithm, which primarily consists of two parts: updating the logic frame and physics frame, and processing user input. The physics frame updates every 20 frames, while the logic frame updates once per physics frame. External user input is processed synchronously during logic frame updates. Currently, within <code>cache_optimize.c</code>, we provide a straightforward approach, but this method is not cache-friendly. Students can modify the code within the specified area to optimize performance:</p>
-<pre><code class="language-c">// tests/labexe/cache_optimize.c
-|        NO MODIFICATINS ALLOWED         |
-/*   START position of editable area    */
-|                 ...                    |
-|            EDITABLE AREA               |
-|                 ...                    |
-/*    END position of editable area     */
-|        NO MODIFICATINS ALLOWED         |
-/*   START position of editable area    */
-|                 ...                    |
-|     EDITABLE AREA (Preprocessing)      |
-|                 ...                    |
-/*    END position of editable area     */
-|        m5_reset_stats(0, 0);           |
-/*   START position of editable area    */
-|                 ...                    |
-|      EDITABLE AREA (Timing Area)       |
-|                 ...                    |
-/*    END position of editable area     */
-|        m5_dump_stats(0, 0);            |
-/*   START position of editable area    */
-|                 ...                    |
-|    EDITABLE AREA (Postprocessing)      |
-|                 ...                    |
-/*    END position of editable area     */
-|              m5_exit(0);               |
-</code></pre>
-<p>It should be noted that <strong>only code invoked within the timing area will record the time</strong>. At the end of the program, there is a function <code>int checkResult(GameObject gameObjects[], GameObject expected[], int32_t count)</code> to verify the correctness of the operation. If an error occurs during execution, the following will be displayed on the command line:
-<code>Result check failed with error code: errorcode</code>. Once you pass this function, we will consider the program to be correct.</p>
-<div id="admonition-note-1" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-1-title">
-<div class="admonition-title">
-<div id="admonition-note-1-title">
-<p>Note</p>
-</div>
-<a class="admonition-anchor-link" href="#admonition-note-1"></a>
-</div>
-<div>
-<p>It should be noted that the runtime for the non-optimized version is 20 minutes (at 5.5GHz). You can estimate the potential runtime on your own computer by checking its CPU Turbo Boost frequency. For example, if the Turbo Boost is 4.5GHz, the approximate runtime would be 20 * 5.5 / 4.5 = 24.44 min.</p>
-</div>
-</div>
-<p>The following requirements apply during this process:</p>
+<h2 id="trace-validity--difficulty-scoring-metrics"><a class="header" href="#trace-validity--difficulty-scoring-metrics">Trace Validity &amp; Difficulty Scoring Metrics</a></h2>
+<p>To ensure fairness, your submitted trace must satisfy basic <strong>validity constraints</strong> (to prevent trivial attacks like zero-instruction traces or non-memory instruction loops).</p>
+<h3 id="1-validity-constraints-filter-rules"><a class="header" href="#1-validity-constraints-filter-rules">1. Validity Constraints (Filter Rules)</a></h3>
+<p>Your trace must meet the following minimum execution bounds when run in ChampSim:</p>
 <ul>
-<li>Multithreading or multiprocessing is not permitted</li>
-<li>No libraries import (via #include)</li>
-<li>Parallel commands such as vectorization are prohibited</li>
-<li><strong>NO loop unrolling technique</strong></li>
-<li>The original program semantics must not be altered</li>
+<li><strong>Minimum Instruction Count</strong>: Must contain at least <strong>20M dynamic instructions</strong> (and run smoothly with <code>--simulation_instructions 20000000</code>).</li>
+<li><strong>Memory Access Density</strong>: At least <strong>20%</strong> of total instructions must be memory-referencing operations (loads/stores).</li>
+<li><strong>Address Space Requirement</strong>: Memory accesses must span across a footprint of at least <strong>8 MB</strong> (exceeding L1D and L2C capacities to force main memory accesses).</li>
 </ul>
-<h2 id="test"><a class="header" href="#test">Test</a></h2>
-<p>After modifying the code at the specified area, run the following command at <code>tests/labexe/</code> to compile the binary file:</p>
-<pre><code class="language-sh">make cache_optimize
-</code></pre>
-<p>Next, you can execute the following command at gem5/ to test the code's performance:</p>
-<pre><code class="language-sh">build/ARM/gem5.opt -d lab3out/part4/cache_optimize configs/proj3/simple.py tests/labexe/cache_optimize --pf=ampm
-</code></pre>
-<p>You can evaluate the actual runtime of your code using the <code>simSeconds</code> at <strong>first line</strong> in the stat.txt file output by gem5. <strong>Our performance evaluation is also based on this metric</strong>.</p>
-<div id="admonition-note-2" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-2-title">
-<div class="admonition-title">
-<div id="admonition-note-2-title">
-<p>Note</p>
-</div>
-<a class="admonition-anchor-link" href="#admonition-note-2"></a>
-</div>
-<div>
-<p>In this part, the <code>system.cpu.max_insts_any_thread</code> should be set <code>1e9</code>.</p>
-</div>
-</div>
-<div id="admonition-tip" class="admonition admonish-tip" role="note" aria-labelledby="admonition-tip-title">
-<div class="admonition-title">
-<div id="admonition-tip-title">
-<p>Tip</p>
-</div>
-<a class="admonition-anchor-link" href="#admonition-tip"></a>
-</div>
-<div>
-<p>Our performance test consists of <strong>a single test</strong> case generated from <code>tests/labexe/cache_optimize_gen.cc</code>, which can be viewed in the <code>tests/labexe/cache_optimize.in</code>.</p>
-<p>Only code within the timing area is included in <code>simSeconds</code>. Therefore, you can rearrange data before the block and run code after it to restore the original data structure for correctness checks without affecting simSeconds.</p>
-</div>
-</div>
-<div id="admonition-delieverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-delieverables-title">
-<div class="admonition-title">
-<div id="admonition-delieverables-title">
-<p>Delieverables</p>
-</div>
-<a class="admonition-anchor-link" href="#admonition-delieverables"></a>
-</div>
-<div>
-<p>Please run our target workloads, <code>cache_optimize</code>, with <code>AMPMPrefetcher</code>. In this part, please (at least) include figures or tables, which show the actual runtime of <code>cache_optimize</code> on executables listed below, in your report:</p>
+<h3 id="2-difficulty-score-calculation"><a class="header" href="#2-difficulty-score-calculation">2. Difficulty Score Calculation</a></h3>
+<p>Each valid trace will be evaluated on the baseline 2-level cache hierarchy across two test runs:</p>
 <ul>
-<li>prefetch: <code>AMPMPrefetcher</code>.</li>
-<li>exe: <code>cache_optimize</code>.</li>
-<li>With default CPU and Memory (O3 and DDR4).</li>
+<li><strong>Baseline Run</strong>: With no prefetcher (<code>"prefetcher": "no"</code>).</li>
+<li><strong>Prefetcher Run</strong>: With standard Next-Line or IP-Stride prefetcher (<code>"prefetcher": "ip_stride"</code>).</li>
 </ul>
-<p>In this part, you also need to submit:</p>
+<p>The <strong>Trace Difficulty Score (<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">trace</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>)</strong> is computed as a combination of cache hostility and prefetcher resistance:</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">trace</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.5945em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:2.4em;vertical-align:-0.95em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">(</span></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.4403em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord text"><span class="mord">IPC</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">max</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.757em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord text"><span class="mord">IPC</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">no_pf</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.367em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.836em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">)</span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.5945em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.8em;vertical-align:-0.65em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size2">(</span></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord text"><span class="mord">Coverage</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.242em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">ip_stride</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4611em;"><span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size2">)</span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.5945em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord text"><span class="mord">Miss Rate</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">L2C</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span></p>
+<p>Where:</p>
 <ul>
-<li><em><strong>your codes</strong></em>, including <code>cache_optimize.c</code>.</li>
-<li><em><strong>technical introduction</strong></em>, which analyzes the optimization techniques used in your code and explain why they improve performance. (Unexplained code or techniques are permitted, but they should constitute less than 50% of the total.)</li>
+<li><strong>Cache Hostility</strong>: Penalizes high baseline IPC and rewards high L1D/L2C miss rates.</li>
+<li><strong>Prefetcher Hostility</strong>: Rewards traces that achieve low prefetcher coverage (<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord text"><span class="mord">Coverage</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0</span></span></span></span>) or induce high useless/late prefetch overhead.</li>
 </ul>
+<hr />
+<h2 id="grading-criteria"><a class="header" href="#grading-criteria">Grading Criteria</a></h2>
+<p>Grading for Part 4 is weighted as follows:</p>
+<ol>
+<li><strong>Validity Check (Pass/Fail)</strong>: The trace must pass all minimum instruction count, memory density, and address footprint requirements.</li>
+<li><strong>Absolute Difficulty Threshold (60%)</strong>: Traces that achieve an L2C miss rate <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8056em;vertical-align:-0.0556em;"></span><span class="mord">40%</span></span></span></span> or reduce baseline IPC below a designated threshold receive full baseline points.</li>
+<li><strong>Relative Leaderboard Ranking (40%)</strong>: Traces will be ranked by their calculated Difficulty Score (<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">trace</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>). The top 15% hardest traces receive top leaderboard marks, with a smooth grading curve applied across the rest of the class.</li>
+</ol>
+<div id="admonition-design-hints-for-hostile-access-patterns" class="admonition admonish-tip" role="note" aria-labelledby="admonition-design-hints-for-hostile-access-patterns-title">
+<div class="admonition-title">
+<div id="admonition-design-hints-for-hostile-access-patterns-title">
+<p>Design Hints for Hostile Access Patterns</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-design-hints-for-hostile-access-patterns"></a>
+</div>
+<div>
+<p>To maximize cache misses and evade prefetching, consider:</p>
+<ul>
+<li><strong>Pointer Chasing</strong>: Random array indexing or non-contiguous node traversal, breaking linear address patterns.</li>
+<li><strong>Conflict Miss Induction</strong>: Accessing addresses that map to the exact same cache set (modulo index alignment) to cause cache thrashing.</li>
+<li><strong>Stride Deception</strong>: Alternating between short predictable strides and sudden large random jumps to trick stride tables into issuing useless prefetches.</li>
+<li><strong>Thrashing the MSHR</strong>: Issuing multiple outstanding misses to unique cache blocks within short instruction windows.</li>
+</ul>
+</div>
+</div>
+<div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
+<div class="admonition-title">
+<div id="admonition-deliverables-title">
+<p>Deliverables</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-deliverables"></a>
+</div>
+<div>
+<p>Please submit your custom trace and source files. Include the following in your <em><strong>report</strong></em>:</p>
+<ol>
+<li><strong>Trace Source / Generator Code</strong>: Submit your C benchmark (<code>stress_test.c</code>) or Python/C++ trace generator script.</li>
+<li><strong>Trace File</strong>: Submit your compressed trace file (<code>&lt;student_id&gt;_stress.champsimtrace.xz</code>).</li>
+<li><strong>Design Explanation &amp; Analysis</strong>:
+<ul>
+<li>Explain the access pattern strategy implemented in your trace.</li>
+<li>Present a table showing <strong>L1D Miss Rate</strong>, <strong>L2C Miss Rate</strong>, <strong>IPC</strong>, and <strong>Prefetcher Accuracy/Coverage</strong> when tested against <code>no</code>, <code>next_line</code>, and <code>ip_stride</code> prefetchers.</li>
+<li>Explain <em>why</em> your memory access pattern successfully degrades cache reuse and neutralizes prefetchers.</li>
+</ul>
+</li>
+</ol>
 </div>
 </div>
                     </main>

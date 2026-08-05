@@ -180,82 +180,95 @@
                     <main>
                         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="part-2-run-simulation-with-prefetchers"><a class="header" href="#part-2-run-simulation-with-prefetchers">Part 2: Run Simulation with Prefetchers</a></h1>
-<p><code>gem5</code> provides multiple classic cache prefetchers. They can be found in <code>src/mem/cache/prefetch/Prefetcher.py</code>. One of the simplest prefetchers is the <code>StridePrefetcher</code>. We can directly add it to the CPU's data cache with the following code:</p>
-<pre><code class="language-py">def init_system(system, args):
-    ...
-    system.cpu.addTwoLevelCacheHierarchy(L1I(), L1D(), L2())
-    # ADD FOLLOWS:
-    system.cpu.dcache.prefetcher = StridePrefetcher()
-    ...
-</code></pre>
-<p>When you start a simulation, you can find the prefetcher in <code>config.ini</code>:</p>
-<pre><code># config.ini
-...
-[system.cpu.dcache.prefetcher]
-type=StridePrefetcher
-...
-</code></pre>
-<p>To evaluate different prefetchers, we can also add options in the script. In this part, we will explore two of the provided prefetchers: <code>StridePrefetcher</code> and <code>AMPMPrefetcher</code>:</p>
-<pre><code class="language-py">pf_types = {
-    "stride": StridePrefetcher,
-    "ampm": AMPMPrefetcher,
-}
-...
-def init_system(system, args):
-    ...
-    system.cpu.dcache.prefetcher = pf_types[args.pf]()
-    ...
-...
-if __name__ == '__m5_main__':
-    ...
-    parser.add_argument(
-        "--pf", type=str, default="stride",
-    )
-    ...
-</code></pre>
-<p>Then, let's run the test executables and learn how these prefetchers can impact on system performance. Among the provided executables, <code>shell_sort</code> and <code>gemm</code> are sensitive to prefetching. In project 3, you only need to run the sensitive workloads, that is, <code>shell_sort</code> and <code>gemm</code>. So, to test the performance of stride prefetcher, the commands are as follows:</p>
-<pre><code class="language-sh"># using default CPU and Mem
-build/ARM/gem5.opt -d m5out/stride/sort configs/proj3/simple.py tests/labexe/shell_sort --pf stride
-build/ARM/gem5.opt -d m5out/stride/gemm configs/proj3/simple.py tests/labexe/gemm --pf stride
-</code></pre>
-<p>The commands to test AMPM are similar.</p>
-<div id="admonition-important-note" class="admonition admonish-warning" role="note" aria-labelledby="admonition-important-note-title">
-<div class="admonition-title">
-<div id="admonition-important-note-title">
-<p>Important note</p>
-</div>
-<a class="admonition-anchor-link" href="#admonition-important-note"></a>
-</div>
-<div>
-<p>In previous project, the recommended <code>system.cpu.max_insts_any_thread</code> is 1e8. This value makes sure you can run a simulation fastly. However, typical prefetcher requires much more accesses to learn the pattern and generate prefetches. Thus, in this project, <em><strong>the recommended <code>system.cpu.max_insts_any_thread</code> is 1e9</strong></em>. You can use 1e8 or even less values to speed-up your debugging. We also <strong>accept</strong> reports that are generated from less values, but the statistic outputs may be unreasonable. If you face troubles (for example, you cannot complete simulation with value 1e9), you can inform us in your report, the grading will be discretionary.</p>
-</div>
-</div>
-<p>After the simulations have finished, let's check the statistics in <code>stats.txt</code>. In this project, we care about four metrics, which evaluate the performance of the prefetchers:</p>
-<ul>
-<li><code>cpu.ipc</code>: The IPC of the cpu.</li>
-<li><code>prefetcher.accuracy</code>: The accuracy of the prefetcher, which means the fraction of useful prefetches among all prefetches (<em>check appendix A for detailed explaination</em>).</li>
-<li><code>prefetcher.coverage</code>: The coverage of the prefetcher, which means the fraction of eliminated misses (first-time hits on prefetched data) among all potential misses (eliminated misses plus actual misses).</li>
-<li><code>prefetcher.pfLate</code>: The number of prefetches that are issued lately (data are already in cache, MSHRs or write buffer before issuing).</li>
-</ul>
-<div id="admonition-delieverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-delieverables-title">
-<div class="admonition-title">
-<div id="admonition-delieverables-title">
-<p>Delieverables</p>
-</div>
-<a class="admonition-anchor-link" href="#admonition-delieverables"></a>
-</div>
-<div>
-<p>Please run two prefetch-sensitive workloads, i.e., <code>shell_sort</code> and <code>gemm</code>, with two prefetchers. The rest workloads <code>spfa</code> and <code>binary_search</code>, are insensitive to prefetching. You can run these workloads if you are interested, and have sufficient computing resources. Nevertheless, in this part, please (at least) include figures or tables, which show the four critical metrics (i.e., IPC, accuracy, coverage, late count) of different prefetch configurations on workloads listed below, in your <em><strong>report</strong></em>:</p>
-<ul>
-<li>prefetch: <strong>No prefetcher</strong>, <code>StridePrefetcher</code>, <code>AMPMPrefetcher</code>.</li>
-<li>exe: <code>shell_sort</code>, <code>gemm</code>.</li>
-<li>With default CPU and Memory (O3 and DDR4).</li>
-<li>Use the cache hierarchy described in part 1, and attach the prefetchers to <code>cpu.dcache</code>.</li>
-</ul>
-<p>In total, you need to run <code>gem5</code> six times.</p>
-</div>
-</div>
+<p>ChampSim provides multiple classic cache prefetchers out of the box (located in the <code>prefetcher/</code> directory). In ChampSim, prefetchers are assigned to a specific cache level (such as <code>L1D</code>, <code>L2C</code>, or <code>LLC</code>) directly in the JSON configuration file via the <code>"prefetcher"</code> key.</p>
+<p>For example, to attach the <code>ip_stride</code> prefetcher to the CPU's L1 Data Cache (<code>L1D</code>), update your <code>lab3_config.json</code>:</p>
+<pre><code class="language-json">  "L1D": {
+    "sets": 64,
+    "ways": 12,
+    "mshr_size": 16,
+    "hit_latency": 3,
+    "fill_latency": 1,
+    "prefetcher": "ip_stride",
+    "replacement": "lru"
+  }
 
+</code></pre>
+<blockquote>
+<p><strong>Note</strong>: Unlike simulators with dynamic Python scripting, changing the prefetcher module in ChampSim requires re-running <code>./config.sh</code> and re-compiling the executable:</p>
+<pre><code class="language-sh">./config.sh lab3_config.json
+make -j $(nproc)
+
+</code></pre>
+<p><em>Tip</em>: You can set different <code>"executable_name"</code> values in your JSON file (e.g., <code>"champsim_no_pf"</code>, <code>"champsim_next_line"</code>, <code>"champsim_ip_stride"</code>) to build distinct binary executables for different configurations without overwriting them.</p>
+</blockquote>
+<p>In this part, we will explore three L1D prefetcher configurations:</p>
+<ul>
+<li><code>"no"</code>: Disables prefetching for baseline comparison.</li>
+<li><code>"next_line"</code>: A simple prefetcher that fetches the contiguous next cache block on access.</li>
+<li><code>"ip_stride"</code>: An Instruction Pointer (IP) based stride prefetcher that tracks strided memory access patterns per instruction.</li>
+</ul>
+<h3 id="running-the-simulations"><a class="header" href="#running-the-simulations">Running the Simulations</a></h3>
+<p>Let's evaluate how these prefetchers impact system performance on two prefetch-sensitive workloads: <code>shell_sort</code> and <code>gemm</code>.</p>
+<p>To run a simulation for a specific prefetcher binary, execute:</p>
+<pre><code class="language-sh"># Example: Running ip_stride prefetcher on shell_sort and gemm
+./bin/champsim --warmup_instructions 20000000 --simulation_instructions 100000000 traces/shell_sort.champsimtrace.xz &gt; results/ip_stride_sort.txt
+./bin/champsim --warmup_instructions 20000000 --simulation_instructions 100000000 traces/gemm.champsimtrace.xz &gt; results/ip_stride_gemm.txt
+
+</code></pre>
+<p>Repeat this process for the binaries compiled with <code>"no"</code> and <code>"next_line"</code>.</p>
+<div id="admonition-important-note-on-simulation-length-and-warmup" class="admonition admonish-warning" role="note" aria-labelledby="admonition-important-note-on-simulation-length-and-warmup-title">
+<div class="admonition-title">
+<div id="admonition-important-note-on-simulation-length-and-warmup-title">
+<p>Important note on simulation length and warmup</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-important-note-on-simulation-length-and-warmup"></a>
+</div>
+<div>
+<p>Hardware prefetchers rely on observing memory access patterns over time to train internal state tables. Setting the simulation or warmup instructions too low will result in inaccurate prefetcher accuracy and coverage statistics.</p>
+<p>For this evaluation, <em><strong>the recommended parameters are <code>--warmup_instructions 20000000</code> (20M) and <code>--simulation_instructions 100000000</code> (100M)</strong></em>. You may use smaller instruction counts (e.g., 10M) for rapid debugging, but ensure your final report uses the recommended values.</p>
+</div>
+</div>
+<h3 id="analyzing-statistics"><a class="header" href="#analyzing-statistics">Analyzing Statistics</a></h3>
+<p>After the simulation completes, ChampSim outputs detailed cache and prefetcher performance statistics to stdout (or your redirected output text file).</p>
+<p>Look for the <code>=== Simulation ===</code> section and the corresponding <code>L1D PREFETCHER</code> statistics:</p>
+<pre><code class="language-text">=== Simulation ===
+CPU 0 cumulative IPC: 1.652 Instructions per cycle: 1.652
+...
+L1D PREFETCHER REQUESTED:   450210  ISSUED:   410200  USEFUL:   328160  USELESS:    82040
+L1D AVERAGE MISS LATENCY: 24.5 cycles
+
+</code></pre>
+<p>In this project, you will evaluate four critical performance metrics:</p>
+<ul>
+<li><strong><code>cpu.ipc</code></strong>: The overall instructions per cycle (<code>CPU 0 cumulative IPC</code>).</li>
+<li><strong><code>prefetcher.accuracy</code></strong>: The fraction of useful prefetches out of total issued prefetches:</li>
+</ul>
+<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord text"><span class="mord">Accuracy</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.0463em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3603em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">ISSUED</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">USEFUL</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p>
+<ul>
+<li><strong><code>prefetcher.coverage</code></strong>: The fraction of potential misses eliminated by useful prefetches:</li>
+</ul>
+<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord text"><span class="mord">Coverage</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.1297em;vertical-align:-0.7693em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3603em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">USEFUL</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord text"><span class="mord">L1D DEMAND MISS</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">USEFUL</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.7693em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p>
+<ul>
+<li><strong><code>prefetcher.pfLate</code></strong>: The number of prefetches issued too late (i.e., demand requests hit an in-flight MSHR allocated by a prefetch before it completed).</li>
+</ul>
+<div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
+<div class="admonition-title">
+<div id="admonition-deliverables-title">
+<p>Deliverables</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-deliverables"></a>
+</div>
+<div>
+<p>Please run two prefetch-sensitive workloads (<code>shell_sort.champsimtrace.xz</code> and <code>gemm.champsimtrace.xz</code>) across the three prefetcher configurations. The remaining workloads (<code>spfa</code> and <code>binary_search</code>) are prefetch-insensitive and optional.</p>
+<p>Include figures or tables in your <em><strong>report</strong></em> presenting the four critical metrics (<strong>IPC</strong>, <strong>Accuracy</strong>, <strong>Coverage</strong>, and <strong>Late Prefetch Count</strong>) across all six test cases:</p>
+<ul>
+<li><strong>Prefetchers</strong>: <code>no</code> (No prefetcher), <code>next_line</code>, <code>ip_stride</code>.</li>
+<li><strong>Workloads</strong>: <code>shell_sort.champsimtrace.xz</code>, <code>gemm.champsimtrace.xz</code>.</li>
+<li><strong>Cache Hierarchy</strong>: Use the 2-level cache hierarchy configured in Part 1, attaching prefetchers to <code>L1D</code>.</li>
+</ul>
+<p>In total, you will run <strong>6 simulation runs</strong> (3 prefetcher configurations <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6667em;vertical-align:-0.0833em;"></span><span class="mord">×</span></span></span></span> 2 workloads).</p>
+</div>
+</div>
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

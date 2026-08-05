@@ -180,143 +180,118 @@
                     <main>
                         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="submission"><a class="header" href="#submission">Submission</a></h1>
-<div id="admonition-submission" class="admonition admonish-note" role="note" aria-labelledby="admonition-submission-title">
+<div id="admonition-submission-guidelines" class="admonition admonish-note" role="note" aria-labelledby="admonition-submission-guidelines-title">
 <div class="admonition-title">
-<div id="admonition-submission-title">
-<p>Submission</p>
+<div id="admonition-submission-guidelines-title">
+<p>Submission Guidelines</p>
 </div>
-<a class="admonition-anchor-link" href="#admonition-submission"></a>
+<a class="admonition-anchor-link" href="#admonition-submission-guidelines"></a>
 </div>
 <div>
 <ul>
-<li>Please submit the deliverables for each part in order and clearly defined in a report form (e.g., PDF or Word). Please give a brief description of the results in your report. You also <strong>NEED</strong> to submit your codes and paper summary.</li>
-<li>Please pack your report, codes and summary in an archive and submit it as an attachment at <a href="https://course.pku.edu.cn">course.pku.edu.cn</a>. The title of the attachment should be Student-ID_Name_Proj3 (e.g., 123456789_WangXiaoming_Proj3).</li>
-<li>You can also send the archive to <a href="">2501112042@stu.pku.edu.cn</a>. The titles of your email AND attachment should both be Student-ID_Name_Proj3.</li>
-<li><strong>DO NOT PLAGIARIZE</strong>. We will select 10 students randomly and ask them to answer our questions related to their results.</li>
+<li>Please submit the deliverables for each part in order, formatted clearly in a single lab report (PDF format preferred). Provide brief but insightful discussions for all experimental results.</li>
+<li>You <strong>MUST</strong> submit your source code files, paper summary, and custom trace file along with your report.</li>
+<li>Pack all required files into a single zip/tar archive and submit it via <a href="https://course.pku.edu.cn">course.pku.edu.cn</a>. The title of the archive and the report must follow the format: <code>Student-ID_Name_Proj3</code> (e.g., <code>123456789_WangXiaoming_Proj3</code>).</li>
+<li>You can also email your submission to <code>2501112042@stu.pku.edu.cn</code>. The email subject and attachment filename <strong>MUST</strong> both be <code>Student-ID_Name_Proj3</code>.</li>
+<li><strong>ACADEMIC INTEGRITY</strong>: Do not plagiarize code or report contents. We will randomly select students for an oral defense/Q&amp;A session regarding their code implementation and trace design.</li>
 </ul>
 </div>
 </div>
 <div id="admonition-late-policy" class="admonition admonish-warning" role="note" aria-labelledby="admonition-late-policy-title">
 <div class="admonition-title">
 <div id="admonition-late-policy-title">
-<p>Late policy</p>
+<p>Late Policy</p>
 </div>
 <a class="admonition-anchor-link" href="#admonition-late-policy"></a>
 </div>
 <div>
 <ul>
-<li>You will be given <strong>3 slip days</strong> (shared by all projects), which can be used to extend project deadlines, e.g., 1 project extended by 3 days or 3 projects each extended by 1 day.</li>
-<li>Projects are due at 23:59:59, no exceptions; 20% off per day late, 1 second late = 1 hour late = 1 day late.</li>
+<li>You are allocated <strong>3 slip days</strong> in total for the entire semester (shared across all projects) to extend project deadlines.</li>
+<li>Projects are due strictly at <strong>23:59:59</strong> on the deadline date. Late submissions without slip days will incur a <strong>20% penalty per day</strong> (1 second late = 1 day late).</li>
 </ul>
 </div>
 </div>
-<div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
+<div id="admonition-deliverables-checklist" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-checklist-title">
 <div class="admonition-title">
-<div id="admonition-deliverables-title">
-<p>Deliverables</p>
+<div id="admonition-deliverables-checklist-title">
+<p>Deliverables Checklist</p>
 </div>
-<a class="admonition-anchor-link" href="#admonition-deliverables"></a>
+<a class="admonition-anchor-link" href="#admonition-deliverables-checklist"></a>
 </div>
 <div>
-<p>You need to submit <em><strong>report</strong></em>, <em><strong>codes</strong></em> and <em><strong>paper summary</strong></em> in this project. The required contents are listed as follows:</p>
+<p>Please ensure your submitted archive contains the following four components:</p>
+<ol>
+<li><strong>Lab Report (<code>Report.pdf</code>)</strong>:
 <ul>
-<li>report:</li>
-<li>
-<ul>
-<li>Figures and tables which show the CPU IPC and the accuracy, coverage and late count of following prefetch configurations on <code>shell_sort</code> and <code>gemm</code>: no prefetcher, <code>StridePrefetcher</code>, <code>AMPMPrefetcher</code>, <code>Lab3Hyperion</code>. Please run with <code>O3CPU</code> and <code>DDR4</code> memory, and with the cache configurations described in part 1.</li>
+<li><strong>Part 1</strong>: Screenshot of <code>lab3_config.json</code>, build terminal output, and IPC comparison table/figure across cache configurations.</li>
+<li><strong>Part 2</strong>: Evaluation table/figures showing <strong>IPC</strong>, <strong>Accuracy</strong>, <strong>Coverage</strong>, and <strong>Late Prefetches</strong> for baseline prefetchers (<code>no</code>, <code>next_line</code>, <code>ip_stride</code>) on <code>shell_sort</code> and <code>gemm</code>.</li>
+<li><strong>Part 3</strong>: Evaluation metrics for your <code>Hyperion</code> prefetcher, along with performance comparison and discussion.</li>
+<li><strong>Part 4</strong>: Detailed explanation of your custom trace design strategy, hostility analysis, and performance table against baselines.</li>
 </ul>
 </li>
-<li>codes:</li>
-<li>
+<li><strong>Paper Summary (<code>Paper_Summary.pdf</code> or section in report)</strong>:
 <ul>
-<li>Your implementation, i.e., <code>Prefetcher.py</code>, <code>lab3_pf.hh</code>, <code>lab3_pf.cc</code> and <code>cache_optimize.c</code>.</li>
+<li>A concise summary (1–2 pages) covering the <strong>Background</strong> and <strong>Core Architecture/Mechanisms</strong> of the Hyperion paper.</li>
 </ul>
 </li>
-<li>summary:</li>
-<li>
+<li><strong>Source Code &amp; Configurations</strong>:
 <ul>
-<li>A summary of the cited paper including background and designs.</li>
+<li><code>lab3_config.json</code>: Your ChampSim cache hierarchy configuration.</li>
+<li><code>hyperion.cc</code>: Your C++ implementation of the Hyperion prefetcher.</li>
+<li><code>stress_test.c</code> (or <code>trace_generator.py</code>): Source code used to construct your hostile memory trace.</li>
 </ul>
 </li>
-<li>technical introduction:</li>
-<li>
+<li><strong>Custom Trace File</strong>:
 <ul>
-<li>A report of the optimization techniques used in your code and explain why they improve performance. (Unexplained code or techniques are permitted, but they should constitute less than 50% of the total.)</li>
+<li><code>&lt;student_id&gt;_stress.champsimtrace.xz</code>: Your valid, compressed ChampSim stress trace.</li>
 </ul>
 </li>
-</ul>
-<p>Please pack all files in an archive and submit the archive.</p>
+</ol>
 </div>
 </div>
-<div id="admonition-grading" class="admonition admonish-success" role="note" aria-labelledby="admonition-grading-title">
+<div id="admonition-grading-breakdown-20-points-total" class="admonition admonish-success" role="note" aria-labelledby="admonition-grading-breakdown-20-points-total-title">
 <div class="admonition-title">
-<div id="admonition-grading-title">
-<p>Grading</p>
+<div id="admonition-grading-breakdown-20-points-total-title">
+<p>Grading Breakdown (20 Points Total)</p>
 </div>
-<a class="admonition-anchor-link" href="#admonition-grading"></a>
+<a class="admonition-anchor-link" href="#admonition-grading-breakdown-20-points-total"></a>
 </div>
 <div>
-<p>In this project, the grading is partially based on the performance of your implementation. The details are (15 points in total):</p>
+<p>Your grade for Project 3 will be evaluated out of <strong>20 points</strong> as follows:</p>
 <ul>
-<li>Screenshot that proves you have successfully built a cache hierarchy:</li>
 <li>
+<p><strong>Part 1: Cache Hierarchy Setup (3 pts)</strong></p>
 <ul>
-<li><strong>3pts</strong>.</li>
+<li>Screenshot of valid <code>lab3_config.json</code> and successful build output: <strong>1.5 pts</strong></li>
+<li>Correct execution and reasonable IPC comparison analysis: <strong>1.5 pts</strong></li>
 </ul>
 </li>
-<li><em><strong>PLUS</strong></em> resonable performance statistics of <strong>no prefetcher</strong>, <code>StridePrefetcher</code> and <code>AMPMPrefetcher</code>:</li>
 <li>
+<p><strong>Part 2: Baseline Prefetcher Evaluation (3 pts)</strong></p>
 <ul>
-<li><strong>6pts</strong>.</li>
+<li>Complete and accurate collection of all 4 metrics (IPC, Accuracy, Coverage, Late count) across <code>no</code>, <code>next_line</code>, and <code>ip_stride</code> on all required workloads: <strong>3 pts</strong></li>
 </ul>
 </li>
-<li><em><strong>PLUS</strong></em> a compilable Hyperion prefetcher implementation:</li>
 <li>
+<p><strong>Part 3: Paper Summary &amp; Hyperion Implementation (9 pts)</strong></p>
 <ul>
-<li><strong>9pts</strong>.</li>
+<li><strong>Paper Summary</strong>: Comprehensive summary of background and design mechanisms: <strong>3 pts</strong> <em>(Missing major sections: -1 pt each)</em></li>
+<li><strong>Code Correctness</strong>: Compilable and functional Hyperion C++ implementation: <strong>2 pts</strong></li>
+<li><strong>Absolute Performance</strong>: Outperforming <code>next_line</code> and meeting the baseline IPC speedup threshold: <strong>2 pts</strong></li>
+<li><strong>Relative Leaderboard Ranking</strong>: Based on geometric mean IPC speedup across all test traces: <strong>2 pts</strong> <em>(Top 20%: 2 pts; Top 50%: 1.5 pts; Others: 1 pt)</em></li>
 </ul>
 </li>
-<li><em><strong>PLUS</strong></em> a comparable performance with <code>StridePrefetcher</code> of your Hyperion prefetcher:</li>
 <li>
+<p><strong>Part 4: Custom Hostile Trace Design (5 pts)</strong></p>
 <ul>
-<li><strong>11pts</strong>.</li>
-</ul>
-</li>
-<li><em><strong>PLUS</strong></em> a comparable performance with <code>AMPMPrefetcher</code> of your Hyperion prefetcher:</li>
-<li>
-<ul>
-<li><strong>12pts</strong>.</li>
-</ul>
-</li>
-<li><em><strong>PLUS</strong></em> reasonable performance improvements (<strong>minimum 3%</strong>):</li>
-<li>
-<ul>
-<li><strong>13pts</strong>.</li>
-</ul>
-</li>
-<li><em><strong>PLUS</strong></em> reasonable performance improvements (<strong>minimum 7%</strong>):</li>
-<li>
-<ul>
-<li><strong>13.5pts</strong>.</li>
-</ul>
-</li>
-<li><em><strong>PLUS</strong></em> high performance improvements (<strong>optimization results ranked in the top 20%</strong>):</li>
-<li>
-<ul>
-<li><strong>14pts</strong>.</li>
-</ul>
-</li>
-<li><em><strong>PLUS</strong></em> corresponding technical explanations:</li>
-<li>
-<ul>
-<li><strong>15pts</strong>.</li>
+<li><strong>Trace Validity &amp; Source Code</strong>: Source code provided and trace passes all instruction count, memory density, and address footprint checks: <strong>1 pt</strong></li>
+<li><strong>Absolute Difficulty Threshold</strong>: Successfully achieves <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8056em;vertical-align:-0.0556em;"></span><span class="mord">40%</span></span></span></span> L2C miss rate or significantly degrades baseline IPC: <strong>2 pts</strong></li>
+<li><strong>Trace Difficulty Leaderboard Ranking</strong>: Ranked by Difficulty Score (<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">trace</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>): <strong>2 pts</strong> <em>(Top 20% hardest traces: 2 pts; Top 50%: 1.5 pts; Others: 1 pt)</em></li>
 </ul>
 </li>
 </ul>
-<p>There are additional <strong>5pts</strong> based on your paper summary. A comprehensive summary including background and designs will get 5pts. Lack of any single part will cause <strong>-1pt</strong>.</p>
 </div>
 </div>
-
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

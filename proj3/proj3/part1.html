@@ -180,70 +180,95 @@
                     <main>
                         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="part-1-add-caches-in-the-configuration-script"><a class="header" href="#part-1-add-caches-in-the-configuration-script">Part 1: Add Caches in the Configuration Script</a></h1>
-<p>In this part, we will extend our configuration script with a cache hierarchy. Let's start with copying the original script to a new directory:</p>
-<pre><code class="language-sh">mkdir -p configs/proj3
-cp configs/proj1/simple.py configs/proj3
+<p>In this part, we will extend our configuration with a custom cache hierarchy in <strong>ChampSim</strong>. Let's start by copying the template configuration file to create your new configuration:</p>
+<pre><code class="language-sh">cp lab2_config.json lab3_config.json
+
 </code></pre>
-<p>In this part, we will add <code>SimObject</code> of caches to the CPU. <code>gem5</code> provides a comprehensive cache implementation, found in <code>src/mem/cache/Cache.py</code>. An abstract class <code>BaseCache</code> describes the basic cache framework. There are seven critical parameters that define the performance of a given cache:</p>
+<p>In ChampSim, the cache hierarchy and component parameters are specified via a <strong>JSON configuration file</strong> (e.g., <code>lab3_config.json</code>). ChampSim automatically parses this configuration during the build phase to generate the corresponding C++ source files and headers.</p>
+<p>There are several critical parameters that define the geometry and performance of a given cache level (<code>L1I</code>, <code>L1D</code>, <code>L2C</code>, <code>LLC</code>):</p>
 <ul>
-<li><code>size</code>: the total size in bytes of the cache.</li>
-<li><code>assoc</code>: the associativity of the cache, namely the number of blocks (cachelines) in a single cache set.</li>
-<li><code>tag_latency</code>: the cycles to lookup the tag in the cache.</li>
-<li><code>data_latency</code>: the cycles to access the data in the cache.</li>
-<li><code>response_latency</code>: the cycles for the return path on a miss.</li>
-<li><code>mshrs</code>: the number of MSHRs (Miss Status Holding Register).</li>
-<li><code>tgts_per_mshr</code>: the max number of accesses per MSHR.</li>
+<li><code>sets</code>: The number of sets in the cache.</li>
+<li><code>ways</code>: The associativity of the cache (the number of blocks/lines per set).</li>
 </ul>
-<p>To create <code>SimObject</code> of caches, we need to define our specific non-abstract classes first. Let's add the following classes at the beginning of our configuration script (right after the <code>import</code> statements):</p>
-<pre><code class="language-py"># configs/proj3/simple.py
-class L1D(Cache):
-    size = '48kB'
-    assoc = 12
-    tag_latency = 3
-    data_latency = 3
-    response_latency = 3
-    mshrs = 16
-    tgts_per_mshr = 20
+<blockquote>
+<p><strong>Note</strong>: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord text"><span class="mord">Total Cache Size</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6984em;vertical-align:-0.0833em;"></span><span class="mord text"><span class="mord">sets</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7778em;vertical-align:-0.1944em;"></span><span class="mord text"><span class="mord">ways</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.0044em;vertical-align:-0.31em;"></span><span class="mord text"><span class="mord">block_size</span></span></span></span></span> (ChampSim's default <code>block_size</code> is 64 bytes).</p>
+</blockquote>
+<ul>
+<li><code>hit_latency</code>: The cycles required to look up tags and access data upon a hit.</li>
+<li><code>fill_latency</code>: The additional cycles required when filling a cache line from a lower memory level.</li>
+<li><code>mshr_size</code>: The number of Miss Status Holding Registers (MSHRs) to track in-flight misses.</li>
+<li><code>rq_size</code> / <code>wq_size</code> / <code>pq_size</code>: The capacity of the Read Queue, Write Queue, and Prefetch Queue.</li>
+<li><code>prefetcher</code>: The prefetcher module assigned to this cache (e.g., <code>"no"</code> or <code>"next_line"</code>).</li>
+<li><code>replacement</code>: The cache line replacement policy (e.g., <code>"lru"</code>).</li>
+</ul>
+<h3 id="defining-the-cache-hierarchy"><a class="header" href="#defining-the-cache-hierarchy">Defining the Cache Hierarchy</a></h3>
+<p>Open <code>lab3_config.json</code> and configure the CPU, <code>L1I</code>, <code>L1D</code>, and <code>L2C</code> modules as follows. Be sure to specify <code>"executable_name"</code> so <code>config.sh</code> outputs the correct binary target:</p>
+<pre><code class="language-json">{
+  "block_size": 64,
+  "cpu": [
+    {
+      "name": "cpu0",
+      "frequency": 4000,
+      "l1i": "L1I",
+      "l1d": "L1D",
+      "l2c": "L2C"
+    }
+  ],
+  "L1I": {
+    "sets": 64,
+    "ways": 8,
+    "mshr_size": 16,
+    "hit_latency": 3,
+    "fill_latency": 1,
+    "prefetcher": "no",
+    "replacement": "lru"
+  },
+  "L1D": {
+    "sets": 64,
+    "ways": 12,
+    "mshr_size": 16,
+    "hit_latency": 3,
+    "fill_latency": 1,
+    "prefetcher": "no",
+    "replacement": "lru"
+  },
+  "L2C": {
+    "sets": 2048,
+    "ways": 16,
+    "mshr_size": 20,
+    "hit_latency": 20,
+    "fill_latency": 1,
+    "prefetcher": "no",
+    "replacement": "lru"
+  }
+}
 
-class L1I(L1D):
-    pass
+</code></pre>
+<blockquote>
+<p><strong>Calculation Check</strong>:</p>
+<ul>
+<li><strong>L1D Size</strong>: 64 sets <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6667em;vertical-align:-0.0833em;"></span><span class="mord">×</span></span></span></span> 12 ways <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6667em;vertical-align:-0.0833em;"></span><span class="mord">×</span></span></span></span> 64 bytes = 48 KB</li>
+<li><strong>L2C Size</strong>: 2048 sets <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6667em;vertical-align:-0.0833em;"></span><span class="mord">×</span></span></span></span> 16 ways <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6667em;vertical-align:-0.0833em;"></span><span class="mord">×</span></span></span></span> 64 bytes = 2 MB</li>
+</ul>
+</blockquote>
+<h3 id="building-and-running-the-simulation"><a class="header" href="#building-and-running-the-simulation">Building and Running the Simulation</a></h3>
+<p>Once you have defined your JSON configuration, generate the C++ modules using <code>config.sh</code> and build the binary:</p>
+<pre><code class="language-sh">./config.sh lab3_config.json
+make -j $(nproc)
 
-class L2(Cache):
-    size = '2MB'
-    assoc = 16
-    tag_latency = 20
-    data_latency = 20
-    response_latency = 20
-    mshrs = 20
-    tgts_per_mshr = 12
 </code></pre>
-<p>Once we have the cache classes, we can build a "two-level" cache hierarchy in our script. In this part, we will use the helpers provided by <code>gem5</code> to make our script simple. Specifically, our function <code>init_system()</code> can be modified like follows:</p>
-<pre><code class="language-py">def init_system(system, args):
-    system.clk_domain = SrcClockDomain(clock='4GHz',
-        voltage_domain=VoltageDomain())
-    system.mem_mode = 'timing'
-    system.mem_ranges = [AddrRange ('2GB')]
-    system.mem_ctrl = MemCtrl()
-    system.mem_ctrl.dram = DDR4_2400_8x8()
-    system.mem_ctrl.dram.range = root.system.mem_ranges[0]
-    system.membus = SystemXBar()
-    # Use O3CPU as default CPU, similar to project 2
-    system.cpu = O3CPU()
-    system.cpu.createInterruptController()
-    # MODIFIED: use addTwoLevelCacheHierarchy() and connectBus()
-    system.cpu.addTwoLevelCacheHierarchy(L1I(), L1D(), L2())
-    system.cpu.connectBus(system.membus)
-    system.mem_ctrl.port = system.membus.mem_side_ports
-    system.system_port = system.membus.cpu_side_ports
+<p>After compilation, run the generated binary (<code>./bin/champsim_proj3</code>) with your target ChampSim workload trace (e.g., <code>gemm.champsimtrace.xz</code>):</p>
+<pre><code class="language-sh">./bin/champsim_proj3 --warmup_instructions 20000000 --simulation_instructions 100000000 traces/gemm.champsimtrace.xz
+
 </code></pre>
-<p>By using <code>addTwoLevelCacheHierarchy()</code> and <code>connectBus()</code>, we can add a cache hierarchy to the CPU without manually connecting all the ports and buses.</p>
-<p>Now, if you start a simulation with your new script (for example, running <code>tests\labexe\hello</code>), you can find that the caches have been added to CPU in <code>config.ini</code>:</p>
-<pre><code># config.ini
+<p>Upon completion, ChampSim outputs detailed statistics directly to standard output (<code>stdout</code>), including IPC, cache hit rates, and MSHR occupancy:</p>
+<pre><code class="language-text">...
+=== CPU 0 ===
+CPU 0 cumulative IPC: 1.423 Instructions per cycle: 1.423
+L1D TOTAL     ACCESS:    1245020  HIT:    1102340  MISS:     142680
+L2C TOTAL     ACCESS:     142680  HIT:     118920  MISS:      23760
 ...
-[system.cpu]
-type=BaseO3CPU
-children=...dcache icache l2cache...
-...
+
 </code></pre>
 <div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
 <div class="admonition-title">
@@ -253,14 +278,13 @@ children=...dcache icache l2cache...
 <a class="admonition-anchor-link" href="#admonition-deliverables"></a>
 </div>
 <div>
-<p>Please run the memory-sensitive workload, i.e., <code>gemm</code>, with the two-level cache hierarchy we defined above. In this part, please include the following contents in your <em><strong>report</strong></em>:</p>
+<p>Please run the memory-sensitive workload, i.e., <code>gemm.champsimtrace.xz</code>, with the two-level cache hierarchy defined above. In this part, please include the following contents in your <em><strong>report</strong></em>:</p>
 <ul>
-<li>A screenshot of <code>config.ini</code> that shows you have successfully added the cache hierarchy.</li>
-<li>A figure or table, comparing the <code>system.cpu.ipc</code> on workload <code>gemm</code> of system with and without caches. You can use the results in project 1 and 2 as the results of cache-free systems.</li>
+<li>A screenshot of your <code>lab3_config.json</code> file and the terminal output confirming a successful build.</li>
+<li>A figure or table comparing the <code>CPU 0 cumulative IPC</code> on workload <code>gemm</code> across different cache hierarchy configurations (e.g., baseline vs. custom cache size/latency setups).</li>
 </ul>
 </div>
 </div>
-
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

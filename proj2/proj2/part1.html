@@ -180,49 +180,28 @@
                     <main>
                         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="part-1-add-branch-predictor-in-the-configuration-script"><a class="header" href="#part-1-add-branch-predictor-in-the-configuration-script">Part 1: Add Branch Predictor in the Configuration Script</a></h1>
-<p>In this part, we will extend our configuration script to enable the modification of CPU's branch predictor. Let's start with copying the original script to a new directory:</p>
-<pre><code class="language-sh">mkdir -p configs/proj2
-cp configs/proj1/simple.py configs/proj2
-</code></pre>
-<p>Then, let's change our default CPU to <code>O3CPU</code>. This is because <code>TimingSimpleCPU</code> assumes each instruction takes exactly a single CPU cycle, making it fail to reflect the impact of the branch predictor. The code can be modified as follows:</p>
-<pre><code class="language-py">parser.add_argument(
-    "--cpu",
-    type=str,
-    choices=list(cpu_types.keys()),
-    # DELETE: default="simple",
-    default="o3",
-    help="CPU model to use",
-)
-</code></pre>
-<p><code>gem5</code> provides different types of branch predictors. In this part, we will focus on three of them: local branch predictor, bi-mode branch predictor, and tournament branch predictor. Any one of these three branch predictors can be used to instantiate the CPU’s branch predictor object. In addition, you can configure each branch predictor with different configuration parameters. Let's add an option argument for modifying branch predictor:</p>
-<pre><code class="language-py">bp_types = {
-    "local": LocalBP,
-    "bimode": BiModeBP,
-    "tournament": TournamentBP,
+<p>In this part, we will configure and build <code>ChampSim</code> with different branch predictors. In <code>ChampSim</code>, branch predictor implementations are located under the <code>branch/</code> directory.</p>
+<p><code>ChampSim</code> is natively a detailed out-of-order (O3) CPU simulator, so you do not need to manually change the CPU model. To select a specific branch predictor, you can configure the <code>"branch_predictor"</code> field in the build JSON script (<code>lab2_config.json</code>).</p>
+<p><code>ChampSim</code> provides several built-in branch predictors in the <code>branch/</code> directory. In this part, we will focus on three of them: <code>bimodal</code>, <code>gshare</code>, and <code>hashed_perceptron</code>. You can specify the desired branch predictor in <code>lab2_config.json</code> as follows:</p>
+<pre><code class="language-json">{
+  "branch_predictor": "bimodal"
 }
 
-def init_system(system, args):
-    ...
-    system.cpu.branchPred = bp_types[args.bp]()
-    ...
+</code></pre>
+<p><em>(To test <code>gshare</code> or <code>hashed_perceptron</code>, simply change <code>"bimodal"</code> to <code>"gshare"</code> or <code>"hashed_perceptron"</code> in <code>lab2_config.json</code>.)</em></p>
+<p>After updating the JSON file, generate the build files and compile <code>ChampSim</code>:</p>
+<pre><code class="language-sh">./config.sh ./lab2_config.json
+make -j $(nproc)
 
-if __name__ == "__m5_main__":
-    ...
-    parser.add_argument(
-        "--bp",
-        type=str,
-        choices=list(bp_types.keys()),
-        default="tournament",
-        help="branch predictor to use",
-    )
-    ...
 </code></pre>
-<p>Then, let's run the test executables and learn how these BPs can impact the system performance. Among the provided executables, <code>shell_sort</code> and <code>spfa</code> are sensitive to BP, while <code>gemm</code> and <code>binary_search</code> are insensitive. In project 2, you only need to run the sensitive workloads, that is, <code>shell_sort</code> and <code>spfa</code>. So, to test the performance of local BP, the commands will look like the following:</p>
-<pre><code class="language-sh"># using default CPU and Mem
-build/ARM/gem5.opt -d m5out/local/sort configs/proj2/simple.py tests/labexe/shell_sort --bp local
-build/ARM/gem5.opt -d m5out/local/spfa configs/proj2/simple.py tests/labexe/spfa --bp local
+<p>Next, let me run the trace files and examine how these branch predictors impact system performance. <code>ChampSim</code> is trace-driven, and trace files are typically stored in <code>*.champsimtrace.xz</code> format. Among the provided workloads, <code>shell_sort</code> and <code>spfa</code> are sensitive to branch predictor performance, while <code>gemm</code> and <code>binary_search</code> are insensitive. In Project 2, you are only required to run the sensitive workloads (<code>shell_sort</code> and <code>spfa</code>).</p>
+<p>To test the performance of the <code>bimodal</code> predictor, run the following execution commands:</p>
+<pre><code class="language-sh"># Run with the compiled bimodal executable
+bin/champsim --warmup-instructions 20000000 --simulation-instructions 100000000 ../trace/shell_sort.champsimtrace.xz
+bin/champsim --warmup-instructions 20000000 --simulation-instructions 100000000 ../trace/spfa.champsimtrace.xz
+
 </code></pre>
-<p>The commands to test bi-mode and tournament BPs are similar.</p>
+<p>The process for testing <code>gshare</code> and <code>hashed_perceptron</code> is similar: update <code>"branch_predictor"</code> in <code>lab2_config.json</code>, re-compile with <code>./config.sh</code> and <code>make</code>, and then re-run the trace files using the commands above.</p>
 <div id="admonition-tip" class="admonition admonish-tip" role="note" aria-labelledby="admonition-tip-title">
 <div class="admonition-title">
 <div id="admonition-tip-title">
@@ -231,36 +210,32 @@ build/ARM/gem5.opt -d m5out/local/spfa configs/proj2/simple.py tests/labexe/spfa
 <a class="admonition-anchor-link" href="#admonition-tip"></a>
 </div>
 <div>
-<p>In this project (from part 1 to 3), the <code>system.cpu.max_insts_any_thread</code> can be set to only 1e8 or 2e8 to fully exhibit the differences between tested BPs. This can save a lot of time for you.</p>
+<p>In this project (Parts 1 to 3), setting <code>--simulation-instructions</code> to <code>100000000</code> (1e8) or <code>200000000</code> (2e8) is sufficient to clearly observe performance differences among branch predictors while saving simulation time.</p>
 </div>
 </div>
-<p>After the simulations finish, let's search <code>cpu.branchPred</code> in any <code>stats.txt</code>. You may find that the branch predictors generate numerous statistic entries. However, they didn't generate basic performance metrics like <code>accuracy</code>. Thus, in this part, you are going to calculate the metric. In this project, we only concerns about the mispredict rate of <strong>conditional</strong> branches. To be short, this metric can be calculated by <code>branchPred.mispredicted_0::DirectCond / branchPred.committed_0::DirectCond</code>. The accuracy can be <code>1 - misrate</code>.</p>
-<div id="admonition-note" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-title">
-<div class="admonition-title">
-<div id="admonition-note-title">
-<p>Note</p>
-</div>
-<a class="admonition-anchor-link" href="#admonition-note"></a>
-</div>
-<div>
-<p>In <code>gem5</code>, most of the branch predictors use a shared infrastructure that contains basic components, such as BTB (branch target buffer) and RAS (return address stack). In this project, your implementation will mainly focus on predicting conditional branches, so you are not required to modify these components.</p>
-</div>
-</div>
-<div id="admonition-delieverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-delieverables-title">
-<div class="admonition-title">
-<div id="admonition-delieverables-title">
-<p>Delieverables</p>
-</div>
-<a class="admonition-anchor-link" href="#admonition-delieverables"></a>
-</div>
-<div>
-<p>Please run two BP-sensitive workloads, i.e., <code>shell_sort</code> and <code>spfa</code>, with three BPs. The rest workloads <code>gemm</code> and <code>binary_search</code>, are insensitive to BP. You can run these workloads if you are interested in, and have sufficient computing resources. Nevertheless, in this part, please (at least) include figures or tables, which show the accuracy of BPs and IPC of CPU on workloads listed below, in your <em><strong>report</strong></em>:</p>
+<p>After the simulation finishes, <code>ChampSim</code> will output execution statistics directly to the terminal (or stdout log). Pay attention to the following metrics in the summary output:</p>
 <ul>
-<li>BPs: <code>LocalBP</code>, <code>BiModeBP</code>, <code>TournamentBP</code>.</li>
-<li>exe: <code>shell_sort</code>, <code>spfa</code>.</li>
-<li>With default CPU and Memory (O3 and DDR4).</li>
+<li><strong>CPU 0 cumulative IPC:</strong> Indicates overall processor performance.</li>
+<li><strong>Branch Prediction Accuracy / MPKI:</strong> Reflects conditional branch prediction quality.</li>
 </ul>
-<p>In total, you need to run <code>gem5</code> six times.</p>
+<p>If accuracy is not printed directly, you can calculate it using the printed total branch instructions and misprediction counts:</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord text"><span class="mord">Accuracy</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:2.0574em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3714em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">Total Conditional Branches</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">Branch Mispredictions</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p>
+<div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
+<div class="admonition-title">
+<div id="admonition-deliverables-title">
+<p>Deliverables</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-deliverables"></a>
+</div>
+<div>
+<p>Please run the two BP-sensitive workloads (<code>shell_sort</code> and <code>spfa</code>) across all three branch predictors. The remaining workloads (<code>gemm</code> and <code>binary_search</code>) are insensitive to BP; you can run them for extra exploration if interested.</p>
+<p>In your <em><strong>report</strong></em>, please include figures or tables showing the <strong>Branch Prediction Accuracy</strong>, <strong>MPKI</strong> and <strong>CPU IPC</strong> for the following combinations:</p>
+<ul>
+<li><strong>Branch Predictors:</strong> <code>bimodal</code>, <code>gshare</code>, <code>hashed_perceptron</code></li>
+<li><strong>Traces:</strong> <code>shell_sort</code>, <code>spfa</code></li>
+<li><strong>Configuration:</strong> Default 1-core configuration with no prefetchers</li>
+</ul>
+<p>In total, you need to execute <code>ChampSim</code> <strong>six times</strong>.</p>
 </div>
 </div>
 

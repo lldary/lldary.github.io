@@ -213,74 +213,100 @@
 <p><strong>Due:</strong> 11:59:59 pm, December 17, 2025</p>
 </div>
 </div>
-<p>In this project, we will explore the design of a cache prefetcher in a computer system. Specifically, we will first introduce how to build a cache hierarchy in the configuration script, and how to add a prefetcher to a specific cache. You will evaluate how caches and prefetcher can significantly impact system performance. Further, you are required to read a recent paper that proposes a prefetcher named Hyperion. You need to summarize the paper and implement the Hyperion in <code>gem5</code>. Next, you are required to compare your prefetcher’s performance with that of other prefetchers in <code>gem5</code>.</p>
-<p>Whenever you face trouble or problems with this project, please contact TAs by WeChat or e-mail. All the following information has been verified on Ubuntu 20.04.1 with Linux Kernel 5.15.0 and Ubuntu 22.04.2 LTS with Linux Kernel 5.19.0.</p>
+<p>In this project, we will explore the design and evaluation of hardware cache prefetchers in a modern computer system using the ChampSim simulator. First, you will learn how to configure ChampSim's cache hierarchy and integrate prefetchers into specific cache levels (e.g., L1D, L2C, or LLC). You will evaluate how cache parameters and prefetching techniques significantly impact overall system performance.</p>
+<p>Next, you are required to read a recent computer architecture paper proposing a prefetcher named Hyperion. You will write a summary of the paper and implement your own version of Hyperion in ChampSim. Finally, you will evaluate your prefetcher's performance and compare it against other baseline prefetchers across provided workload traces.</p>
+<p>Whenever you encounter issues or have questions regarding this project, please feel free to contact the TAs via WeChat or email. All instructions and scripts have been verified on Ubuntu 20.04.1 LTS (Linux Kernel 5.15.0) and Ubuntu 22.04.2 LTS (Linux Kernel 5.19.0).</p>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="part-1-add-caches-in-the-configuration-script"><a class="header" href="#part-1-add-caches-in-the-configuration-script">Part 1: Add Caches in the Configuration Script</a></h1>
-<p>In this part, we will extend our configuration script with a cache hierarchy. Let's start with copying the original script to a new directory:</p>
-<pre><code class="language-sh">mkdir -p configs/proj3
-cp configs/proj1/simple.py configs/proj3
+<p>In this part, we will extend our configuration with a custom cache hierarchy in <strong>ChampSim</strong>. Let's start by copying the template configuration file to create your new configuration:</p>
+<pre><code class="language-sh">cp lab2_config.json lab3_config.json
+
 </code></pre>
-<p>In this part, we will add <code>SimObject</code> of caches to the CPU. <code>gem5</code> provides a comprehensive cache implementation, found in <code>src/mem/cache/Cache.py</code>. An abstract class <code>BaseCache</code> describes the basic cache framework. There are seven critical parameters that define the performance of a given cache:</p>
+<p>In ChampSim, the cache hierarchy and component parameters are specified via a <strong>JSON configuration file</strong> (e.g., <code>lab3_config.json</code>). ChampSim automatically parses this configuration during the build phase to generate the corresponding C++ source files and headers.</p>
+<p>There are several critical parameters that define the geometry and performance of a given cache level (<code>L1I</code>, <code>L1D</code>, <code>L2C</code>, <code>LLC</code>):</p>
 <ul>
-<li><code>size</code>: the total size in bytes of the cache.</li>
-<li><code>assoc</code>: the associativity of the cache, namely the number of blocks (cachelines) in a single cache set.</li>
-<li><code>tag_latency</code>: the cycles to lookup the tag in the cache.</li>
-<li><code>data_latency</code>: the cycles to access the data in the cache.</li>
-<li><code>response_latency</code>: the cycles for the return path on a miss.</li>
-<li><code>mshrs</code>: the number of MSHRs (Miss Status Holding Register).</li>
-<li><code>tgts_per_mshr</code>: the max number of accesses per MSHR.</li>
+<li><code>sets</code>: The number of sets in the cache.</li>
+<li><code>ways</code>: The associativity of the cache (the number of blocks/lines per set).</li>
 </ul>
-<p>To create <code>SimObject</code> of caches, we need to define our specific non-abstract classes first. Let's add the following classes at the beginning of our configuration script (right after the <code>import</code> statements):</p>
-<pre><code class="language-py"># configs/proj3/simple.py
-class L1D(Cache):
-    size = '48kB'
-    assoc = 12
-    tag_latency = 3
-    data_latency = 3
-    response_latency = 3
-    mshrs = 16
-    tgts_per_mshr = 20
+<blockquote>
+<p><strong>Note</strong>: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord text"><span class="mord">Total Cache Size</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6984em;vertical-align:-0.0833em;"></span><span class="mord text"><span class="mord">sets</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7778em;vertical-align:-0.1944em;"></span><span class="mord text"><span class="mord">ways</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.0044em;vertical-align:-0.31em;"></span><span class="mord text"><span class="mord">block_size</span></span></span></span></span> (ChampSim's default <code>block_size</code> is 64 bytes).</p>
+</blockquote>
+<ul>
+<li><code>hit_latency</code>: The cycles required to look up tags and access data upon a hit.</li>
+<li><code>fill_latency</code>: The additional cycles required when filling a cache line from a lower memory level.</li>
+<li><code>mshr_size</code>: The number of Miss Status Holding Registers (MSHRs) to track in-flight misses.</li>
+<li><code>rq_size</code> / <code>wq_size</code> / <code>pq_size</code>: The capacity of the Read Queue, Write Queue, and Prefetch Queue.</li>
+<li><code>prefetcher</code>: The prefetcher module assigned to this cache (e.g., <code>"no"</code> or <code>"next_line"</code>).</li>
+<li><code>replacement</code>: The cache line replacement policy (e.g., <code>"lru"</code>).</li>
+</ul>
+<h3 id="defining-the-cache-hierarchy"><a class="header" href="#defining-the-cache-hierarchy">Defining the Cache Hierarchy</a></h3>
+<p>Open <code>lab3_config.json</code> and configure the CPU, <code>L1I</code>, <code>L1D</code>, and <code>L2C</code> modules as follows. Be sure to specify <code>"executable_name"</code> so <code>config.sh</code> outputs the correct binary target:</p>
+<pre><code class="language-json">{
+  "block_size": 64,
+  "cpu": [
+    {
+      "name": "cpu0",
+      "frequency": 4000,
+      "l1i": "L1I",
+      "l1d": "L1D",
+      "l2c": "L2C"
+    }
+  ],
+  "L1I": {
+    "sets": 64,
+    "ways": 8,
+    "mshr_size": 16,
+    "hit_latency": 3,
+    "fill_latency": 1,
+    "prefetcher": "no",
+    "replacement": "lru"
+  },
+  "L1D": {
+    "sets": 64,
+    "ways": 12,
+    "mshr_size": 16,
+    "hit_latency": 3,
+    "fill_latency": 1,
+    "prefetcher": "no",
+    "replacement": "lru"
+  },
+  "L2C": {
+    "sets": 2048,
+    "ways": 16,
+    "mshr_size": 20,
+    "hit_latency": 20,
+    "fill_latency": 1,
+    "prefetcher": "no",
+    "replacement": "lru"
+  }
+}
 
-class L1I(L1D):
-    pass
+</code></pre>
+<blockquote>
+<p><strong>Calculation Check</strong>:</p>
+<ul>
+<li><strong>L1D Size</strong>: 64 sets <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6667em;vertical-align:-0.0833em;"></span><span class="mord">×</span></span></span></span> 12 ways <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6667em;vertical-align:-0.0833em;"></span><span class="mord">×</span></span></span></span> 64 bytes = 48 KB</li>
+<li><strong>L2C Size</strong>: 2048 sets <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6667em;vertical-align:-0.0833em;"></span><span class="mord">×</span></span></span></span> 16 ways <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6667em;vertical-align:-0.0833em;"></span><span class="mord">×</span></span></span></span> 64 bytes = 2 MB</li>
+</ul>
+</blockquote>
+<h3 id="building-and-running-the-simulation"><a class="header" href="#building-and-running-the-simulation">Building and Running the Simulation</a></h3>
+<p>Once you have defined your JSON configuration, generate the C++ modules using <code>config.sh</code> and build the binary:</p>
+<pre><code class="language-sh">./config.sh lab3_config.json
+make -j $(nproc)
 
-class L2(Cache):
-    size = '2MB'
-    assoc = 16
-    tag_latency = 20
-    data_latency = 20
-    response_latency = 20
-    mshrs = 20
-    tgts_per_mshr = 12
 </code></pre>
-<p>Once we have the cache classes, we can build a "two-level" cache hierarchy in our script. In this part, we will use the helpers provided by <code>gem5</code> to make our script simple. Specifically, our function <code>init_system()</code> can be modified like follows:</p>
-<pre><code class="language-py">def init_system(system, args):
-    system.clk_domain = SrcClockDomain(clock='4GHz',
-        voltage_domain=VoltageDomain())
-    system.mem_mode = 'timing'
-    system.mem_ranges = [AddrRange ('2GB')]
-    system.mem_ctrl = MemCtrl()
-    system.mem_ctrl.dram = DDR4_2400_8x8()
-    system.mem_ctrl.dram.range = root.system.mem_ranges[0]
-    system.membus = SystemXBar()
-    # Use O3CPU as default CPU, similar to project 2
-    system.cpu = O3CPU()
-    system.cpu.createInterruptController()
-    # MODIFIED: use addTwoLevelCacheHierarchy() and connectBus()
-    system.cpu.addTwoLevelCacheHierarchy(L1I(), L1D(), L2())
-    system.cpu.connectBus(system.membus)
-    system.mem_ctrl.port = system.membus.mem_side_ports
-    system.system_port = system.membus.cpu_side_ports
+<p>After compilation, run the generated binary (<code>./bin/champsim_proj3</code>) with your target ChampSim workload trace (e.g., <code>gemm.champsimtrace.xz</code>):</p>
+<pre><code class="language-sh">./bin/champsim_proj3 --warmup_instructions 20000000 --simulation_instructions 100000000 traces/gemm.champsimtrace.xz
+
 </code></pre>
-<p>By using <code>addTwoLevelCacheHierarchy()</code> and <code>connectBus()</code>, we can add a cache hierarchy to the CPU without manually connecting all the ports and buses.</p>
-<p>Now, if you start a simulation with your new script (for example, running <code>tests\labexe\hello</code>), you can find that the caches have been added to CPU in <code>config.ini</code>:</p>
-<pre><code># config.ini
+<p>Upon completion, ChampSim outputs detailed statistics directly to standard output (<code>stdout</code>), including IPC, cache hit rates, and MSHR occupancy:</p>
+<pre><code class="language-text">...
+=== CPU 0 ===
+CPU 0 cumulative IPC: 1.423 Instructions per cycle: 1.423
+L1D TOTAL     ACCESS:    1245020  HIT:    1102340  MISS:     142680
+L2C TOTAL     ACCESS:     142680  HIT:     118920  MISS:      23760
 ...
-[system.cpu]
-type=BaseO3CPU
-children=...dcache icache l2cache...
-...
+
 </code></pre>
 <div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
 <div class="admonition-title">
@@ -290,408 +316,322 @@ children=...dcache icache l2cache...
 <a class="admonition-anchor-link" href="proj3/part1.html#admonition-deliverables"></a>
 </div>
 <div>
-<p>Please run the memory-sensitive workload, i.e., <code>gemm</code>, with the two-level cache hierarchy we defined above. In this part, please include the following contents in your <em><strong>report</strong></em>:</p>
+<p>Please run the memory-sensitive workload, i.e., <code>gemm.champsimtrace.xz</code>, with the two-level cache hierarchy defined above. In this part, please include the following contents in your <em><strong>report</strong></em>:</p>
 <ul>
-<li>A screenshot of <code>config.ini</code> that shows you have successfully added the cache hierarchy.</li>
-<li>A figure or table, comparing the <code>system.cpu.ipc</code> on workload <code>gemm</code> of system with and without caches. You can use the results in project 1 and 2 as the results of cache-free systems.</li>
-</ul>
-</div>
-</div>
-<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<h1 id="part-2-run-simulation-with-prefetchers"><a class="header" href="#part-2-run-simulation-with-prefetchers">Part 2: Run Simulation with Prefetchers</a></h1>
-<p><code>gem5</code> provides multiple classic cache prefetchers. They can be found in <code>src/mem/cache/prefetch/Prefetcher.py</code>. One of the simplest prefetchers is the <code>StridePrefetcher</code>. We can directly add it to the CPU's data cache with the following code:</p>
-<pre><code class="language-py">def init_system(system, args):
-    ...
-    system.cpu.addTwoLevelCacheHierarchy(L1I(), L1D(), L2())
-    # ADD FOLLOWS:
-    system.cpu.dcache.prefetcher = StridePrefetcher()
-    ...
-</code></pre>
-<p>When you start a simulation, you can find the prefetcher in <code>config.ini</code>:</p>
-<pre><code># config.ini
-...
-[system.cpu.dcache.prefetcher]
-type=StridePrefetcher
-...
-</code></pre>
-<p>To evaluate different prefetchers, we can also add options in the script. In this part, we will explore two of the provided prefetchers: <code>StridePrefetcher</code> and <code>AMPMPrefetcher</code>:</p>
-<pre><code class="language-py">pf_types = {
-    "stride": StridePrefetcher,
-    "ampm": AMPMPrefetcher,
-}
-...
-def init_system(system, args):
-    ...
-    system.cpu.dcache.prefetcher = pf_types[args.pf]()
-    ...
-...
-if __name__ == '__m5_main__':
-    ...
-    parser.add_argument(
-        "--pf", type=str, default="stride",
-    )
-    ...
-</code></pre>
-<p>Then, let's run the test executables and learn how these prefetchers can impact on system performance. Among the provided executables, <code>shell_sort</code> and <code>gemm</code> are sensitive to prefetching. In project 3, you only need to run the sensitive workloads, that is, <code>shell_sort</code> and <code>gemm</code>. So, to test the performance of stride prefetcher, the commands are as follows:</p>
-<pre><code class="language-sh"># using default CPU and Mem
-build/ARM/gem5.opt -d m5out/stride/sort configs/proj3/simple.py tests/labexe/shell_sort --pf stride
-build/ARM/gem5.opt -d m5out/stride/gemm configs/proj3/simple.py tests/labexe/gemm --pf stride
-</code></pre>
-<p>The commands to test AMPM are similar.</p>
-<div id="admonition-important-note" class="admonition admonish-warning" role="note" aria-labelledby="admonition-important-note-title">
-<div class="admonition-title">
-<div id="admonition-important-note-title">
-<p>Important note</p>
-</div>
-<a class="admonition-anchor-link" href="proj3/part2.html#admonition-important-note"></a>
-</div>
-<div>
-<p>In previous project, the recommended <code>system.cpu.max_insts_any_thread</code> is 1e8. This value makes sure you can run a simulation fastly. However, typical prefetcher requires much more accesses to learn the pattern and generate prefetches. Thus, in this project, <em><strong>the recommended <code>system.cpu.max_insts_any_thread</code> is 1e9</strong></em>. You can use 1e8 or even less values to speed-up your debugging. We also <strong>accept</strong> reports that are generated from less values, but the statistic outputs may be unreasonable. If you face troubles (for example, you cannot complete simulation with value 1e9), you can inform us in your report, the grading will be discretionary.</p>
-</div>
-</div>
-<p>After the simulations have finished, let's check the statistics in <code>stats.txt</code>. In this project, we care about four metrics, which evaluate the performance of the prefetchers:</p>
-<ul>
-<li><code>cpu.ipc</code>: The IPC of the cpu.</li>
-<li><code>prefetcher.accuracy</code>: The accuracy of the prefetcher, which means the fraction of useful prefetches among all prefetches (<em>check appendix A for detailed explaination</em>).</li>
-<li><code>prefetcher.coverage</code>: The coverage of the prefetcher, which means the fraction of eliminated misses (first-time hits on prefetched data) among all potential misses (eliminated misses plus actual misses).</li>
-<li><code>prefetcher.pfLate</code>: The number of prefetches that are issued lately (data are already in cache, MSHRs or write buffer before issuing).</li>
-</ul>
-<div id="admonition-delieverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-delieverables-title">
-<div class="admonition-title">
-<div id="admonition-delieverables-title">
-<p>Delieverables</p>
-</div>
-<a class="admonition-anchor-link" href="proj3/part2.html#admonition-delieverables"></a>
-</div>
-<div>
-<p>Please run two prefetch-sensitive workloads, i.e., <code>shell_sort</code> and <code>gemm</code>, with two prefetchers. The rest workloads <code>spfa</code> and <code>binary_search</code>, are insensitive to prefetching. You can run these workloads if you are interested, and have sufficient computing resources. Nevertheless, in this part, please (at least) include figures or tables, which show the four critical metrics (i.e., IPC, accuracy, coverage, late count) of different prefetch configurations on workloads listed below, in your <em><strong>report</strong></em>:</p>
-<ul>
-<li>prefetch: <strong>No prefetcher</strong>, <code>StridePrefetcher</code>, <code>AMPMPrefetcher</code>.</li>
-<li>exe: <code>shell_sort</code>, <code>gemm</code>.</li>
-<li>With default CPU and Memory (O3 and DDR4).</li>
-<li>Use the cache hierarchy described in part 1, and attach the prefetchers to <code>cpu.dcache</code>.</li>
-</ul>
-<p>In total, you need to run <code>gem5</code> six times.</p>
-</div>
-</div>
-<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<h1 id="part-3-read-paper-implement-and-evaluate-hyperion-prefetcher"><a class="header" href="#part-3-read-paper-implement-and-evaluate-hyperion-prefetcher">Part 3: Read Paper, Implement and Evaluate Hyperion Prefetcher</a></h1>
-<h2 id="implemeting-a-prefetcher-in-gem5"><a class="header" href="#implemeting-a-prefetcher-in-gem5">Implemeting a prefetcher in <code>gem5</code></a></h2>
-<p>Compared with implementing branch predictors, as we did in project 2, implementing a prefetcher in <code>gem5</code> involves far fewer interfaces. Let's learn from the code of the simplest prefetcher in <code>gem5</code>, namely the <code>TaggedPrefetcher</code>.</p>
-<pre><code class="language-cpp">// src/mem/cache/prefetch/tagged.hh
-namespace gem5 {
-namespace prefetch {
-class Tagged : public Queued {
-  protected:
-      const int degree;
-
-  public:
-    Tagged(const TaggedPrefetcherParams &amp;p);
-    ~Tagged() = default;
-
-    void calculatePrefetch(const PrefetchInfo &amp;pfi,
-                           std::vector&lt;AddrPriority&gt; &amp;addresses,
-                           const CacheAccessor &amp;cache) override;
-};
-} // namespace prefetch
-} // namespace gem5
-
-</code></pre>
-<p>The class <code>Tagged</code> is inherited from <code>prefetch::Queued</code>, which is inherited from <code>prefetch::Base</code>. <code>Queued</code> provides a framework that handles basic issues, like merging prefetches targeting the same address. Thus, our implementation can simply focus on generating prefetches, which is performed in the interface <code>calculatePrefetch()</code>.</p>
-<p>If we check the code of <code>Base</code> (in <code>mem/cache/prefetch/base.hh</code>), it leaves multiple virtual methods, two of them are critical to our implementation:</p>
-<ul>
-<li><code>notify()</code>: This is called when the cache is accessed. By default, two types of access will call this method, namely cache miss and hit on prefetched data (i.e., all potential misses). Set the parameter <code>prefetch_on_access = True</code> will call this method on each cache access.</li>
-<li><code>notifyFill()</code>: This is called when a cacheline is filled into the cache. The cacheline may be demand missed or prefetched previously.</li>
-</ul>
-<p>In the implementation of <code>Queued</code> (in <code>queued.hh</code>), the basic works, like merging prefetches, are wrapped in the default implementation of <code>notify()</code>. Instead, it leaves another virtual method, <code>calculatePrefetch()</code>. Let's check the implementation of <code>Tagged</code> to understand the implementation principle of this method:</p>
-<pre><code class="language-cpp">// src/mem/cache/prefetch/tagged.cc
-void Tagged::calculatePrefetch(const PrefetchInfo &amp;pfi,
-    std::vector&lt;AddrPriority&gt; &amp;addresses, const CacheAccessor &amp;cache) {
-    Addr blkAddr = blockAddress(pfi.getAddr());
-
-    for (int d = 1; d &lt;= degree; d++) {
-        Addr newAddr = blkAddr + d*(blkSize);
-        addresses.push_back(AddrPriority(newAddr,0));
-    }
-}
-</code></pre>
-<p>Basically, the implementation will extract information from <code>pfi</code> and <code>cache</code>, calculate the addresses that are going to be prefetched, and push them into <code>addresses</code> using <code>push_back()</code>.</p>
-<p>The defination of <code>PrefetchInfo</code> can be found in <code>base.hh</code>. Four interfaces are useful for our implementation:</p>
-<ul>
-<li><code>getAddr()</code>: Get the address of the access that trigger the prefetcher.</li>
-<li><code>hasPC()</code>: Check if this access is performed by an instruction.</li>
-<li><code>getPC()</code>: Get the PC of the instruction that performs this access.</li>
-<li><code>isCacheMiss()</code>: Check if this access is a cache miss.</li>
-</ul>
-<p>The <code>Base</code> also provides several useful tools for extract the information:</p>
-<ul>
-<li><code>blockAddress()</code>: Extract the block base of an address. For example, if block size is 64 Bytes, and address <code>A = 66</code>, then <code>blockAddress(A) = 64</code>.</li>
-<li><code>blockIndex()</code>: Extract the block index of an address. For example, <code>blockIndex(A) = 1</code>.</li>
-<li><code>pageAddress()</code>: Extract the page base of an address.</li>
-<li><code>pageOffset()</code>: Extract the offset of an address in its page.</li>
-</ul>
-<p>Please note that <code>Base</code> doesn't provide a method like <code>pageIndex()</code>. By default, the page size is configured to <code>4kiB</code>. Thus, you can implement this method on your own (for example, <code>pageIndex(Addr a) { return a &gt;&gt; 12; }</code>).</p>
-<p>The <code>CacheAccessor</code> provides some interfaces to allow you check the cache status (for example, whether an address is in the cache), they are defined in <code>src/mem/cache/cache_probe_arg.hh</code>.</p>
-<p><code>Tagged</code> doesn't uses <code>notifyFill()</code>. We can found the defination in <code>base.hh</code>:</p>
-<pre><code class="language-cpp">// src/mem/cache/prefetch/base.hh
-virtual void notifyFill(const CacheAccessProbeArg &amp;acc) {}
-</code></pre>
-<p>The <code>CacheAccessProbeArg</code> records the memory packet that triggers the fill event, and a <code>CacheAccessor</code> that allows you to check the cache. This class can also be found in <code>src/mem/cache/cache_probe_arg.hh</code>. For the packet, <code>CacheAccessProbeArg</code> provide a pointer <code>PacketPtr pkt</code>. The two useful interfaces are:</p>
-<ul>
-<li><code>pkt-&gt;getAddr()</code>: get the address of this data fill.</li>
-<li><code>pkt-&gt;cmd.isHWPrefetech() || pkt-&gt;req-&gt;taskId() == context_switch_task_id::Prefetcher</code>: check if the filled data are prefetched from your hardware prefetcher.</li>
-</ul>
-<p>Please note that, when <code>notifyFill()</code> is called, the address of the filled data is <strong>the block base address</strong>. Thus, when you want to record accesses and check them in <code>notifyFill()</code>, you may want to record them in their block base address.</p>
-<div id="admonition-info" class="admonition admonish-info" role="note" aria-labelledby="admonition-info-title">
-<div class="admonition-title">
-<div id="admonition-info-title">
-<p>Info</p>
-</div>
-<a class="admonition-anchor-link" href="proj3/part3.html#admonition-info"></a>
-</div>
-<div>
-<p>If you check the defination of <code>CacheAccessor</code> and <code>PrefetchInfo</code>, you may find that there are more information recorded, including <code>isSecure</code> and <code>requestorID</code>. In this project, you can simply ignore them. You may only use the interfaces that doesn't require specifying <code>requestorID</code>, and always treat <code>isSecure</code> as <code>false</code>. For example, to check whether an address has been prefetched, you can just use <code>cache.hasBeenPrefetched(addr, false)</code>.</p>
-<p>Also, in next part, you will need to record the "timestamp" of several events. In <code>gem5</code>, we can disrectly use the function <code>curTick()</code> to get the exact current timestamp. An <code>uint64_t</code> value will be returned.</p>
-</div>
-</div>
-<p>In summary, you only need to work with <code>calculatePrefetch()</code> and <code>notifyFull()</code> when you are implementing prefetcher in this part. The provided arguments can help you to determine what type of access (hit on prefetch, data fill or demand miss) calls these methods. All the structures can be implemented as private members and methods, ensuring high flexibility.</p>
-<h2 id="reading-the-paper-and-implementing-hyperion-prefetcher"><a class="header" href="#reading-the-paper-and-implementing-hyperion-prefetcher">Reading the paper and implementing Hyperion prefetcher</a></h2>
-<div id="admonition-cite" class="admonition admonish-quote" role="note" aria-labelledby="admonition-cite-title">
-<div class="admonition-title">
-<div id="admonition-cite-title">
-<p>Cite</p>
-</div>
-<a class="admonition-anchor-link" href="proj3/part3.html#admonition-cite"></a>
-</div>
-<div>
-<p>Cui, Y., Chen, W., Cheng, X., &amp; Yi, J. (2024). Hyperion: A Highly Effective Page and PC Based Delta Prefetcher. ACM Transactions on Architecture and Code Optimization.</p>
-<p><a href="https://dl.acm.org/doi/10.1145/3675398">get the pdf</a></p>
-</div>
-</div>
-<p>In this part, you are required to read the paper cited above, summarize the method described in the paper, and implement the Hyperion prefetcher in <code>gem5</code>. For your convenience, an Appendix provides a brief description of the method. We've already provided a code skeleton. Please check <code>Lab3Hyperion</code> in <code>Prefetcher.py</code>, <code>mem/cache/prefetch/lab3_pf.hh</code> and <code>mem/cache/prefetch/lab3_pf.cc</code>. You can follow the tutorial in project 2 to add useful parameters to <code>Lab3Hyperion</code> and implement C++ codes.</p>
-<div id="admonition-delieverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-delieverables-title">
-<div class="admonition-title">
-<div id="admonition-delieverables-title">
-<p>Delieverables</p>
-</div>
-<a class="admonition-anchor-link" href="proj3/part3.html#admonition-delieverables"></a>
-</div>
-<div>
-<p>Please run two prefetch-sensitive workloads, i.e., <code>shell_sort</code> and <code>gemm</code>, with your Hyperion prefetcher. Please (at least) include figures or tables, which show the IPC of CPU, accuracy, coverage and late count of <code>Lab3Hyperion</code> on executables listed below, in your <em><strong>report</strong></em>:</p>
-<ul>
-<li>prefetch: <code>Lab3Hyperion</code>.</li>
-<li>exe: <code>shell_sort</code>, <code>gemm</code>.</li>
-<li>With default CPU and Memory (O3 and DDR4).</li>
-<li>Use the cache hierarchy described in part 1, and attach the prefetcher to <code>cpu.dcache</code>.</li>
-</ul>
-<p>In total you need to run <code>gem5</code> twice.</p>
-<p>In this part, you also need to submit:</p>
-<ul>
-<li><em><strong>your codes</strong></em>, including <code>Prefetcher.py</code>, <code>lab3_pf.hh</code> and <code>lab3_pf.cc</code>.</li>
-<li><em><strong>paper summary</strong></em>, which summarizes the cited paper, including background and designs (the motivation is not required considering the paper length).</li>
-</ul>
-</div>
-</div>
-<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<h1 id="part-4-optimize-a-program-segment-using-cache-optimization-techniques"><a class="header" href="#part-4-optimize-a-program-segment-using-cache-optimization-techniques">Part 4: Optimize a Program Segment Using Cache Optimization Techniques</a></h1>
-<p>The cache mechanism was introduced to bridge the significant speed gap between storage devices and processors. By temporarily storing frequently accessed data in the cache, it reduces the number of accesses to storage devices, thereby accelerating data retrieval. However, different data layouts result in markedly distinct patterns of data storage and access within the cache, which in turn impacts cache hit rates and overall efficiency. A well-designed, cache-friendly data layout can fully leverage cache advantages, significantly boosting application performance. Conversely, an ill-suited layout may cause frequent cache misses, resulting in numerous cache failures that slow application execution and potentially create system performance bottlenecks.</p>
-<p>In this experiment, we aim for students to gain an initial understanding of how cache optimization schemes enhance program efficiency and appreciate their unique advantages. Although compilers may already implement certain optimization techniques, we still encourage students to delve deeper into the underlying principles through hands-on practice, thereby gaining a more profound understanding of the importance of cache systems within CPU architectures.</p>
-<h2 id="lab-setup-preparation"><a class="header" href="#lab-setup-preparation">Lab Setup Preparation</a></h2>
-<p>First, we need to compile the m5-related time measurement auxiliary functions, which will be used to measure the execution time of a specific section of code in detail. We need to run the following command in the <code>/gem5</code> root directory:</p>
-<pre><code class="language-sh">cd util/m5
-scons build/thumb/out/m5
-</code></pre>
-<p>Next, we need to obtain three files from <a href="https://disk.pku.edu.cn/link/AA8F735492EA4048A282AA5A7B9820B521">PKU Disk</a> or the <a href="https://course.pku.edu.cn/">teaching and learning network</a> for this part of the experiment. These files are <code>cache_optimize.c</code>, <code>cache_optimize_gen.cc</code>, and <code>cache_optimize.h</code>, which we will place in the <code>tests/labexe/</code>. The specific directory structure is shown in the diagram below:</p>
-<pre><code class="language-sh">gem5-root
-    |
-    |---tests
-          |
-          |---labexe
-                |
-                |---cache_optimize.c
-                |---cache_optimize_gen.cc
-                |---cache_optimize.h
-</code></pre>
-<p>At the same time, we need to modify the tests/labexe/makefile file to support the normal compilation of these newly added files:</p>
-<pre><code class="language-sh"># tests/labexe/makefile
-···
-lz77_args = 1000000
-cache_optimize_args = 300 # ADD
-···
-# DELETE: all: $(TGT) hello
-all: $(TGT) hello cache_optimize # ADD
-...
-hello: hello.c
-	$(CC) $(CFLAGS) $&lt; -o $@
-
-cache_optimize: cache_optimize.c cache_optimize_gen.cc # ADD
-	$(CXX) $(CXXFLAGS) cache_optimize_gen.cc -o cache_optimize_gen # ADD
-	./cache_optimize_gen cache_optimize.in $(shell echo $(cache_optimize_args)) # ADD
-	$(CC) $(CFLAGS) cache_optimize.c -I ../../include -L ../../util/m5/build/thumb/out/ -lm5 -o cache_optimize # ADD
-...
-</code></pre>
-<p>You can enter <code>make -j $(nproc)</code> or <code>make cache_optimize</code> in directory <code>/gem5/tests/labexe/</code> to compile the target program after modifying it. The generated binary file will be located in <code>tests/labexe/cache_optimize</code>.</p>
-<div id="admonition-note" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-title">
-<div class="admonition-title">
-<div id="admonition-note-title">
-<p>Note</p>
-</div>
-<a class="admonition-anchor-link" href="proj3/part4.html#admonition-note"></a>
-</div>
-<div>
-<p>When using Makefile, the error <code>Makefile:32: *** missing separator. Stop.</code> typically occurs because a necessary separator is missing in a rule or command line within the Makefile. In Makefile, command lines must begin with a <strong>tab</strong> character, not a space. This is a strict requirement of the make tool.</p>
-</div>
-</div>
-<h2 id="our-goal"><a class="header" href="#our-goal">Our Goal</a></h2>
-<p>In this part, we implement a simulation engine for a bird flock algorithm, modeling the movement state of a flock under predator pressure. Both the flock and the predator are defined using the <code>GameObject</code> class, with each entry defined as follows:</p>
-<pre><code class="language-c">typedef struct GameObject {
-    int32_t id;             // Unique identifier for the game object
-    enum ObjectType type;   // Type of the game object (bird or predator)
-    Transform transform;    // Transformation data (position, rotation, scale)
-    Material material;      // Material properties (color and reflectivity)
-    AIState aiState;        // Artificial intelligence state
-    int32_t health_points;  // Health points of the game object
-    double awarenessRadius; // Radius within which the object is aware of its surroundings
-    MeshData mesh;          // Mesh data for rendering
-    double attackRadius;    // Radius within which the object can attack
-    PhysicsData physics;    // Physics properties (e.g., mass, velocity, acceleration)
-} GameObject;
-</code></pre>
-<p>The program also allows external users to input settings for certain behaviors. User-input behavior streams are predefined in an array, with each entry represented by the <code>UserAction</code> class. Specific details for each entry are as follows:</p>
-<pre><code class="language-c">typedef struct UserAction {
-    enum ActionType actionType; // action type (change maxspeed or color)
-    double args[4];
-} UserAction;
-</code></pre>
-<p>We need to optimize the target program for this simulated bird flock algorithm, which primarily consists of two parts: updating the logic frame and physics frame, and processing user input. The physics frame updates every 20 frames, while the logic frame updates once per physics frame. External user input is processed synchronously during logic frame updates. Currently, within <code>cache_optimize.c</code>, we provide a straightforward approach, but this method is not cache-friendly. Students can modify the code within the specified area to optimize performance:</p>
-<pre><code class="language-c">// tests/labexe/cache_optimize.c
-|        NO MODIFICATINS ALLOWED         |
-/*   START position of editable area    */
-|                 ...                    |
-|            EDITABLE AREA               |
-|                 ...                    |
-/*    END position of editable area     */
-|        NO MODIFICATINS ALLOWED         |
-/*   START position of editable area    */
-|                 ...                    |
-|     EDITABLE AREA (Preprocessing)      |
-|                 ...                    |
-/*    END position of editable area     */
-|        m5_reset_stats(0, 0);           |
-/*   START position of editable area    */
-|                 ...                    |
-|      EDITABLE AREA (Timing Area)       |
-|                 ...                    |
-/*    END position of editable area     */
-|        m5_dump_stats(0, 0);            |
-/*   START position of editable area    */
-|                 ...                    |
-|    EDITABLE AREA (Postprocessing)      |
-|                 ...                    |
-/*    END position of editable area     */
-|              m5_exit(0);               |
-</code></pre>
-<p>It should be noted that <strong>only code invoked within the timing area will record the time</strong>. At the end of the program, there is a function <code>int checkResult(GameObject gameObjects[], GameObject expected[], int32_t count)</code> to verify the correctness of the operation. If an error occurs during execution, the following will be displayed on the command line:
-<code>Result check failed with error code: errorcode</code>. Once you pass this function, we will consider the program to be correct.</p>
-<div id="admonition-note-1" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-1-title">
-<div class="admonition-title">
-<div id="admonition-note-1-title">
-<p>Note</p>
-</div>
-<a class="admonition-anchor-link" href="proj3/part4.html#admonition-note-1"></a>
-</div>
-<div>
-<p>It should be noted that the runtime for the non-optimized version is 20 minutes (at 5.5GHz). You can estimate the potential runtime on your own computer by checking its CPU Turbo Boost frequency. For example, if the Turbo Boost is 4.5GHz, the approximate runtime would be 20 * 5.5 / 4.5 = 24.44 min.</p>
-</div>
-</div>
-<p>The following requirements apply during this process:</p>
-<ul>
-<li>Multithreading or multiprocessing is not permitted</li>
-<li>No libraries import (via #include)</li>
-<li>Parallel commands such as vectorization are prohibited</li>
-<li><strong>NO loop unrolling technique</strong></li>
-<li>The original program semantics must not be altered</li>
-</ul>
-<h2 id="test"><a class="header" href="#test">Test</a></h2>
-<p>After modifying the code at the specified area, run the following command at <code>tests/labexe/</code> to compile the binary file:</p>
-<pre><code class="language-sh">make cache_optimize
-</code></pre>
-<p>Next, you can execute the following command at gem5/ to test the code's performance:</p>
-<pre><code class="language-sh">build/ARM/gem5.opt -d lab3out/part4/cache_optimize configs/proj3/simple.py tests/labexe/cache_optimize --pf=ampm
-</code></pre>
-<p>You can evaluate the actual runtime of your code using the <code>simSeconds</code> at <strong>first line</strong> in the stat.txt file output by gem5. <strong>Our performance evaluation is also based on this metric</strong>.</p>
-<div id="admonition-note-2" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-2-title">
-<div class="admonition-title">
-<div id="admonition-note-2-title">
-<p>Note</p>
-</div>
-<a class="admonition-anchor-link" href="proj3/part4.html#admonition-note-2"></a>
-</div>
-<div>
-<p>In this part, the <code>system.cpu.max_insts_any_thread</code> should be set <code>1e9</code>.</p>
-</div>
-</div>
-<div id="admonition-tip" class="admonition admonish-tip" role="note" aria-labelledby="admonition-tip-title">
-<div class="admonition-title">
-<div id="admonition-tip-title">
-<p>Tip</p>
-</div>
-<a class="admonition-anchor-link" href="proj3/part4.html#admonition-tip"></a>
-</div>
-<div>
-<p>Our performance test consists of <strong>a single test</strong> case generated from <code>tests/labexe/cache_optimize_gen.cc</code>, which can be viewed in the <code>tests/labexe/cache_optimize.in</code>.</p>
-<p>Only code within the timing area is included in <code>simSeconds</code>. Therefore, you can rearrange data before the block and run code after it to restore the original data structure for correctness checks without affecting simSeconds.</p>
-</div>
-</div>
-<div id="admonition-delieverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-delieverables-title">
-<div class="admonition-title">
-<div id="admonition-delieverables-title">
-<p>Delieverables</p>
-</div>
-<a class="admonition-anchor-link" href="proj3/part4.html#admonition-delieverables"></a>
-</div>
-<div>
-<p>Please run our target workloads, <code>cache_optimize</code>, with <code>AMPMPrefetcher</code>. In this part, please (at least) include figures or tables, which show the actual runtime of <code>cache_optimize</code> on executables listed below, in your report:</p>
-<ul>
-<li>prefetch: <code>AMPMPrefetcher</code>.</li>
-<li>exe: <code>cache_optimize</code>.</li>
-<li>With default CPU and Memory (O3 and DDR4).</li>
-</ul>
-<p>In this part, you also need to submit:</p>
-<ul>
-<li><em><strong>your codes</strong></em>, including <code>cache_optimize.c</code>.</li>
-<li><em><strong>technical introduction</strong></em>, which analyzes the optimization techniques used in your code and explain why they improve performance. (Unexplained code or techniques are permitted, but they should constitute less than 50% of the total.)</li>
+<li>A screenshot of your <code>lab3_config.json</code> file and the terminal output confirming a successful build.</li>
+<li>A figure or table comparing the <code>CPU 0 cumulative IPC</code> on workload <code>gemm</code> across different cache hierarchy configurations (e.g., baseline vs. custom cache size/latency setups).</li>
 </ul>
 </div>
 </div><div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<h1 id="submission"><a class="header" href="#submission">Submission</a></h1>
-<div id="admonition-submission" class="admonition admonish-note" role="note" aria-labelledby="admonition-submission-title">
-<div class="admonition-title">
-<div id="admonition-submission-title">
-<p>Submission</p>
-</div>
-<a class="admonition-anchor-link" href="proj3/submit.html#admonition-submission"></a>
-</div>
-<div>
+<h1 id="part-2-run-simulation-with-prefetchers"><a class="header" href="#part-2-run-simulation-with-prefetchers">Part 2: Run Simulation with Prefetchers</a></h1>
+<p>ChampSim provides multiple classic cache prefetchers out of the box (located in the <code>prefetcher/</code> directory). In ChampSim, prefetchers are assigned to a specific cache level (such as <code>L1D</code>, <code>L2C</code>, or <code>LLC</code>) directly in the JSON configuration file via the <code>"prefetcher"</code> key.</p>
+<p>For example, to attach the <code>ip_stride</code> prefetcher to the CPU's L1 Data Cache (<code>L1D</code>), update your <code>lab3_config.json</code>:</p>
+<pre><code class="language-json">  "L1D": {
+    "sets": 64,
+    "ways": 12,
+    "mshr_size": 16,
+    "hit_latency": 3,
+    "fill_latency": 1,
+    "prefetcher": "ip_stride",
+    "replacement": "lru"
+  }
+
+</code></pre>
+<blockquote>
+<p><strong>Note</strong>: Unlike simulators with dynamic Python scripting, changing the prefetcher module in ChampSim requires re-running <code>./config.sh</code> and re-compiling the executable:</p>
+<pre><code class="language-sh">./config.sh lab3_config.json
+make -j $(nproc)
+
+</code></pre>
+<p><em>Tip</em>: You can set different <code>"executable_name"</code> values in your JSON file (e.g., <code>"champsim_no_pf"</code>, <code>"champsim_next_line"</code>, <code>"champsim_ip_stride"</code>) to build distinct binary executables for different configurations without overwriting them.</p>
+</blockquote>
+<p>In this part, we will explore three L1D prefetcher configurations:</p>
 <ul>
-<li>Please submit the deliverables for each part in order and clearly defined in a report form (e.g., PDF or Word). Please give a brief description of the results in your report. You also <strong>NEED</strong> to submit your codes and paper summary.</li>
-<li>Please pack your report, codes and summary in an archive and submit it as an attachment at <a href="https://course.pku.edu.cn">course.pku.edu.cn</a>. The title of the attachment should be Student-ID_Name_Proj3 (e.g., 123456789_WangXiaoming_Proj3).</li>
-<li>You can also send the archive to <a href="proj3/">2501112042@stu.pku.edu.cn</a>. The titles of your email AND attachment should both be Student-ID_Name_Proj3.</li>
-<li><strong>DO NOT PLAGIARIZE</strong>. We will select 10 students randomly and ask them to answer our questions related to their results.</li>
+<li><code>"no"</code>: Disables prefetching for baseline comparison.</li>
+<li><code>"next_line"</code>: A simple prefetcher that fetches the contiguous next cache block on access.</li>
+<li><code>"ip_stride"</code>: An Instruction Pointer (IP) based stride prefetcher that tracks strided memory access patterns per instruction.</li>
 </ul>
-</div>
-</div>
-<div id="admonition-late-policy" class="admonition admonish-warning" role="note" aria-labelledby="admonition-late-policy-title">
+<h3 id="running-the-simulations"><a class="header" href="#running-the-simulations">Running the Simulations</a></h3>
+<p>Let's evaluate how these prefetchers impact system performance on two prefetch-sensitive workloads: <code>shell_sort</code> and <code>gemm</code>.</p>
+<p>To run a simulation for a specific prefetcher binary, execute:</p>
+<pre><code class="language-sh"># Example: Running ip_stride prefetcher on shell_sort and gemm
+./bin/champsim --warmup_instructions 20000000 --simulation_instructions 100000000 traces/shell_sort.champsimtrace.xz &gt; results/ip_stride_sort.txt
+./bin/champsim --warmup_instructions 20000000 --simulation_instructions 100000000 traces/gemm.champsimtrace.xz &gt; results/ip_stride_gemm.txt
+
+</code></pre>
+<p>Repeat this process for the binaries compiled with <code>"no"</code> and <code>"next_line"</code>.</p>
+<div id="admonition-important-note-on-simulation-length-and-warmup" class="admonition admonish-warning" role="note" aria-labelledby="admonition-important-note-on-simulation-length-and-warmup-title">
 <div class="admonition-title">
-<div id="admonition-late-policy-title">
-<p>Late policy</p>
+<div id="admonition-important-note-on-simulation-length-and-warmup-title">
+<p>Important note on simulation length and warmup</p>
 </div>
-<a class="admonition-anchor-link" href="proj3/submit.html#admonition-late-policy"></a>
+<a class="admonition-anchor-link" href="proj3/part2.html#admonition-important-note-on-simulation-length-and-warmup"></a>
 </div>
 <div>
+<p>Hardware prefetchers rely on observing memory access patterns over time to train internal state tables. Setting the simulation or warmup instructions too low will result in inaccurate prefetcher accuracy and coverage statistics.</p>
+<p>For this evaluation, <em><strong>the recommended parameters are <code>--warmup_instructions 20000000</code> (20M) and <code>--simulation_instructions 100000000</code> (100M)</strong></em>. You may use smaller instruction counts (e.g., 10M) for rapid debugging, but ensure your final report uses the recommended values.</p>
+</div>
+</div>
+<h3 id="analyzing-statistics"><a class="header" href="#analyzing-statistics">Analyzing Statistics</a></h3>
+<p>After the simulation completes, ChampSim outputs detailed cache and prefetcher performance statistics to stdout (or your redirected output text file).</p>
+<p>Look for the <code>=== Simulation ===</code> section and the corresponding <code>L1D PREFETCHER</code> statistics:</p>
+<pre><code class="language-text">=== Simulation ===
+CPU 0 cumulative IPC: 1.652 Instructions per cycle: 1.652
+...
+L1D PREFETCHER REQUESTED:   450210  ISSUED:   410200  USEFUL:   328160  USELESS:    82040
+L1D AVERAGE MISS LATENCY: 24.5 cycles
+
+</code></pre>
+<p>In this project, you will evaluate four critical performance metrics:</p>
 <ul>
-<li>You will be given <strong>3 slip days</strong> (shared by all projects), which can be used to extend project deadlines, e.g., 1 project extended by 3 days or 3 projects each extended by 1 day.</li>
-<li>Projects are due at 23:59:59, no exceptions; 20% off per day late, 1 second late = 1 hour late = 1 day late.</li>
+<li><strong><code>cpu.ipc</code></strong>: The overall instructions per cycle (<code>CPU 0 cumulative IPC</code>).</li>
+<li><strong><code>prefetcher.accuracy</code></strong>: The fraction of useful prefetches out of total issued prefetches:</li>
+</ul>
+<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord text"><span class="mord">Accuracy</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.0463em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3603em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">ISSUED</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">USEFUL</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p>
+<ul>
+<li><strong><code>prefetcher.coverage</code></strong>: The fraction of potential misses eliminated by useful prefetches:</li>
+</ul>
+<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord text"><span class="mord">Coverage</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.1297em;vertical-align:-0.7693em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3603em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">USEFUL</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord text"><span class="mord">L1D DEMAND MISS</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">USEFUL</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.7693em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p>
+<ul>
+<li><strong><code>prefetcher.pfLate</code></strong>: The number of prefetches issued too late (i.e., demand requests hit an in-flight MSHR allocated by a prefetch before it completed).</li>
+</ul>
+<div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
+<div class="admonition-title">
+<div id="admonition-deliverables-title">
+<p>Deliverables</p>
+</div>
+<a class="admonition-anchor-link" href="proj3/part2.html#admonition-deliverables"></a>
+</div>
+<div>
+<p>Please run two prefetch-sensitive workloads (<code>shell_sort.champsimtrace.xz</code> and <code>gemm.champsimtrace.xz</code>) across the three prefetcher configurations. The remaining workloads (<code>spfa</code> and <code>binary_search</code>) are prefetch-insensitive and optional.</p>
+<p>Include figures or tables in your <em><strong>report</strong></em> presenting the four critical metrics (<strong>IPC</strong>, <strong>Accuracy</strong>, <strong>Coverage</strong>, and <strong>Late Prefetch Count</strong>) across all six test cases:</p>
+<ul>
+<li><strong>Prefetchers</strong>: <code>no</code> (No prefetcher), <code>next_line</code>, <code>ip_stride</code>.</li>
+<li><strong>Workloads</strong>: <code>shell_sort.champsimtrace.xz</code>, <code>gemm.champsimtrace.xz</code>.</li>
+<li><strong>Cache Hierarchy</strong>: Use the 2-level cache hierarchy configured in Part 1, attaching prefetchers to <code>L1D</code>.</li>
+</ul>
+<p>In total, you will run <strong>6 simulation runs</strong> (3 prefetcher configurations <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6667em;vertical-align:-0.0833em;"></span><span class="mord">×</span></span></span></span> 2 workloads).</p>
+</div>
+</div><div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="part-3-paper-reading-implementation-and-evaluation-of-hyperion-prefetcher"><a class="header" href="#part-3-paper-reading-implementation-and-evaluation-of-hyperion-prefetcher">Part 3: Paper Reading, Implementation, and Evaluation of Hyperion Prefetcher</a></h1>
+<p>In this part, you will first read a state-of-the-art research paper on hardware prefetching, write a paper summary, and then implement your own <strong>Hyperion</strong> prefetcher module in <strong>ChampSim</strong>. Finally, you will evaluate its performance and participate in a competitive benchmark ranking.</p>
+<hr />
+<h2 id="task-1-paper-reading-and-summary"><a class="header" href="#task-1-paper-reading-and-summary">Task 1: Paper Reading and Summary</a></h2>
+<div id="admonition-target-paper" class="admonition admonish-quote" role="note" aria-labelledby="admonition-target-paper-title">
+<div class="admonition-title">
+<div id="admonition-target-paper-title">
+<p>Target Paper</p>
+</div>
+<a class="admonition-anchor-link" href="proj3/part3.html#admonition-target-paper"></a>
+</div>
+<div>
+<p>Cui, Y., Chen, W., Cheng, X., &amp; Yi, J. (2024). <strong>Hyperion: A Highly Effective Page and PC Based Delta Prefetcher</strong>. <em>ACM Transactions on Architecture and Code Optimization (TACO)</em>.</p>
+<p><a href="https://dl.acm.org/doi/10.1145/3675398">Download PDF from ACM DL</a></p>
+</div>
+</div>
+<p>You are required to read the paper above and write a concise summary. Your summary should cover:</p>
+<ol>
+<li><strong>Background</strong>: What problem in spatial/delta prefetching does Hyperion address?</li>
+<li><strong>Core Design &amp; Mechanisms</strong>: How does Hyperion leverage both Page information and Instruction Pointer (PC) to track memory access deltas? Explain its main tables, metadata structures, and prefetch generation logic.</li>
+</ol>
+<p><em>(Note: Motivation discussion is <strong>not</strong> required considering the paper length.)</em></p>
+<hr />
+<h2 id="task-2-implementing-a-prefetcher-in-champsim"><a class="header" href="#task-2-implementing-a-prefetcher-in-champsim">Task 2: Implementing a Prefetcher in ChampSim</a></h2>
+<p>ChampSim provides a clean, function-based C++ interface for prefetcher modules.</p>
+<p>A standard ChampSim prefetcher resides in the <code>prefetcher/</code> directory (or a custom subfolder under <code>prefetcher/</code>) and implements the following core callback functions:</p>
+<pre><code class="language-cpp">#include "cache.h"
+
+// 1. Initialization: Called once when the simulation starts
+void l1d_prefetcher_initialize() {
+    // Initialize your internal tables, tracking structures, and counters here
+}
+
+// 2. Operate: Called on every L1D cache access (hits and misses)
+void l1d_prefetcher_operate(uint64_t addr, uint64_t ip, uint8_t cache_hit, uint8_t type) {
+    // Extract block address and page offset
+    uint64_t block_addr = addr &gt;&gt; LOG2_BLOCK_SIZE; // LOG2_BLOCK_SIZE is typically 6
+    uint64_t page_addr  = addr &gt;&gt; LOG2_PAGE_SIZE;  // LOG2_PAGE_SIZE is typically 12
+    uint64_t page_offset = (addr &gt;&gt; LOG2_BLOCK_SIZE) &amp; 0x3F; // 64 blocks per 4KiB page
+
+    // Example: Issue a prefetch for line (addr + 64 bytes)
+    uint64_t pf_block_addr = block_addr + 1;
+    uint64_t pf_addr = pf_block_addr &lt;&lt; LOG2_BLOCK_SIZE;
+    
+    // Call ChampSim helper to trigger prefetch
+    prefetch_line(pf_addr, true, 0); 
+}
+
+// 3. Cache Fill: Called when a line is filled into L1D
+void l1d_prefetcher_cache_fill(uint64_t addr, uint32_t set, uint32_t way, 
+                               uint8_t prefetch, uint64_t evicted_addr, 
+                               uint8_t metadata_in) {
+    // Update tracking structures upon cache line fill (demand miss or prefetch fill)
+}
+
+// 4. Final Stats: Called at the end of simulation
+void l1d_prefetcher_final_stats() {
+    // Print custom statistics if needed
+}
+
+</code></pre>
+<h3 id="key-champsim-prefetcher-interfaces--concepts"><a class="header" href="#key-champsim-prefetcher-interfaces--concepts">Key ChampSim Prefetcher Interfaces &amp; Concepts</a></h3>
+<ul>
+<li>
+<p><strong><code>l1d_prefetcher_operate()</code></strong>: Triggered on every L1D load/store access.</p>
+</li>
+<li>
+<p><code>addr</code>: The byte memory address being accessed.</p>
+</li>
+<li>
+<p><code>ip</code>: The Instruction Pointer (PC) of the instruction initiating the access.</p>
+</li>
+<li>
+<p><code>cache_hit</code>: <code>1</code> if the access hit in L1D, <code>0</code> if it missed.</p>
+</li>
+<li>
+<p><code>type</code>: Access type (e.g., <code>LOAD</code>, <code>RFO</code>, <code>PREFETCH</code>).</p>
+</li>
+<li>
+<p><strong><code>l1d_prefetcher_cache_fill()</code></strong>: Triggered when a cache line is filled from lower memory (L2C/RAM).</p>
+</li>
+<li>
+<p><code>prefetch</code>: <code>1</code> if this fill was triggered by a prior hardware prefetch request; <code>0</code> if it was a demand miss fill.</p>
+</li>
+<li>
+<p><strong><code>prefetch_line(pf_addr, fill_level, metadata)</code></strong>: The primary API to request a prefetch.</p>
+</li>
+<li>
+<p><code>pf_addr</code>: Target byte address to prefetch.</p>
+</li>
+<li>
+<p><code>fill_level</code>: Set to <code>true</code> to fill into L1D (or <code>false</code> to target lower levels).</p>
+</li>
+<li>
+<p><strong>Address Manipulations</strong>:</p>
+</li>
+<li>
+<p>Block Address: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0044em;vertical-align:-0.31em;"></span><span class="mord text"><span class="mord">block_addr</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7335em;vertical-align:-0.0391em;"></span><span class="mord text"><span class="mord">addr</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≫</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.9933em;vertical-align:-0.31em;"></span><span class="mord text"><span class="mord">LOG2_BLOCK_SIZE</span></span></span></span></span></p>
+</li>
+<li>
+<p>Page Address: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0044em;vertical-align:-0.31em;"></span><span class="mord text"><span class="mord">page_addr</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7335em;vertical-align:-0.0391em;"></span><span class="mord text"><span class="mord">addr</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≫</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.9933em;vertical-align:-0.31em;"></span><span class="mord text"><span class="mord">LOG2_PAGE_SIZE</span></span></span></span></span></p>
+</li>
+<li>
+<p>Page Offset: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0044em;vertical-align:-0.31em;"></span><span class="mord text"><span class="mord">page_offset</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord text"><span class="mord">addr</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≫</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.06em;vertical-align:-0.31em;"></span><span class="mord text"><span class="mord">LOG2_BLOCK_SIZE</span></span><span class="mclose">)</span><span class="mspace"> </span><span class="mord">&amp;</span><span class="mspace"> </span><span class="mord">0</span><span class="mord text"><span class="mord">x</span></span><span class="mord">3</span><span class="mord text"><span class="mord">F</span></span></span></span></span></p>
+</li>
+</ul>
+<div id="admonition-timestamps-and-custom-data-structures" class="admonition admonish-info" role="note" aria-labelledby="admonition-timestamps-and-custom-data-structures-title">
+<div class="admonition-title">
+<div id="admonition-timestamps-and-custom-data-structures-title">
+<p>Timestamps and Custom Data Structures</p>
+</div>
+<a class="admonition-anchor-link" href="proj3/part3.html#admonition-timestamps-and-custom-data-structures"></a>
+</div>
+<div>
+<p>In ChampSim, you can track logical time or access age using a simple global counter incremented inside <code>l1d_prefetcher_operate()</code> (e.g., <code>uint64_t current_cycle = 0; current_cycle++;</code>), or use standard C++ STL containers (<code>std::vector</code>, <code>std::unordered_map</code>, fixed-size arrays) as global/static variables within your prefetcher file.</p>
+</div>
+</div>
+<h3 id="adding-your-hyperion-prefetcher-to-champsim"><a class="header" href="#adding-your-hyperion-prefetcher-to-champsim">Adding Your Hyperion Prefetcher to ChampSim</a></h3>
+<ol>
+<li>Create a new prefetcher file: <code>prefetcher/hyperion.cc</code> (or <code>prefetcher/hyperion/hyperion.cc</code>).</li>
+<li>Implement your prefetcher logic based on the paper design.</li>
+<li>Update <code>lab3_config.json</code> to assign <code>"prefetcher": "hyperion"</code> to your <code>L1D</code> cache module.</li>
+<li>Generate C++ files and compile:</li>
+</ol>
+<pre><code class="language-sh">./config.sh lab3_config.json
+make -j $(nproc)
+
+</code></pre>
+<hr />
+<h2 id="evaluation-and-grading-criteria"><a class="header" href="#evaluation-and-grading-criteria">Evaluation and Grading Criteria</a></h2>
+<p>Your Hyperion implementation will be evaluated using a suite of ChampSim trace workloads (including both prefetch-sensitive and undisclosed hidden benchmarks).</p>
+<h3 id="grading-structure"><a class="header" href="#grading-structure">Grading Structure</a></h3>
+<ol>
+<li><strong>Paper Summary (20%)</strong>: Clear and accurate summary of the Hyperion paper's background, architecture, and delta-tracking mechanisms.</li>
+<li><strong>Functional Implementation &amp; Report (40%)</strong>: Correct implementation of the Hyperion algorithm in ChampSim with complete report analyzing IPC, accuracy, coverage, and late prefetches.</li>
+<li><strong>Performance Evaluation (40%)</strong>:</li>
+</ol>
+<ul>
+<li><strong>Absolute Performance (25%)</strong>: Your prefetcher must outperform the baseline <code>next_line</code> prefetcher and achieve a minimum required IPC speedup threshold on the provided workloads.</li>
+<li><strong>Relative Ranking (15%)</strong>: Students will be ranked based on the <strong>geometric mean IPC speedup</strong> across all evaluation traces. Top-performing implementations will receive full ranking points, with a gradual curve applied down the leaderboards.</li>
+</ul>
+<div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
+<div class="admonition-title">
+<div id="admonition-deliverables-title">
+<p>Deliverables</p>
+</div>
+<a class="admonition-anchor-link" href="proj3/part3.html#admonition-deliverables"></a>
+</div>
+<div>
+<p>Please run your implemented Hyperion prefetcher on the test workloads (<code>shell_sort.champsimtrace.xz</code> and <code>gemm.champsimtrace.xz</code>). Submit the following deliverables:</p>
+<ol>
+<li><strong>Source Code</strong>: Submit your C++ prefetcher implementation file (<code>hyperion.cc</code>) and any associated header files.</li>
+<li><strong>Paper Summary</strong>: A 1–2 page PDF document summarizing the Hyperion paper (Background + Core Design/Mechanisms).</li>
+<li><strong>Lab Report</strong>:
+<ul>
+<li>Include tables or figures comparing <strong>IPC</strong>, <strong>Accuracy</strong>, <strong>Coverage</strong>, and <strong>Late Prefetches</strong> across <code>no</code>, <code>next_line</code>, <code>ip_stride</code>, and your <code>hyperion</code> implementation.</li>
+<li>Provide a brief discussion on why Hyperion performs better (or worse) on specific memory access patterns.</li>
+</ul>
+</li>
+</ol>
+</div>
+</div><div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="part-4-crafting-a-hard-trace-cache--prefetcher-stress-testing"><a class="header" href="#part-4-crafting-a-hard-trace-cache--prefetcher-stress-testing">Part 4: Crafting a Hard Trace (Cache &amp; Prefetcher Stress Testing)</a></h1>
+<p>In this final part, you will flip the perspective from <strong>defender</strong> (building a prefetcher) to <strong>adversary</strong> (constructing a cache-hostile memory trace). Your goal is to design a synthetic workload or memory access trace that stresses the cache hierarchy, maximizes cache misses, and fools standard prefetchers (such as Next-Line or Stride prefetchers).</p>
+<p>Grading for this part will be determined by the <strong>difficulty score</strong> of your trace—specifically, how effectively it degrades baseline system performance and challenges hardware prefetching mechanisms.</p>
+<h2 id="trace-generation-overview"><a class="header" href="#trace-generation-overview">Trace Generation Overview</a></h2>
+<p>ChampSim traces (<code>.champsimtrace.xz</code>) capture dynamic execution streams, including instruction PCs, register usage, branch directions, and memory access addresses.</p>
+<p>You can generate your custom trace in the below way:</p>
+<p><strong>Benchmark C Code + Tracer</strong>: Write a custom C/C++ program (e.g., <code>stress_test.c</code>) that implements cache-unfriendly access patterns (e.g., prime-strided array traversals, pointer chasing through randomized linked lists, or dynamic access stride switching), and use the lab-provided Pin/DynamoRIO tracer script to generate <code>stress_test.champsimtrace.xz</code>:</p>
+<pre><code class="language-sh"># Compile your stress test workload
+gcc -O2 stress_test.c -o stress_test
+# Generate ChampSim trace using the provided tracer script
+./scripts/generate_trace.sh ./stress_test -o traces/custom_stress.champsimtrace.xz
+
+</code></pre>
+<h2 id="trace-validity--difficulty-scoring-metrics"><a class="header" href="#trace-validity--difficulty-scoring-metrics">Trace Validity &amp; Difficulty Scoring Metrics</a></h2>
+<p>To ensure fairness, your submitted trace must satisfy basic <strong>validity constraints</strong> (to prevent trivial attacks like zero-instruction traces or non-memory instruction loops).</p>
+<h3 id="1-validity-constraints-filter-rules"><a class="header" href="#1-validity-constraints-filter-rules">1. Validity Constraints (Filter Rules)</a></h3>
+<p>Your trace must meet the following minimum execution bounds when run in ChampSim:</p>
+<ul>
+<li><strong>Minimum Instruction Count</strong>: Must contain at least <strong>20M dynamic instructions</strong> (and run smoothly with <code>--simulation_instructions 20000000</code>).</li>
+<li><strong>Memory Access Density</strong>: At least <strong>20%</strong> of total instructions must be memory-referencing operations (loads/stores).</li>
+<li><strong>Address Space Requirement</strong>: Memory accesses must span across a footprint of at least <strong>8 MB</strong> (exceeding L1D and L2C capacities to force main memory accesses).</li>
+</ul>
+<h3 id="2-difficulty-score-calculation"><a class="header" href="#2-difficulty-score-calculation">2. Difficulty Score Calculation</a></h3>
+<p>Each valid trace will be evaluated on the baseline 2-level cache hierarchy across two test runs:</p>
+<ul>
+<li><strong>Baseline Run</strong>: With no prefetcher (<code>"prefetcher": "no"</code>).</li>
+<li><strong>Prefetcher Run</strong>: With standard Next-Line or IP-Stride prefetcher (<code>"prefetcher": "ip_stride"</code>).</li>
+</ul>
+<p>The <strong>Trace Difficulty Score (<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">trace</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>)</strong> is computed as a combination of cache hostility and prefetcher resistance:</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">trace</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.5945em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:2.4em;vertical-align:-0.95em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">(</span></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.4403em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord text"><span class="mord">IPC</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">max</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.757em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord text"><span class="mord">IPC</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">no_pf</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.367em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.836em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">)</span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.5945em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.8em;vertical-align:-0.65em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size2">(</span></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord text"><span class="mord">Coverage</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.242em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">ip_stride</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4611em;"><span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size2">)</span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.5945em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord text"><span class="mord">Miss Rate</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">L2C</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span></p>
+<p>Where:</p>
+<ul>
+<li><strong>Cache Hostility</strong>: Penalizes high baseline IPC and rewards high L1D/L2C miss rates.</li>
+<li><strong>Prefetcher Hostility</strong>: Rewards traces that achieve low prefetcher coverage (<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord text"><span class="mord">Coverage</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0</span></span></span></span>) or induce high useless/late prefetch overhead.</li>
+</ul>
+<hr />
+<h2 id="grading-criteria"><a class="header" href="#grading-criteria">Grading Criteria</a></h2>
+<p>Grading for Part 4 is weighted as follows:</p>
+<ol>
+<li><strong>Validity Check (Pass/Fail)</strong>: The trace must pass all minimum instruction count, memory density, and address footprint requirements.</li>
+<li><strong>Absolute Difficulty Threshold (60%)</strong>: Traces that achieve an L2C miss rate <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8056em;vertical-align:-0.0556em;"></span><span class="mord">40%</span></span></span></span> or reduce baseline IPC below a designated threshold receive full baseline points.</li>
+<li><strong>Relative Leaderboard Ranking (40%)</strong>: Traces will be ranked by their calculated Difficulty Score (<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">trace</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>). The top 15% hardest traces receive top leaderboard marks, with a smooth grading curve applied across the rest of the class.</li>
+</ol>
+<div id="admonition-design-hints-for-hostile-access-patterns" class="admonition admonish-tip" role="note" aria-labelledby="admonition-design-hints-for-hostile-access-patterns-title">
+<div class="admonition-title">
+<div id="admonition-design-hints-for-hostile-access-patterns-title">
+<p>Design Hints for Hostile Access Patterns</p>
+</div>
+<a class="admonition-anchor-link" href="proj3/part4.html#admonition-design-hints-for-hostile-access-patterns"></a>
+</div>
+<div>
+<p>To maximize cache misses and evade prefetching, consider:</p>
+<ul>
+<li><strong>Pointer Chasing</strong>: Random array indexing or non-contiguous node traversal, breaking linear address patterns.</li>
+<li><strong>Conflict Miss Induction</strong>: Accessing addresses that map to the exact same cache set (modulo index alignment) to cause cache thrashing.</li>
+<li><strong>Stride Deception</strong>: Alternating between short predictable strides and sudden large random jumps to trick stride tables into issuing useless prefetches.</li>
+<li><strong>Thrashing the MSHR</strong>: Issuing multiple outstanding misses to unique cache blocks within short instruction windows.</li>
 </ul>
 </div>
 </div>
@@ -700,108 +640,136 @@ cache_optimize: cache_optimize.c cache_optimize_gen.cc # ADD
 <div id="admonition-deliverables-title">
 <p>Deliverables</p>
 </div>
-<a class="admonition-anchor-link" href="proj3/submit.html#admonition-deliverables"></a>
+<a class="admonition-anchor-link" href="proj3/part4.html#admonition-deliverables"></a>
 </div>
 <div>
-<p>You need to submit <em><strong>report</strong></em>, <em><strong>codes</strong></em> and <em><strong>paper summary</strong></em> in this project. The required contents are listed as follows:</p>
+<p>Please submit your custom trace and source files. Include the following in your <em><strong>report</strong></em>:</p>
+<ol>
+<li><strong>Trace Source / Generator Code</strong>: Submit your C benchmark (<code>stress_test.c</code>) or Python/C++ trace generator script.</li>
+<li><strong>Trace File</strong>: Submit your compressed trace file (<code>&lt;student_id&gt;_stress.champsimtrace.xz</code>).</li>
+<li><strong>Design Explanation &amp; Analysis</strong>:
 <ul>
-<li>report:</li>
-<li>
-<ul>
-<li>Figures and tables which show the CPU IPC and the accuracy, coverage and late count of following prefetch configurations on <code>shell_sort</code> and <code>gemm</code>: no prefetcher, <code>StridePrefetcher</code>, <code>AMPMPrefetcher</code>, <code>Lab3Hyperion</code>. Please run with <code>O3CPU</code> and <code>DDR4</code> memory, and with the cache configurations described in part 1.</li>
+<li>Explain the access pattern strategy implemented in your trace.</li>
+<li>Present a table showing <strong>L1D Miss Rate</strong>, <strong>L2C Miss Rate</strong>, <strong>IPC</strong>, and <strong>Prefetcher Accuracy/Coverage</strong> when tested against <code>no</code>, <code>next_line</code>, and <code>ip_stride</code> prefetchers.</li>
+<li>Explain <em>why</em> your memory access pattern successfully degrades cache reuse and neutralizes prefetchers.</li>
 </ul>
 </li>
-<li>codes:</li>
-<li>
-<ul>
-<li>Your implementation, i.e., <code>Prefetcher.py</code>, <code>lab3_pf.hh</code>, <code>lab3_pf.cc</code> and <code>cache_optimize.c</code>.</li>
-</ul>
-</li>
-<li>summary:</li>
-<li>
-<ul>
-<li>A summary of the cited paper including background and designs.</li>
-</ul>
-</li>
-<li>technical introduction:</li>
-<li>
-<ul>
-<li>A report of the optimization techniques used in your code and explain why they improve performance. (Unexplained code or techniques are permitted, but they should constitute less than 50% of the total.)</li>
-</ul>
-</li>
-</ul>
-<p>Please pack all files in an archive and submit the archive.</p>
+</ol>
 </div>
-</div>
-<div id="admonition-grading" class="admonition admonish-success" role="note" aria-labelledby="admonition-grading-title">
+</div><div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="submission"><a class="header" href="#submission">Submission</a></h1>
+<div id="admonition-submission-guidelines" class="admonition admonish-note" role="note" aria-labelledby="admonition-submission-guidelines-title">
 <div class="admonition-title">
-<div id="admonition-grading-title">
-<p>Grading</p>
+<div id="admonition-submission-guidelines-title">
+<p>Submission Guidelines</p>
 </div>
-<a class="admonition-anchor-link" href="proj3/submit.html#admonition-grading"></a>
+<a class="admonition-anchor-link" href="proj3/submit.html#admonition-submission-guidelines"></a>
 </div>
 <div>
-<p>In this project, the grading is partially based on the performance of your implementation. The details are (15 points in total):</p>
 <ul>
-<li>Screenshot that proves you have successfully built a cache hierarchy:</li>
-<li>
-<ul>
-<li><strong>3pts</strong>.</li>
+<li>Please submit the deliverables for each part in order, formatted clearly in a single lab report (PDF format preferred). Provide brief but insightful discussions for all experimental results.</li>
+<li>You <strong>MUST</strong> submit your source code files, paper summary, and custom trace file along with your report.</li>
+<li>Pack all required files into a single zip/tar archive and submit it via <a href="https://course.pku.edu.cn">course.pku.edu.cn</a>. The title of the archive and the report must follow the format: <code>Student-ID_Name_Proj3</code> (e.g., <code>123456789_WangXiaoming_Proj3</code>).</li>
+<li>You can also email your submission to <code>2501112042@stu.pku.edu.cn</code>. The email subject and attachment filename <strong>MUST</strong> both be <code>Student-ID_Name_Proj3</code>.</li>
+<li><strong>ACADEMIC INTEGRITY</strong>: Do not plagiarize code or report contents. We will randomly select students for an oral defense/Q&amp;A session regarding their code implementation and trace design.</li>
 </ul>
-</li>
-<li><em><strong>PLUS</strong></em> resonable performance statistics of <strong>no prefetcher</strong>, <code>StridePrefetcher</code> and <code>AMPMPrefetcher</code>:</li>
-<li>
-<ul>
-<li><strong>6pts</strong>.</li>
-</ul>
-</li>
-<li><em><strong>PLUS</strong></em> a compilable Hyperion prefetcher implementation:</li>
-<li>
-<ul>
-<li><strong>9pts</strong>.</li>
-</ul>
-</li>
-<li><em><strong>PLUS</strong></em> a comparable performance with <code>StridePrefetcher</code> of your Hyperion prefetcher:</li>
-<li>
-<ul>
-<li><strong>11pts</strong>.</li>
-</ul>
-</li>
-<li><em><strong>PLUS</strong></em> a comparable performance with <code>AMPMPrefetcher</code> of your Hyperion prefetcher:</li>
-<li>
-<ul>
-<li><strong>12pts</strong>.</li>
-</ul>
-</li>
-<li><em><strong>PLUS</strong></em> reasonable performance improvements (<strong>minimum 3%</strong>):</li>
-<li>
-<ul>
-<li><strong>13pts</strong>.</li>
-</ul>
-</li>
-<li><em><strong>PLUS</strong></em> reasonable performance improvements (<strong>minimum 7%</strong>):</li>
-<li>
-<ul>
-<li><strong>13.5pts</strong>.</li>
-</ul>
-</li>
-<li><em><strong>PLUS</strong></em> high performance improvements (<strong>optimization results ranked in the top 20%</strong>):</li>
-<li>
-<ul>
-<li><strong>14pts</strong>.</li>
-</ul>
-</li>
-<li><em><strong>PLUS</strong></em> corresponding technical explanations:</li>
-<li>
-<ul>
-<li><strong>15pts</strong>.</li>
-</ul>
-</li>
-</ul>
-<p>There are additional <strong>5pts</strong> based on your paper summary. A comprehensive summary including background and designs will get 5pts. Lack of any single part will cause <strong>-1pt</strong>.</p>
 </div>
 </div>
-<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<div id="admonition-late-policy" class="admonition admonish-warning" role="note" aria-labelledby="admonition-late-policy-title">
+<div class="admonition-title">
+<div id="admonition-late-policy-title">
+<p>Late Policy</p>
+</div>
+<a class="admonition-anchor-link" href="proj3/submit.html#admonition-late-policy"></a>
+</div>
+<div>
+<ul>
+<li>You are allocated <strong>3 slip days</strong> in total for the entire semester (shared across all projects) to extend project deadlines.</li>
+<li>Projects are due strictly at <strong>23:59:59</strong> on the deadline date. Late submissions without slip days will incur a <strong>20% penalty per day</strong> (1 second late = 1 day late).</li>
+</ul>
+</div>
+</div>
+<div id="admonition-deliverables-checklist" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-checklist-title">
+<div class="admonition-title">
+<div id="admonition-deliverables-checklist-title">
+<p>Deliverables Checklist</p>
+</div>
+<a class="admonition-anchor-link" href="proj3/submit.html#admonition-deliverables-checklist"></a>
+</div>
+<div>
+<p>Please ensure your submitted archive contains the following four components:</p>
+<ol>
+<li><strong>Lab Report (<code>Report.pdf</code>)</strong>:
+<ul>
+<li><strong>Part 1</strong>: Screenshot of <code>lab3_config.json</code>, build terminal output, and IPC comparison table/figure across cache configurations.</li>
+<li><strong>Part 2</strong>: Evaluation table/figures showing <strong>IPC</strong>, <strong>Accuracy</strong>, <strong>Coverage</strong>, and <strong>Late Prefetches</strong> for baseline prefetchers (<code>no</code>, <code>next_line</code>, <code>ip_stride</code>) on <code>shell_sort</code> and <code>gemm</code>.</li>
+<li><strong>Part 3</strong>: Evaluation metrics for your <code>Hyperion</code> prefetcher, along with performance comparison and discussion.</li>
+<li><strong>Part 4</strong>: Detailed explanation of your custom trace design strategy, hostility analysis, and performance table against baselines.</li>
+</ul>
+</li>
+<li><strong>Paper Summary (<code>Paper_Summary.pdf</code> or section in report)</strong>:
+<ul>
+<li>A concise summary (1–2 pages) covering the <strong>Background</strong> and <strong>Core Architecture/Mechanisms</strong> of the Hyperion paper.</li>
+</ul>
+</li>
+<li><strong>Source Code &amp; Configurations</strong>:
+<ul>
+<li><code>lab3_config.json</code>: Your ChampSim cache hierarchy configuration.</li>
+<li><code>hyperion.cc</code>: Your C++ implementation of the Hyperion prefetcher.</li>
+<li><code>stress_test.c</code> (or <code>trace_generator.py</code>): Source code used to construct your hostile memory trace.</li>
+</ul>
+</li>
+<li><strong>Custom Trace File</strong>:
+<ul>
+<li><code>&lt;student_id&gt;_stress.champsimtrace.xz</code>: Your valid, compressed ChampSim stress trace.</li>
+</ul>
+</li>
+</ol>
+</div>
+</div>
+<div id="admonition-grading-breakdown-20-points-total" class="admonition admonish-success" role="note" aria-labelledby="admonition-grading-breakdown-20-points-total-title">
+<div class="admonition-title">
+<div id="admonition-grading-breakdown-20-points-total-title">
+<p>Grading Breakdown (20 Points Total)</p>
+</div>
+<a class="admonition-anchor-link" href="proj3/submit.html#admonition-grading-breakdown-20-points-total"></a>
+</div>
+<div>
+<p>Your grade for Project 3 will be evaluated out of <strong>20 points</strong> as follows:</p>
+<ul>
+<li>
+<p><strong>Part 1: Cache Hierarchy Setup (3 pts)</strong></p>
+<ul>
+<li>Screenshot of valid <code>lab3_config.json</code> and successful build output: <strong>1.5 pts</strong></li>
+<li>Correct execution and reasonable IPC comparison analysis: <strong>1.5 pts</strong></li>
+</ul>
+</li>
+<li>
+<p><strong>Part 2: Baseline Prefetcher Evaluation (3 pts)</strong></p>
+<ul>
+<li>Complete and accurate collection of all 4 metrics (IPC, Accuracy, Coverage, Late count) across <code>no</code>, <code>next_line</code>, and <code>ip_stride</code> on all required workloads: <strong>3 pts</strong></li>
+</ul>
+</li>
+<li>
+<p><strong>Part 3: Paper Summary &amp; Hyperion Implementation (9 pts)</strong></p>
+<ul>
+<li><strong>Paper Summary</strong>: Comprehensive summary of background and design mechanisms: <strong>3 pts</strong> <em>(Missing major sections: -1 pt each)</em></li>
+<li><strong>Code Correctness</strong>: Compilable and functional Hyperion C++ implementation: <strong>2 pts</strong></li>
+<li><strong>Absolute Performance</strong>: Outperforming <code>next_line</code> and meeting the baseline IPC speedup threshold: <strong>2 pts</strong></li>
+<li><strong>Relative Leaderboard Ranking</strong>: Based on geometric mean IPC speedup across all test traces: <strong>2 pts</strong> <em>(Top 20%: 2 pts; Top 50%: 1.5 pts; Others: 1 pt)</em></li>
+</ul>
+</li>
+<li>
+<p><strong>Part 4: Custom Hostile Trace Design (5 pts)</strong></p>
+<ul>
+<li><strong>Trace Validity &amp; Source Code</strong>: Source code provided and trace passes all instruction count, memory density, and address footprint checks: <strong>1 pt</strong></li>
+<li><strong>Absolute Difficulty Threshold</strong>: Successfully achieves <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8056em;vertical-align:-0.0556em;"></span><span class="mord">40%</span></span></span></span> L2C miss rate or significantly degrades baseline IPC: <strong>2 pts</strong></li>
+<li><strong>Trace Difficulty Leaderboard Ranking</strong>: Ranked by Difficulty Score (<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">trace</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>): <strong>2 pts</strong> <em>(Top 20% hardest traces: 2 pts; Top 50%: 1.5 pts; Others: 1 pt)</em></li>
+</ul>
+</li>
+</ul>
+</div>
+</div><div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="appendix-a-introduction-to-cache-prefetchers"><a class="header" href="#appendix-a-introduction-to-cache-prefetchers">Appendix A: Introduction to Cache Prefetchers</a></h1>
 <p>In modern memory hierarchy, the penalty of cache misses can be extremely large. This motivates designers to reduce the cache miss rate. Typically, some workloads show predictable memory access patterns, like sequentially accessing an array (address sequence as <code>A, A+1, ...</code>). In such cases, a previous access can inform the CPU about the potential following accesses (e.g., <code>A</code> can lead to <code>A+1</code>). The cache prefetchers are designed for these scenarios, which extract the workloads' access patterns, and load the following data before the CPU explicitly accesses them, eliminating cache misses.</p>
 <p>The simplest implementation of prefetcher is the "next-line prefetcher", as shown in Fig (a) below. When the CPU access a block (cacheline) <code>A</code>, the next-line prefetcher will load the next block <code>A+1</code> to the cache. Note that in cache hierarchy, the access granualrity will always be block (typically 64B), so there is no concept like "next-byte prefetcher".</p>

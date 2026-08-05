@@ -179,30 +179,64 @@
                 <div id="content" class="content">
                     <main>
                         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<h1 id="part-3-read-paper-implement-and-evaluate-perceptron-bp"><a class="header" href="#part-3-read-paper-implement-and-evaluate-perceptron-bp">Part 3: Read Paper, Implement and Evaluate Perceptron BP</a></h1>
-<h2 id="a-brief-introduction-to-2-bit-local-bp-and-gshare-predictor"><a class="header" href="#a-brief-introduction-to-2-bit-local-bp-and-gshare-predictor">A brief introduction to 2-bit local BP and GShare predictor</a></h2>
-<p>Before introducing perceptron BP, we first describe two basic branch predictors, i.e., the <strong>2-bit local BP</strong> and the <strong>GShare predictor</strong>.</p>
+<h1 id="part-3-read-paper-implement-your-own-perceptron-bp"><a class="header" href="#part-3-read-paper-implement-your-own-perceptron-bp">Part 3: Read Paper, Implement your own Perceptron BP</a></h1>
+<h2 id="a-brief-introduction-to-2-bit-local-bp-and-gshare-predictor"><a class="header" href="#a-brief-introduction-to-2-bit-local-bp-and-gshare-predictor">A Brief Introduction to 2-Bit Local BP and GShare Predictor</a></h2>
+<p>Before designing your own branch predictor, we first review two foundational dynamic branch predictors: the <strong>2-bit local BP</strong> and the <strong>GShare predictor</strong>.</p>
 <p><img src="./proj2part3.svg" alt="Fig" /></p>
-<p>As shown in Fig (a) above, the 2-bit local BP contains a saturating counter table. When a branch instruction is executed, the BP indexes into the counter table based on the instruction’s PC. The BP predicts 'take' if the counter is 2 (<code>10</code>) or 3 (<code>11</code>), and 'not take' otherwise. When the actual branch outcome is known, the counter in the saturating counter table will be updated. The counter is increased by 1 (will not exceed 3) if the actual outcome is 'taken', and vice versa.</p>
-<p>Note that the behavior of one branch is usually correlated to the behavior of the most recent branches. However, a predictor that uses the behavior of only a single branch to predict (e.g., 2-bit BP) can never capture this feature. To be aware of the most recent branches (i.e., branch <strong>history</strong> pattern), the GShare predictor proposes to add a global history register (GHR) to the BP as shown in Fig (b) above. The GHR records the history of each most recent branch instruction <strong>with a single bit</strong> and updates itself when an actual branch outcome is known. The GHR has a <strong>fixed bit length</strong>, and when it updates, it will <strong>shift by one bit</strong> to remove the earliest history from it. Consequently, the updating is similar to <code>GHR &lt;&lt;= 1; GHR |= outcome (1 if taken, else 0)</code>. Further, when indexing into the counter table, the PC is first hashed (i.e., XOR) with GHR, thus the history information is taken into consideration. It is also possible to replace GHR with a table of local history registers (LHRs), which will be indexed by PC. More information about these branch predictors can be found in this <a href="https://zhuanlan.zhihu.com/p/602635898">blog</a>.</p>
-<h2 id="a-brief-introduction-to-perceptron-bp"><a class="header" href="#a-brief-introduction-to-perceptron-bp">A brief introduction to perceptron BP</a></h2>
-<p>Now, we introduce the simple perceptron BP, which is first described in the paper.</p>
-<div id="admonition-cite" class="admonition admonish-quote" role="note" aria-labelledby="admonition-cite-title">
+<p>As shown in Fig (a) above, the 2-bit local BP contains a table of saturating counters. When a branch instruction is fetched, the BP indexes into the counter table using the instruction's PC. The BP predicts <strong>'taken'</strong> if the counter value is 2 (<code>10</code>) or 3 (<code>11</code>), and <strong>'not taken'</strong> if the counter value is 0 (<code>00</code>) or 1 (<code>01</code>). When the actual branch outcome is resolved, the corresponding counter in the table is updated: it is incremented by 1 (saturating at 3) if the actual outcome is 'taken', and decremented by 1 (saturating at 0) if 'not taken'.</p>
+<p>However, the outcome of a branch is often strongly correlated with the outcomes of other recent branches. A local predictor that relies solely on a single branch's past behavior (like the 2-bit local BP) cannot capture these inter-branch correlations.</p>
+<p>To leverage global branch history, the <strong>GShare predictor</strong> introduces a Global History Register (GHR), as shown in Fig (b) above. The GHR maintains a shift register where each bit represents the outcome of a recent conditional branch instruction (<strong>1</strong> for taken, <strong>0</strong> for not taken). When a branch outcome is resolved, the GHR updates via a bitwise shift:</p>
+<pre><code class="language-cpp">GHR = ((GHR &lt;&lt; 1) | outcome) &amp; GHR_MASK;
+
+</code></pre>
+<p>When indexing into the counter table, GShare XORs (hashes) the instruction's PC with the GHR. This hash ensures that global history is factored into table indexing, allowing the predictor to distinguish between different execution paths leading to the same branch.</p>
+<h2 id="a-brief-introduction-to-perceptron-bp"><a class="header" href="#a-brief-introduction-to-perceptron-bp">A Brief Introduction to Perceptron BP</a></h2>
+<p>Now, we introduce the <strong>Perceptron Branch Predictor</strong>, originally proposed by Jiménez and Lin:</p>
+<div id="admonition-citation" class="admonition admonish-quote" role="note" aria-labelledby="admonition-citation-title">
 <div class="admonition-title">
-<div id="admonition-cite-title">
-<p>Cite</p>
+<div id="admonition-citation-title">
+<p>Citation</p>
 </div>
-<a class="admonition-anchor-link" href="#admonition-cite"></a>
+<a class="admonition-anchor-link" href="#admonition-citation"></a>
 </div>
 <div>
-<p>Jiménez, Daniel A. and Calvin Lin. “Dynamic branch prediction with perceptrons.” Proceedings HPCA Seventh International Symposium on High-Performance Computer Architecture (2001): 197-206.</p>
-<p><a href="https://www.cs.utexas.edu/~lin/papers/hpca01.pdf">get the pdf</a></p>
+<p>Jiménez, Daniel A. and Calvin Lin. “Dynamic branch prediction with perceptrons.” <em>Proceedings HPCA Seventh International Symposium on High-Performance Computer Architecture</em> (2001): 197-206.</p>
+<p><a href="https://www.cs.utexas.edu/~lin/papers/hpca01.pdf">Read the paper PDF</a></p>
 </div>
 </div>
-<p>The simple perceptron BP replaces the 2-bit counters with perceptrons. A perceptron is a vector of signed integers, i.e., its weights. When predicts, the BP computes the <strong>dot product</strong> of the weight vector and GHR (regard the bits as integers, and '0' as '-1'), instead of checking the saturating counter. If the dot product is non-negative, the BP predicts 'take', and vice versa.</p>
-<p>The BP updates the perceptron with a 'training' method when an actual branch outcome is known. The weights will be increased or decreased by 1 according to the GHR history, the prediction correctness and the actual outcome. The BP also has a threshold for the weights. If the absolute value of the dot product reaches the threshold, the BP will not further train the perceptron if its prediction is correct.</p>
-<h2 id="reading-the-paper-and-implementing-perceptron-bp"><a class="header" href="#reading-the-paper-and-implementing-perceptron-bp">Reading the paper and implementing perceptron BP</a></h2>
-<p>In this part, you are required to read the paper listed above, summarize the method described in the paper, and implement the perceptron BP in <code>gem5</code>. For your convenience, an Appendix provides a brief description of the method. We've already provided a code skeleton. Please check <code>Lab2PerceptronBP</code> in <code>BranchPredictor.py</code>, <code>cpu/pred/lab2_bp.hh</code> and <code>cpu/pred/lab2_bp.cc</code>. You can follow the tutorial in part 2 to add useful parameters to <code>Lab2PerceptronBP</code> and implement C++ codes.</p>
+<p>The perceptron BP replaces traditional 2-bit saturating counters with artificial perceptrons. A perceptron is represented as a vector of signed integer weights (<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>), where <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> is a bias weight and <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> correspond to the <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span></span></span></span> bits in the GHR.</p>
+<ol>
+<li><strong>Prediction</strong>: Instead of checking counter thresholds, the BP selects a perceptron using the branch PC and computes the <strong>dot product</strong> of its weight vector and the GHR (treating GHR bits <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span></span></span> as <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">+</span><span class="mord">1</span></span></span></span> and <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0</span></span></span></span> as <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">−</span><span class="mord">1</span></span></span></span>):</li>
+</ol>
+<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:3.1138em;vertical-align:-1.2777em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.8361em;"><span style="top:-1.8723em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">i</span><span class="mrel mtight">=</span><span class="mord mtight">1</span></span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span><span style="top:-4.3em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.2777em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord text"><span class="mord">GHR</span></span><span class="mopen">[</span><span class="mord mathnormal">i</span><span class="mclose">]</span></span></span></span></span></p>
+<p>If <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8304em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≥</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0</span></span></span></span>, the BP predicts <strong>'taken'</strong> (<code>1</code>); otherwise, it predicts <strong>'not taken'</strong> (<code>0</code>).</p>
+<ol start="2">
+<li><strong>Training/Update</strong>: Once the actual branch outcome <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6542em;vertical-align:-0.0391em;"></span><span class="mord mathnormal">t</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">{</span><span class="mord">−</span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">+</span><span class="mord">1</span><span class="mclose">}</span></span></span></span> is known, the predictor trains the selected perceptron weights. A weight <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> is incremented if the historical outcome matches <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6151em;"></span><span class="mord mathnormal">t</span></span></span></span>, and decremented if it differs. To avoid overtraining, training only occurs if:</li>
+</ol>
+<ul>
+<li>The prediction was incorrect,</li>
+<li>The absolute value of the dot product <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∣</span><span class="mord"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mord">∣</span><span class="mord"></span></span></span></span> is within a predefined threshold <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">θ</span></span></span></span> (<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∣</span><span class="mord"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mord">∣</span><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">θ</span></span></span></span>).</li>
+</ul>
+<blockquote>
+<p><strong>Note: As part of this lab, you are required to read the paper cited above and summarize its key design in your report.</strong></p>
+</blockquote>
+<h2 id="designing-and-implementing-your-own-bp"><a class="header" href="#designing-and-implementing-your-own-bp">Designing and Implementing Your Own BP</a></h2>
+<p>In this part, you are required to design and implement your custom branch predictor in <code>ChampSim</code>. Your grade for this section will be based on <strong>correct functionality, architectural optimizations, and relative performance ranking</strong>.</p>
+<h3 id="design-freedom--ideas"><a class="header" href="#design-freedom--ideas">Design Freedom &amp; Ideas</a></h3>
+<p>You can implement the baseline perceptron predictor described in the paper, or explore advanced variations to achieve better branch accuracy and CPU IPC, such as:</p>
+<ul>
+<li><strong>Hyperparameter Tuning</strong>: Finding the optimal global history length <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span></span></span></span>, number of perceptrons, and training threshold <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">θ</span></span></span></span>.</li>
+<li><strong>Improved Hashing Functions</strong>: Designing better PC/GHR hashing logic to mitigate aliasing/collisions.</li>
+<li><strong>Hybrid &amp; Local History</strong>: Combining global branch history with local history tables (e.g., Perceptron with Local History).</li>
+<li><strong>Weight Quantization &amp; Budget Limits</strong>: Managing weight bit-widths effectively.</li>
+</ul>
+<h3 id="starter-skeleton"><a class="header" href="#starter-skeleton">Starter Skeleton</a></h3>
+<p>We have provided a code skeleton under the <code>branch/your_perceptron/</code> directory (<code>your_perceptron.h</code> and <code>your_perceptron.cc</code>). You need to fill in the missing logic in <code>ChampSim</code>'s interface functions:</p>
+<ul>
+<li><code>initialize_branch_predictor()</code>: Allocate your predictor tables/structures and initialize GHR, weight vectors, and thresholds.</li>
+<li><code>predict_branch()</code>: Select the predictor entry, compute prediction logic (e.g., dot product), and return <code>1</code> ('taken') or <code>0</code> ('not taken').</li>
+<li><code>last_branch_result()</code>: Train predictor weights/counters based on prediction correctness and threshold criteria, then update the branch history.</li>
+</ul>
 <div id="admonition-tip" class="admonition admonish-tip" role="note" aria-labelledby="admonition-tip-title">
 <div class="admonition-title">
 <div id="admonition-tip-title">
@@ -211,32 +245,64 @@
 <a class="admonition-anchor-link" href="#admonition-tip"></a>
 </div>
 <div>
-<p>If you cannot figure out how to implement, you can check the implementation of <code>BiModeBP</code> and <code>TournamentBP</code>. They are simple enough, and include all necessary steps to implement a global-history-aware BP in <code>gem5</code>.</p>
+<p>If you are unsure how to manage branch history or table indexing in ChampSim, you can check built-in predictors in the <code>branch/</code> directory (such as <code>gshare/</code> or <code>hashed_perceptron/</code>) for reference.</p>
 </div>
 </div>
-<div id="admonition-delieverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-delieverables-title">
+<h3 id="compiling-and-running"><a class="header" href="#compiling-and-running">Compiling and Running</a></h3>
+<p>To compile ChampSim with your custom BP, update <code>"branch_predictor": "your_perceptron"</code> in <code>lab2_config.json</code>, then build and run:</p>
+<pre><code class="language-sh"># 1. Update lab2_config.json to set "branch_predictor": "your_perceptron"
+./config.sh ./lab2_config.json
+make -j $(nproc)
+
+# 2. Run test traces
+bin/champsim --warmup-instructions 20000000 --simulation-instructions 100000000 ../trace/shell_sort.champsimtrace.xz
+bin/champsim --warmup-instructions 20000000 --simulation-instructions 100000000 ../trace/spfa.champsimtrace.xz
+
+</code></pre>
+<hr />
+<div id="admonition-grading-policy--performance-ranking" class="admonition admonish-info" role="note" aria-labelledby="admonition-grading-policy--performance-ranking-title">
 <div class="admonition-title">
-<div id="admonition-delieverables-title">
-<p>Delieverables</p>
+<div id="admonition-grading-policy--performance-ranking-title">
+<p>Grading Policy &amp; Performance Ranking</p>
 </div>
-<a class="admonition-anchor-link" href="#admonition-delieverables"></a>
+<a class="admonition-anchor-link" href="#admonition-grading-policy--performance-ranking"></a>
 </div>
 <div>
-<p>Please run two BP-sensitive workloads, i.e., <code>shell_sort</code> and <code>spfa</code>, with your <code>LabPerceptronBP</code>. In this part, please (at least) include figures or tables, which show the accuracy of <code>Lab2PerceptronBP</code> and IPC of CPU on executables listed below, in your <em><strong>report</strong></em>:</p>
+<p>Your implementation will be evaluated using both the public traces (<code>shell_sort</code>, <code>spfa</code>) and additional hidden evaluation workloads. Total points for this part consist of:</p>
+<ol>
+<li><strong>Basic Functionality &amp; Correctness (70%)</strong>: Correctly implementing a working predictor that successfully completes all simulation runs without crashes and surpasses the <code>simple_bp</code> baseline.</li>
+<li><strong>Performance Ranking &amp; Optimization (30%)</strong>: Graded competitively based on your predictor's <strong>Branch Prediction Accuracy (MPKI)</strong> and <strong>CPU IPC</strong> against your peers on the benchmark suite:
 <ul>
-<li>BPs: <code>Lab2PerceptronBP</code>.</li>
-<li>exe: <code>shell_sort</code>, <code>spfa</code>.</li>
-<li>With default CPU and Memory (O3 and DDR4).</li>
+<li><strong>Top 10% Performance</strong>: Full ranking score.</li>
+<li><strong>Above Average</strong>: High performance score.</li>
+<li><strong>Base Perceptron Baseline</strong>: Standard performance score.</li>
 </ul>
-<p>You are encouraged to try different parameters, including perceptron threshold, number of perceptrons, and GHR length. However, since running multiple epoches to adjust parameters may take tremendous time, it's ok for you to simply try a set of default parameters. Thus, at lease you need to run <code>gem5</code> twice.</p>
-<p>In this part, you also need to submit:</p>
+</li>
+</ol>
+</div>
+</div>
+<div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
+<div class="admonition-title">
+<div id="admonition-deliverables-title">
+<p>Deliverables</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-deliverables"></a>
+</div>
+<div>
+<p>Please evaluate your implemented <code>your_perceptron</code> predictor against all baselines.</p>
+<p>In your <em><strong>report</strong></em>, please include:</p>
+<ol>
+<li><strong>Paper Summary</strong>: A concise summary (1–2 pages) covering the <strong>motivations</strong>, <strong>key challenges</strong>, and <strong>perceptron design/training mechanisms</strong> described in the Jiménez &amp; Lin paper.</li>
+<li><strong>Custom BP Design Details</strong>: Explain your specific implementation, architectural choices, hashing logic, parameter selections (<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">θ</span></span></span></span>, table sizes), and any extra optimizations you added.</li>
+<li><strong>Performance Evaluation &amp; Comparison</strong>: Figures or tables comparing <strong>Branch Prediction Accuracy / MPKI</strong> and <strong>CPU IPC</strong> of your <code>your_perceptron</code> against <code>simple_bp</code>, <code>bimodal</code>, <code>gshare</code>, and <code>hashed_perceptron</code> across the tested workloads.</li>
+</ol>
+<p><strong>Files to submit</strong>:</p>
 <ul>
-<li><em><strong>your codes</strong></em>, including <code>BranchPredictor.py</code>, <code>lab2_bp.hh</code> and <code>lab2_bp.cc</code>.</li>
-<li><em><strong>paper summary</strong></em>, which summarizes the cited paper, including motivations, challenges and designs.</li>
+<li><strong>Source code</strong>: Files under <code>branch/your_perceptron/</code> (<code>your_perceptron.h</code> and <code>your_perceptron.cc</code>).</li>
+<li><strong>Lab report</strong>: PDF file including the paper summary, design details, and performance analysis.</li>
 </ul>
 </div>
 </div>
-
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

@@ -213,53 +213,32 @@
 <p><strong>Due:</strong> 11:59:59 pm, November 5, 2025</p>
 </div>
 </div>
-<p>In this project, we will explore the design of a branch predictor (BP) in a computer system. Specifically, we will introduce how to add a branch predictor module in the configuration script. We also provide a tutorial to add a new branch predictor in <code>gem5</code>. You will evaluate how different types of branch predictors can impact the system performance. Further, you will try to implement various BPs by yourselves. Specifically, you will first implement a simple BP following the tutorial. Then, you are required to read a paper that first describes the perceptron BP. You need to summarize the paper and implement the perceptron BP. Next, you are required to compare your BP’s performance with other BPs that <code>gem5</code> has provided.</p>
-<p>Whenever you face trouble or problems with this project, please refer contact TAs by WeChat or e-mail. All the following information has been verified on Ubuntu 20.04.1 with Linux Kernel 5.15.0 and Ubuntu 22.04.2 LTS with Linux Kernel 5.19.0.</p>
+<p>In this project, we will explore the design of a branch predictor (BP) in a computer system. Specifically, we will introduce how to configure and build <code>ChampSim</code> with different branch predictor modules under the <code>branch/</code> directory. We also provide a tutorial to add a new branch predictor in <code>ChampSim</code>. You will evaluate how different types of branch predictors can impact the system performance. Further, you will try to implement various BPs by yourself. Specifically, you will first implement a simple BP following the tutorial. Then, you are required to read a paper that first describes the perceptron BP. You need to summarize the paper and implement the perceptron BP. Next, you are required to compare your BP’s performance with other BPs that <code>ChampSim</code> provides.</p>
+<p>Whenever you face trouble or problems with this project, please contact TAs by WeChat or e-mail. All the following information has been verified on Ubuntu 20.04.1 with Linux Kernel 5.15.0 and Ubuntu 22.04.2 LTS with Linux Kernel 5.19.0.</p>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="part-1-add-branch-predictor-in-the-configuration-script"><a class="header" href="#part-1-add-branch-predictor-in-the-configuration-script">Part 1: Add Branch Predictor in the Configuration Script</a></h1>
-<p>In this part, we will extend our configuration script to enable the modification of CPU's branch predictor. Let's start with copying the original script to a new directory:</p>
-<pre><code class="language-sh">mkdir -p configs/proj2
-cp configs/proj1/simple.py configs/proj2
-</code></pre>
-<p>Then, let's change our default CPU to <code>O3CPU</code>. This is because <code>TimingSimpleCPU</code> assumes each instruction takes exactly a single CPU cycle, making it fail to reflect the impact of the branch predictor. The code can be modified as follows:</p>
-<pre><code class="language-py">parser.add_argument(
-    "--cpu",
-    type=str,
-    choices=list(cpu_types.keys()),
-    # DELETE: default="simple",
-    default="o3",
-    help="CPU model to use",
-)
-</code></pre>
-<p><code>gem5</code> provides different types of branch predictors. In this part, we will focus on three of them: local branch predictor, bi-mode branch predictor, and tournament branch predictor. Any one of these three branch predictors can be used to instantiate the CPU’s branch predictor object. In addition, you can configure each branch predictor with different configuration parameters. Let's add an option argument for modifying branch predictor:</p>
-<pre><code class="language-py">bp_types = {
-    "local": LocalBP,
-    "bimode": BiModeBP,
-    "tournament": TournamentBP,
+<p>In this part, we will configure and build <code>ChampSim</code> with different branch predictors. In <code>ChampSim</code>, branch predictor implementations are located under the <code>branch/</code> directory.</p>
+<p><code>ChampSim</code> is natively a detailed out-of-order (O3) CPU simulator, so you do not need to manually change the CPU model. To select a specific branch predictor, you can configure the <code>"branch_predictor"</code> field in the build JSON script (<code>lab2_config.json</code>).</p>
+<p><code>ChampSim</code> provides several built-in branch predictors in the <code>branch/</code> directory. In this part, we will focus on three of them: <code>bimodal</code>, <code>gshare</code>, and <code>hashed_perceptron</code>. You can specify the desired branch predictor in <code>lab2_config.json</code> as follows:</p>
+<pre><code class="language-json">{
+  "branch_predictor": "bimodal"
 }
 
-def init_system(system, args):
-    ...
-    system.cpu.branchPred = bp_types[args.bp]()
-    ...
+</code></pre>
+<p><em>(To test <code>gshare</code> or <code>hashed_perceptron</code>, simply change <code>"bimodal"</code> to <code>"gshare"</code> or <code>"hashed_perceptron"</code> in <code>lab2_config.json</code>.)</em></p>
+<p>After updating the JSON file, generate the build files and compile <code>ChampSim</code>:</p>
+<pre><code class="language-sh">./config.sh ./lab2_config.json
+make -j $(nproc)
 
-if __name__ == "__m5_main__":
-    ...
-    parser.add_argument(
-        "--bp",
-        type=str,
-        choices=list(bp_types.keys()),
-        default="tournament",
-        help="branch predictor to use",
-    )
-    ...
 </code></pre>
-<p>Then, let's run the test executables and learn how these BPs can impact the system performance. Among the provided executables, <code>shell_sort</code> and <code>spfa</code> are sensitive to BP, while <code>gemm</code> and <code>binary_search</code> are insensitive. In project 2, you only need to run the sensitive workloads, that is, <code>shell_sort</code> and <code>spfa</code>. So, to test the performance of local BP, the commands will look like the following:</p>
-<pre><code class="language-sh"># using default CPU and Mem
-build/ARM/gem5.opt -d m5out/local/sort configs/proj2/simple.py tests/labexe/shell_sort --bp local
-build/ARM/gem5.opt -d m5out/local/spfa configs/proj2/simple.py tests/labexe/spfa --bp local
+<p>Next, let me run the trace files and examine how these branch predictors impact system performance. <code>ChampSim</code> is trace-driven, and trace files are typically stored in <code>*.champsimtrace.xz</code> format. Among the provided workloads, <code>shell_sort</code> and <code>spfa</code> are sensitive to branch predictor performance, while <code>gemm</code> and <code>binary_search</code> are insensitive. In Project 2, you are only required to run the sensitive workloads (<code>shell_sort</code> and <code>spfa</code>).</p>
+<p>To test the performance of the <code>bimodal</code> predictor, run the following execution commands:</p>
+<pre><code class="language-sh"># Run with the compiled bimodal executable
+bin/champsim --warmup-instructions 20000000 --simulation-instructions 100000000 ../trace/shell_sort.champsimtrace.xz
+bin/champsim --warmup-instructions 20000000 --simulation-instructions 100000000 ../trace/spfa.champsimtrace.xz
+
 </code></pre>
-<p>The commands to test bi-mode and tournament BPs are similar.</p>
+<p>The process for testing <code>gshare</code> and <code>hashed_perceptron</code> is similar: update <code>"branch_predictor"</code> in <code>lab2_config.json</code>, re-compile with <code>./config.sh</code> and <code>make</code>, and then re-run the trace files using the commands above.</p>
 <div id="admonition-tip" class="admonition admonish-tip" role="note" aria-labelledby="admonition-tip-title">
 <div class="admonition-title">
 <div id="admonition-tip-title">
@@ -268,57 +247,38 @@ build/ARM/gem5.opt -d m5out/local/spfa configs/proj2/simple.py tests/labexe/spfa
 <a class="admonition-anchor-link" href="proj2/part1.html#admonition-tip"></a>
 </div>
 <div>
-<p>In this project (from part 1 to 3), the <code>system.cpu.max_insts_any_thread</code> can be set to only 1e8 or 2e8 to fully exhibit the differences between tested BPs. This can save a lot of time for you.</p>
+<p>In this project (Parts 1 to 3), setting <code>--simulation-instructions</code> to <code>100000000</code> (1e8) or <code>200000000</code> (2e8) is sufficient to clearly observe performance differences among branch predictors while saving simulation time.</p>
 </div>
 </div>
-<p>After the simulations finish, let's search <code>cpu.branchPred</code> in any <code>stats.txt</code>. You may find that the branch predictors generate numerous statistic entries. However, they didn't generate basic performance metrics like <code>accuracy</code>. Thus, in this part, you are going to calculate the metric. In this project, we only concerns about the mispredict rate of <strong>conditional</strong> branches. To be short, this metric can be calculated by <code>branchPred.mispredicted_0::DirectCond / branchPred.committed_0::DirectCond</code>. The accuracy can be <code>1 - misrate</code>.</p>
-<div id="admonition-note" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-title">
-<div class="admonition-title">
-<div id="admonition-note-title">
-<p>Note</p>
-</div>
-<a class="admonition-anchor-link" href="proj2/part1.html#admonition-note"></a>
-</div>
-<div>
-<p>In <code>gem5</code>, most of the branch predictors use a shared infrastructure that contains basic components, such as BTB (branch target buffer) and RAS (return address stack). In this project, your implementation will mainly focus on predicting conditional branches, so you are not required to modify these components.</p>
-</div>
-</div>
-<div id="admonition-delieverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-delieverables-title">
-<div class="admonition-title">
-<div id="admonition-delieverables-title">
-<p>Delieverables</p>
-</div>
-<a class="admonition-anchor-link" href="proj2/part1.html#admonition-delieverables"></a>
-</div>
-<div>
-<p>Please run two BP-sensitive workloads, i.e., <code>shell_sort</code> and <code>spfa</code>, with three BPs. The rest workloads <code>gemm</code> and <code>binary_search</code>, are insensitive to BP. You can run these workloads if you are interested in, and have sufficient computing resources. Nevertheless, in this part, please (at least) include figures or tables, which show the accuracy of BPs and IPC of CPU on workloads listed below, in your <em><strong>report</strong></em>:</p>
+<p>After the simulation finishes, <code>ChampSim</code> will output execution statistics directly to the terminal (or stdout log). Pay attention to the following metrics in the summary output:</p>
 <ul>
-<li>BPs: <code>LocalBP</code>, <code>BiModeBP</code>, <code>TournamentBP</code>.</li>
-<li>exe: <code>shell_sort</code>, <code>spfa</code>.</li>
-<li>With default CPU and Memory (O3 and DDR4).</li>
+<li><strong>CPU 0 cumulative IPC:</strong> Indicates overall processor performance.</li>
+<li><strong>Branch Prediction Accuracy / MPKI:</strong> Reflects conditional branch prediction quality.</li>
 </ul>
-<p>In total, you need to run <code>gem5</code> six times.</p>
+<p>If accuracy is not printed directly, you can calculate it using the printed total branch instructions and misprediction counts:</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord text"><span class="mord">Accuracy</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:2.0574em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3714em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">Total Conditional Branches</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">Branch Mispredictions</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p>
+<div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
+<div class="admonition-title">
+<div id="admonition-deliverables-title">
+<p>Deliverables</p>
+</div>
+<a class="admonition-anchor-link" href="proj2/part1.html#admonition-deliverables"></a>
+</div>
+<div>
+<p>Please run the two BP-sensitive workloads (<code>shell_sort</code> and <code>spfa</code>) across all three branch predictors. The remaining workloads (<code>gemm</code> and <code>binary_search</code>) are insensitive to BP; you can run them for extra exploration if interested.</p>
+<p>In your <em><strong>report</strong></em>, please include figures or tables showing the <strong>Branch Prediction Accuracy</strong>, <strong>MPKI</strong> and <strong>CPU IPC</strong> for the following combinations:</p>
+<ul>
+<li><strong>Branch Predictors:</strong> <code>bimodal</code>, <code>gshare</code>, <code>hashed_perceptron</code></li>
+<li><strong>Traces:</strong> <code>shell_sort</code>, <code>spfa</code></li>
+<li><strong>Configuration:</strong> Default 1-core configuration with no prefetchers</li>
+</ul>
+<p>In total, you need to execute <code>ChampSim</code> <strong>six times</strong>.</p>
 </div>
 </div>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="part-2-implement-a-simple-bp"><a class="header" href="#part-2-implement-a-simple-bp">Part 2: Implement a Simple BP</a></h1>
-<p>A prediction result of a BP can be 'take', which means the branch instruction should take the branch and jump to the branch target, or 'not take', which means the branch instruction should not branch. In this part, we will build a <em>simple static branch predictor</em>, which always predicts 'take'.</p>
-<p><code>gem5</code> has provided many types of BP. The source codes can be found in <code>gem5/src/cpu/pred</code>. The definitions of all BP <code>SimObject</code> can be found in <code>gem5/src/cpu/pred/BranchPredictor.py</code>, and a Python abstact class <code>BranchPredictor</code> is provided to describe basic BP structure. You can also find <code>LocalBP</code>, <code>BiModeBP</code> and <code>TournamentBP</code> in <code>BranchPredictor.py</code>. For example, <code>LocalBP</code> is defined as follows:</p>
-<pre><code class="language-py">class LocalBP(BranchPredictor):
-    type = "LocalBP"
-    cxx_class = "gem5::branch_prediction::LocalBP"
-    cxx_header = "cpu/pred/2bit_local.hh"
-
-    localPredictorSize = Param.Unsigned(2048, "Size of local predictor")
-    localCtrBits = Param.Unsigned(2, "Bits per counter")
-</code></pre>
-<p>Almost all <code>SimObject</code> are defined with these contents, which our simple BP will also follow:</p>
-<ul>
-<li><code>type</code>: the typename of this Python object.</li>
-<li><code>cxx_class</code>: the typename of the C++ class that defines this object.</li>
-<li><code>cxx_header</code>: the header file includes the defination of the C++ class.</li>
-<li><code>&lt;name&gt; = Param.&lt;type&gt;(default, description)</code>: a list of configurable parameters, use the <code>Param</code> type provided by <code>gem5</code>.</li>
-</ul>
+<p>A prediction result of a BP can be <strong>'taken'</strong> (represented by <code>1</code>), which means the branch instruction should take the branch and jump to the branch target, or <strong>'not taken'</strong> (represented by <code>0</code>), which means the branch instruction should not branch. In this part, we will build a <em>simple static branch predictor</em> (<code>simple_bp</code>), which always predicts 'taken'.</p>
+<p><code>ChampSim</code> provides built-in branch predictors in the <code>branch/</code> directory and modularizes branch predictors purely in C++. Adding a new branch predictor in <code>ChampSim</code> only requires creating a new folder with source files inside the <code>branch/</code> directory and implementing a few interface functions.</p>
 <div id="admonition-note" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-title">
 <div class="admonition-title">
 <div id="admonition-note-title">
@@ -327,216 +287,150 @@ build/ARM/gem5.opt -d m5out/local/spfa configs/proj2/simple.py tests/labexe/spfa
 <a class="admonition-anchor-link" href="proj2/part2.html#admonition-note"></a>
 </div>
 <div>
-<p>We've provided a skeleton code for you, which includes blank implementations that you need to fill when you reproduce the papers, so that the complicated <code>gem5</code> interfaces will not bother you. However, to show you the basic steps of defining a new <code>SimObject</code>, you will implement the simple BP from scratch in this part. It will be easy if you follow the tutorial below.</p>
+<p>In <code>ChampSim</code>, core structures such as the Branch Target Buffer (BTB) and Return Address Stack (RAS) are handled by the main simulation framework. In this project, your implementation will mainly focus on predicting conditional branch outcomes inside your custom predictor module under <code>branch/</code> (specifically implementing <code>predict_branch()</code> and <code>last_branch_result()</code>).</p>
 </div>
 </div>
-<p>To add our simple BP, let's start with adding a new Python class to <code>BranchPredictor.py</code>, inheriting from <code>BranchPredictor</code>:</p>
-<pre><code class="language-py"># src/cpu/pred/BranchPredictor.py
-class SimpleBP(BranchPredictor):
-    type = 'SimpleBP'
-    cxx_class = 'gem5::branch_prediction::SimpleBP'
-    cxx_header = 'cpu/pred/simplebp.hh'
+<p>To create our simple branch predictor, let's create a new directory named <code>simple_bp</code> under the <code>branch/</code> directory, and add <code>simple_bp.cc</code> and <code>simple_bp.h</code> inside <code>branch/simple_bp/</code>:</p>
+<pre><code class="language-sh">cd branch
+mkdir simple_bp
 </code></pre>
-<p>Next, we need to create <code>simplebp.hh</code> and <code>simplebp.cc</code>, which contains the codes of the implementation. First, create <code>simplebp.hh</code>:</p>
-<pre><code class="language-cpp">// src/cpu/pred/simplebp.hh
-#ifndef __CPU_PRED_SIMPLE_BP_HH__
-#define __CPU_PRED_SIMPLE_BP_HH__
+<pre><code class="language-cpp">// branch/simple_bp/simple_bp.h
+#ifndef BRANCH_SIMPLE_BP_H
+#define BRANCH_SIMPLE_BP_H
 
-#include "base/types.hh"
-#include "cpu/pred/bpred_unit.hh"
-#include "params/SimpleBP.hh"
+#include "modules.h"
+#include "msl/fwcounter.h"
+#include &lt;array&gt;
+#include &lt;cstdint&gt;
 
-namespace gem5 {
-namespace branch_prediction {
-class SimpleBP : public BPredUnit {
-public:
-  SimpleBP(const SimpleBPParams &amp;params);
+struct simple_bp : champsim::modules::branch_predictor {
 
-  bool lookup(ThreadID tid, Addr pc, void *&amp;bp_history) override;
-  void updateHistories(ThreadID tid, Addr pc, bool uncond, bool taken,
-                       Addr target, void *&amp;bp_history) override;
-  void update(ThreadID tid, Addr pc, bool taken, void *&amp;bp_history,
-              bool squashed, const StaticInstPtr &amp;inst, Addr target) override;
-  void squash(ThreadID tid, void *&amp;bp_history) override;
+  // 初始化钩子（可选但推荐）
+  void initialize_branch_predictor();
+
+  bool predict_branch(champsim::address ip);
+  void last_branch_result(champsim::address ip, champsim::address branch_target, bool taken, uint8_t branch_type);
 };
-} // namespace branch_prediction
-} // namespace gem5
 
-#endif // __CPU_PRED_SIMPLE_BP_HH__
+#endif
 </code></pre>
-<p>The definition of <code>SimpleBP</code> should be in namespace <code>gem5::branch_prediction</code>. The file should include <code>base/types.hh</code> and <code>cpu/pred/bpred_unit.hh</code> for base class definations.</p>
-<p>As we described above, the Python class in <code>BranchPredictor.py</code> defines multiple configurable parameters, and <code>SimpleBP</code> inherits the parameters from <code>BranchPredictor</code> (<code>BPredUnit</code> in C++ codes). When starting the simulation, <code>gem5</code> reads these parameters from Python scripts (including the configuration scripts like we created in Project 1) and passes them to C++ classes.</p>
-<p>To achieve this, SCons will automatically generate parameter headers and implementations from Python scripts, which can be included by your C++ codes. The generated codes are under <code>build/ARM/params</code>. Specifically, in code above, we firstly include <code>params/SimpleBP.hh</code>. Then, we defines a constructor with an argument <code>const SimpleBPParams &amp;params</code>.</p>
-<div id="admonition-tip" class="admonition admonish-tip" role="note" aria-labelledby="admonition-tip-title">
-<div class="admonition-title">
-<div id="admonition-tip-title">
-<p>Tip</p>
-</div>
-<a class="admonition-anchor-link" href="proj2/part2.html#admonition-tip"></a>
-</div>
-<div>
-<p>For your convenience, if you are using code editors/IDEs, you can add the special include paths of <code>gem5</code> to your tools, so that C++ code completion can work. The paths are <code>src/</code>, <code>build/ARM</code>, <code>ext/</code> and <code>ext/pybind11/include</code>.</p>
-</div>
-</div>
-<p>Basically, the <code>params</code> will contains all parameters defined and configured in Python scripts. For example. if we defined <code>pred_result</code> in the <code>BranchPredictor.py</code>, we can use it in the constructor:</p>
-<pre><code class="language-py"># BranchPredictor.py
-class SimpleBP(BranchPredictor):
-    type = 'SimpleBP'
-    cxx_class = 'gem5::branch_prediction::SimpleBP'
-    cxx_header = 'cpu/pred/simplebp.hh'
+<pre><code class="language-cpp">// branch/simple_bp/simple_bp.cc
+#include "simple_bp.h"
 
-    pred_result = Param.Bool(True, "True = always take, False = always not take")
-</code></pre>
-<pre><code class="language-cpp">// simplebp.hh
-class SimpleBP : public BPredUnit {
-    ...
-    bool pred_result;
-};
-// simplebp.cc
-SimpleBP::SimpleBP(const SimpleBPParams &amp;params)
-  : BPredUnit(params), pred_result(params.pred_result){}
-</code></pre>
-<div id="admonition-important-note" class="admonition admonish-warning" role="note" aria-labelledby="admonition-important-note-title">
-<div class="admonition-title">
-<div id="admonition-important-note-title">
-<p>Important note</p>
-</div>
-<a class="admonition-anchor-link" href="proj2/part2.html#admonition-important-note"></a>
-</div>
-<div>
-<p>Basically, the parameter passing procedure makes two constrains (for <strong><em>Python</em></strong> type <code>MyObj</code>):</p>
-<ul>
-<li>The included file is always <code>params/MyObj.hh</code>.</li>
-<li>The parameter typename is always <code>MyObjParams</code>.</li>
-</ul>
-<p>If you violate these constraints, compilation will fail.
-Any function signature that mismatches with base class will also fail compilation, and produce error message related to <code>MyObjParams</code> like the following:</p>
-<pre><code>/gem5/ext/pybind11/include/pybind11/pybind11.h:223: undefined reference to gem5::SimpleBPParams::create() const'
-collect2: error: ld returned 1 exit status
-</code></pre>
-<p>If you get this error, consider to double check your function signatures.</p>
-</div>
-</div>
-<p>In addition to the parameter, we also define four methods. These methods are defined as pure-abstract methods in <code>BPredUnit</code>, which can be found in <code>bpred_unit.hh</code>. These functions should be implemented as described:</p>
-<ul>
-<li><code>lookup()</code> is used to predict a conditional branch. The branch is specified by its PC. All conditional branches will call this method after they are fetched to the CPU. Also, BPs may want to record useful information of a certain branch. <code>lookup()</code> gives a pointer <code>bp_history</code> to store these information. It points to <code>nullptr</code>, and you need to create an instance with the <code>new</code> operator and assign it to the <code>bp_history</code>. When the actual outcome of this branch is known, the instance will be passed back to your BP with this pointer.</li>
-<li><code>updateHistories()</code> is used to update only the branch histories recorded by BP. Most of the modern BPs records the actual outcomes of previous branches as "history" (different from the word in <code>bp_history</code>) to improve the prediction. Once the outcome is known, a branch will call this method. The <code>bp_history</code> you've created in <code>lookup()</code> will be passed back. You <strong>should not</strong> delete the <code>bp_history</code>. Specifically, unconditional branches (<code>uncond==true</code>) will also call this method, but because they don't call <code>lookup()</code>, the <code>bp_history</code> will be <code>nullptr</code>. However, since they may call other methods that use <code>bp_history</code>, you need to create instances for unconditional branches in this method.</li>
-<li><code>squash()</code> is used to stop an ongoing prediction, suppress BP update, and restore the BP to previous state. This may happen when an earlier branch is mispredicted, and the branch instruction of the squashed prediction will not be executed anymore. Specifically, there is a pereiod between a branch's acutal outcome is known and the branch is finally committed. <code>squash()</code> may happen in this period, when <code>updateHistories()</code> is already called. This method passes the <code>bp_history</code> you created in <code>lookup()</code> back. You need to restore BP's state from <code>bp_history</code> and delete the <code>bp_history</code>. Notice that unconditional branches that previously called <code>updateHistories()</code> may call this method, too.</li>
-<li><code>update()</code> is used to update BP when the outcome (<code>taken</code>) of a branch is known, and the branch is going to be committed. If the prediction is incorrect, and causes squash of other branches, <code>update(squashed=true)</code> will be called first. Otherwise, no additional call happens. Then, under whatever condition, <code>update(squashed=false)</code> will be called to update the BP, then delete the <code>bp_history</code>.</li>
-</ul>
-<p>Here is a diagram that further describes the working flow of BP and these four methods under different conditions:</p>
-<p><img src="proj2/./proj2part2.svg" alt="Fig" /></p>
-<div id="admonition-bug" class="admonition admonish-bug" role="note" aria-labelledby="admonition-bug-title">
-<div class="admonition-title">
-<div id="admonition-bug-title">
-<p>Bug</p>
-</div>
-<a class="admonition-anchor-link" href="proj2/part2.html#admonition-bug"></a>
-</div>
-<div>
-<p>Here are some known bugs in <code>gem5</code> that make the behavior violates the descriptions above:</p>
-<ul>
-<li>It is claimed that all conditional branches call <code>lookup()</code> firstly and <code>update()</code> finally. However, the first few branches may directly call <code>update()</code>, and pass an uninitialized <code>bp_history</code>.</li>
-<li>When a branch is mispredicted and cause squash of other branches, it will call <code>update()</code> twice, <code>update(squashed=true)</code> then <code>update(squashed=false)</code>. We expect the <code>bp_history</code> in these two calls are the same. However, some branches pass different <code>bp_history</code>.</li>
-</ul>
-<p>The frequency of these events is below 0.1%, so they won't impact the performance of your BPs, but may cause fatal errors if you don't check the <code>bp_history</code>. One way to avoid fatal errors is to record a magic number in your <code>bp_history</code> and check it before you use them.</p>
-</div>
-</div>
-<p>These descriptions may be hard to understand. When you are implementing a "not simple" BP, you can learn the basic implementation principles of these functions from <code>bimode.cc</code> or <code>tournament.cc</code>. However, in <code>SimpleBP</code>, we do not care about any history or BP state. The implementation in <code>simplebp.cc</code> will be the simplest. We just return <code>true</code> in <code>lookup()</code>, and leave blank implementations in other functions:</p>
-<pre><code class="language-cpp">// src/cpu/pred/simplebp.cc
-#include "cpu/pred/simplebp.hh"
-
-namespace gem5 {
-namespace branch_prediction {
-SimpleBP::SimpleBP(const SimpleBPParams &amp;params) : BPredUnit(params) {}
-
-bool SimpleBP::lookup(ThreadID tid, Addr pc, void *&amp;bp_history) { return true; }
-void SimpleBP::updateHistories(ThreadID tid, Addr pc, bool uncond, bool taken,
-                               Addr target, void *&amp;bp_history) {}
-
-void SimpleBP::update(ThreadID tid, Addr pc, bool taken, void *&amp;bp_history,
-                      bool squashed, const StaticInstPtr &amp;inst, Addr target) {}
-void SimpleBP::squash(ThreadID tid, void *&amp;bp_history) {}
-} // namespace branch_prediction
-} // namespace gem5
-</code></pre>
-<p>Now we've finished the C++ implementation, the next thing we need to do is to register <code>SimpleBP</code> in the SCons script to let it be compiled. In <code>cpu/pred/SConscript</code>, we need to add <code>SimpleBP</code> to the list of <code>SimObject</code>, and register the source code <code>simplebp.cc</code>:</p>
-<pre><code class="language-py"># src/cpu/pred/SConscript
-SimObject('BranchPredictor.py',
-    sim_objects=[
-    # add this
-    'SimpleBP',
-    ...])
-
-# add this
-Source('simplebp.cc')
-...
-</code></pre>
-<p>Finally, we configure the CPU with our <code>SimpleBP</code> in the configuration script:</p>
-<pre><code class="language-py"># configs/proj2/simple.py
-bp_types = {
-    ...
-    "simple": SimpleBP,
+// Initialize branch predictor state
+void simple_bp::initialize_branch_predictor() {
+    // Static predictor does not require any internal tables or counters.
 }
+
+// Predict whether a branch is taken (1) or not taken (0)
+uint8_t simple_bp::predict_branch(uint64_t ip, uint64_t predicted_target, uint8_t always_taken, uint8_t branch_type) {
+    // Always predict 'taken'
+    return 1;
+}
+
+// Update predictor state after branch execution
+void simple_bp::last_branch_result(champsim::address ip, champsim::address branch_target, bool taken, uint8_t branch_type) {
+    // Static predictor does not update any state.
+}
+
 </code></pre>
-<p>And we can compile and run the <code>gem5</code>:</p>
-<pre><code class="language-sh">scons build/ARM/gem5.opt -j $(nproc)
-build/ARM/gem5.opt configs/proj2/simple.py tests/labexe/hello --bp simple
-</code></pre>
-<p>If everything goes correctly, we can see the <code>cpu.branchPred</code> has changed in <code>config.ini</code>.</p>
-<div id="admonition-important-note-1" class="admonition admonish-warning" role="note" aria-labelledby="admonition-important-note-1-title">
-<div class="admonition-title">
-<div id="admonition-important-note-1-title">
-<p>Important note</p>
-</div>
-<a class="admonition-anchor-link" href="proj2/part2.html#admonition-important-note-1"></a>
-</div>
-<div>
-<p>You may have noticed that the SCons again generates a lot of outputs while compiling. This is because we've modified <code>BranchPredictor.py</code>, and SCons needs to re-generate the py-cpp binding codes. Actually, any modification to Python scripts under <code>src</code> will cause SCons to re-generate all binding codes, which takes very long time. So when you are implementing other new components, try to design all the required parameters first, and modify Python scripts only once to save compile time.</p>
-</div>
-</div>
-<div id="admonition-delieverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-delieverables-title">
-<div class="admonition-title">
-<div id="admonition-delieverables-title">
-<p>Delieverables</p>
-</div>
-<a class="admonition-anchor-link" href="proj2/part2.html#admonition-delieverables"></a>
-</div>
-<div>
-<p>Please run two BP-sensitive workloads, i.e., <code>shell_sort</code> and <code>spfa</code>, with your <code>SimpleBP</code>. In this part, please (at least) include figures or tables, which show the accuracy of <code>SimpleBP</code> and IPC of CPU on workloads listed below, in your <em><strong>report</strong></em>:</p>
+<p>Let's look at the three key interface functions required by <code>ChampSim</code>:</p>
 <ul>
-<li>BPs: <code>SimpleBP</code>.</li>
-<li>exe: <code>shell_sort</code>, <code>spfa</code>.</li>
-<li>With default CPU and Memory (O3 and DDR4).</li>
+<li><code>initialize_branch_predictor()</code>: Called once at CPU startup. You can allocate memory, reset tables, or initialize global history registers here.</li>
+<li><code>predict_branch()</code>: Called when a conditional branch is fetched. It receives the branch instruction address (<code>ip</code>) and returns <code>1</code> for taken or <code>0</code> for not taken.</li>
+<li><code>last_branch_result()</code>: Called when the branch instruction is executed/committed and its actual outcome (<code>taken</code>) is known. You use this callback to update your prediction tables or history registers.</li>
 </ul>
-<p>In total, you need to run <code>gem5</code> twice.</p>
-</div>
-</div>
-<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<h1 id="part-3-read-paper-implement-and-evaluate-perceptron-bp"><a class="header" href="#part-3-read-paper-implement-and-evaluate-perceptron-bp">Part 3: Read Paper, Implement and Evaluate Perceptron BP</a></h1>
-<h2 id="a-brief-introduction-to-2-bit-local-bp-and-gshare-predictor"><a class="header" href="#a-brief-introduction-to-2-bit-local-bp-and-gshare-predictor">A brief introduction to 2-bit local BP and GShare predictor</a></h2>
-<p>Before introducing perceptron BP, we first describe two basic branch predictors, i.e., the <strong>2-bit local BP</strong> and the <strong>GShare predictor</strong>.</p>
-<p><img src="proj2/./proj2part3.svg" alt="Fig" /></p>
-<p>As shown in Fig (a) above, the 2-bit local BP contains a saturating counter table. When a branch instruction is executed, the BP indexes into the counter table based on the instruction’s PC. The BP predicts 'take' if the counter is 2 (<code>10</code>) or 3 (<code>11</code>), and 'not take' otherwise. When the actual branch outcome is known, the counter in the saturating counter table will be updated. The counter is increased by 1 (will not exceed 3) if the actual outcome is 'taken', and vice versa.</p>
-<p>Note that the behavior of one branch is usually correlated to the behavior of the most recent branches. However, a predictor that uses the behavior of only a single branch to predict (e.g., 2-bit BP) can never capture this feature. To be aware of the most recent branches (i.e., branch <strong>history</strong> pattern), the GShare predictor proposes to add a global history register (GHR) to the BP as shown in Fig (b) above. The GHR records the history of each most recent branch instruction <strong>with a single bit</strong> and updates itself when an actual branch outcome is known. The GHR has a <strong>fixed bit length</strong>, and when it updates, it will <strong>shift by one bit</strong> to remove the earliest history from it. Consequently, the updating is similar to <code>GHR &lt;&lt;= 1; GHR |= outcome (1 if taken, else 0)</code>. Further, when indexing into the counter table, the PC is first hashed (i.e., XOR) with GHR, thus the history information is taken into consideration. It is also possible to replace GHR with a table of local history registers (LHRs), which will be indexed by PC. More information about these branch predictors can be found in this <a href="https://zhuanlan.zhihu.com/p/602635898">blog</a>.</p>
-<h2 id="a-brief-introduction-to-perceptron-bp"><a class="header" href="#a-brief-introduction-to-perceptron-bp">A brief introduction to perceptron BP</a></h2>
-<p>Now, we introduce the simple perceptron BP, which is first described in the paper.</p>
-<div id="admonition-cite" class="admonition admonish-quote" role="note" aria-labelledby="admonition-cite-title">
+<p>Next, to compile <code>ChampSim</code> with our new <code>simple_bp</code>, set <code>"branch_predictor": "simple_bp"</code> in <code>lab2_config.json</code>:</p>
+<pre><code class="language-json">{
+  "branch_predictor": "simple_bp"
+}
+
+</code></pre>
+<p>Then, generate the build scripts and compile <code>ChampSim</code>:</p>
+<pre><code class="language-sh">./config.sh ./lab2_config.json
+make -j $(nproc)
+
+</code></pre>
+<p>After compilation succeeds, run the compiled binary on the two BP-sensitive workloads (<code>shell_sort</code> and <code>spfa</code>):</p>
+<pre><code class="language-sh">bin/champsim --warmup-instructions 20000000 --simulation-instructions 100000000 ../trace/shell_sort.champsimtrace.xz
+bin/champsim --warmup-instructions 20000000 --simulation-instructions 100000000 ../trace/spfa.champsimtrace.xz
+
+</code></pre>
+<div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
 <div class="admonition-title">
-<div id="admonition-cite-title">
-<p>Cite</p>
+<div id="admonition-deliverables-title">
+<p>Deliverables</p>
 </div>
-<a class="admonition-anchor-link" href="proj2/part3.html#admonition-cite"></a>
+<a class="admonition-anchor-link" href="proj2/part2.html#admonition-deliverables"></a>
 </div>
 <div>
-<p>Jiménez, Daniel A. and Calvin Lin. “Dynamic branch prediction with perceptrons.” Proceedings HPCA Seventh International Symposium on High-Performance Computer Architecture (2001): 197-206.</p>
-<p><a href="https://www.cs.utexas.edu/~lin/papers/hpca01.pdf">get the pdf</a></p>
+<p>Please run two BP-sensitive workloads (<code>shell_sort</code> and <code>spfa</code>) with your implemented <code>simple_bp</code>. In your <em><strong>report</strong></em>, please include figures or tables showing the prediction accuracy (or MPKI) and CPU IPC for:</p>
+<ul>
+<li><strong>BP:</strong> <code>simple_bp</code></li>
+<li><strong>Traces:</strong> <code>shell_sort</code>, <code>spfa</code></li>
+<li><strong>Configuration:</strong> Default 1-core configuration with no prefetchers</li>
+</ul>
+<p>In total, you need to execute <code>ChampSim</code> <strong>twice</strong>.</p>
+</div>
+</div><div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="part-3-read-paper-implement-your-own-perceptron-bp"><a class="header" href="#part-3-read-paper-implement-your-own-perceptron-bp">Part 3: Read Paper, Implement your own Perceptron BP</a></h1>
+<h2 id="a-brief-introduction-to-2-bit-local-bp-and-gshare-predictor"><a class="header" href="#a-brief-introduction-to-2-bit-local-bp-and-gshare-predictor">A Brief Introduction to 2-Bit Local BP and GShare Predictor</a></h2>
+<p>Before designing your own branch predictor, we first review two foundational dynamic branch predictors: the <strong>2-bit local BP</strong> and the <strong>GShare predictor</strong>.</p>
+<p><img src="proj2/./proj2part3.svg" alt="Fig" /></p>
+<p>As shown in Fig (a) above, the 2-bit local BP contains a table of saturating counters. When a branch instruction is fetched, the BP indexes into the counter table using the instruction's PC. The BP predicts <strong>'taken'</strong> if the counter value is 2 (<code>10</code>) or 3 (<code>11</code>), and <strong>'not taken'</strong> if the counter value is 0 (<code>00</code>) or 1 (<code>01</code>). When the actual branch outcome is resolved, the corresponding counter in the table is updated: it is incremented by 1 (saturating at 3) if the actual outcome is 'taken', and decremented by 1 (saturating at 0) if 'not taken'.</p>
+<p>However, the outcome of a branch is often strongly correlated with the outcomes of other recent branches. A local predictor that relies solely on a single branch's past behavior (like the 2-bit local BP) cannot capture these inter-branch correlations.</p>
+<p>To leverage global branch history, the <strong>GShare predictor</strong> introduces a Global History Register (GHR), as shown in Fig (b) above. The GHR maintains a shift register where each bit represents the outcome of a recent conditional branch instruction (<strong>1</strong> for taken, <strong>0</strong> for not taken). When a branch outcome is resolved, the GHR updates via a bitwise shift:</p>
+<pre><code class="language-cpp">GHR = ((GHR &lt;&lt; 1) | outcome) &amp; GHR_MASK;
+
+</code></pre>
+<p>When indexing into the counter table, GShare XORs (hashes) the instruction's PC with the GHR. This hash ensures that global history is factored into table indexing, allowing the predictor to distinguish between different execution paths leading to the same branch.</p>
+<h2 id="a-brief-introduction-to-perceptron-bp"><a class="header" href="#a-brief-introduction-to-perceptron-bp">A Brief Introduction to Perceptron BP</a></h2>
+<p>Now, we introduce the <strong>Perceptron Branch Predictor</strong>, originally proposed by Jiménez and Lin:</p>
+<div id="admonition-citation" class="admonition admonish-quote" role="note" aria-labelledby="admonition-citation-title">
+<div class="admonition-title">
+<div id="admonition-citation-title">
+<p>Citation</p>
+</div>
+<a class="admonition-anchor-link" href="proj2/part3.html#admonition-citation"></a>
+</div>
+<div>
+<p>Jiménez, Daniel A. and Calvin Lin. “Dynamic branch prediction with perceptrons.” <em>Proceedings HPCA Seventh International Symposium on High-Performance Computer Architecture</em> (2001): 197-206.</p>
+<p><a href="https://www.cs.utexas.edu/~lin/papers/hpca01.pdf">Read the paper PDF</a></p>
 </div>
 </div>
-<p>The simple perceptron BP replaces the 2-bit counters with perceptrons. A perceptron is a vector of signed integers, i.e., its weights. When predicts, the BP computes the <strong>dot product</strong> of the weight vector and GHR (regard the bits as integers, and '0' as '-1'), instead of checking the saturating counter. If the dot product is non-negative, the BP predicts 'take', and vice versa.</p>
-<p>The BP updates the perceptron with a 'training' method when an actual branch outcome is known. The weights will be increased or decreased by 1 according to the GHR history, the prediction correctness and the actual outcome. The BP also has a threshold for the weights. If the absolute value of the dot product reaches the threshold, the BP will not further train the perceptron if its prediction is correct.</p>
-<h2 id="reading-the-paper-and-implementing-perceptron-bp"><a class="header" href="#reading-the-paper-and-implementing-perceptron-bp">Reading the paper and implementing perceptron BP</a></h2>
-<p>In this part, you are required to read the paper listed above, summarize the method described in the paper, and implement the perceptron BP in <code>gem5</code>. For your convenience, an Appendix provides a brief description of the method. We've already provided a code skeleton. Please check <code>Lab2PerceptronBP</code> in <code>BranchPredictor.py</code>, <code>cpu/pred/lab2_bp.hh</code> and <code>cpu/pred/lab2_bp.cc</code>. You can follow the tutorial in part 2 to add useful parameters to <code>Lab2PerceptronBP</code> and implement C++ codes.</p>
+<p>The perceptron BP replaces traditional 2-bit saturating counters with artificial perceptrons. A perceptron is represented as a vector of signed integer weights (<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>), where <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> is a bias weight and <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner">…</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> correspond to the <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span></span></span></span> bits in the GHR.</p>
+<ol>
+<li><strong>Prediction</strong>: Instead of checking counter thresholds, the BP selects a perceptron using the branch PC and computes the <strong>dot product</strong> of its weight vector and the GHR (treating GHR bits <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span></span></span> as <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">+</span><span class="mord">1</span></span></span></span> and <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0</span></span></span></span> as <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">−</span><span class="mord">1</span></span></span></span>):</li>
+</ol>
+<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:3.1138em;vertical-align:-1.2777em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.8361em;"><span style="top:-1.8723em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">i</span><span class="mrel mtight">=</span><span class="mord mtight">1</span></span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span><span style="top:-4.3em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.03148em;">k</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.2777em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord text"><span class="mord">GHR</span></span><span class="mopen">[</span><span class="mord mathnormal">i</span><span class="mclose">]</span></span></span></span></span></p>
+<p>If <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8304em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≥</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0</span></span></span></span>, the BP predicts <strong>'taken'</strong> (<code>1</code>); otherwise, it predicts <strong>'not taken'</strong> (<code>0</code>).</p>
+<ol start="2">
+<li><strong>Training/Update</strong>: Once the actual branch outcome <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6542em;vertical-align:-0.0391em;"></span><span class="mord mathnormal">t</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">∈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">{</span><span class="mord">−</span><span class="mord">1</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">+</span><span class="mord">1</span><span class="mclose">}</span></span></span></span> is known, the predictor trains the selected perceptron weights. A weight <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5806em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> is incremented if the historical outcome matches <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6151em;"></span><span class="mord mathnormal">t</span></span></span></span>, and decremented if it differs. To avoid overtraining, training only occurs if:</li>
+</ol>
+<ul>
+<li>The prediction was incorrect,</li>
+<li>The absolute value of the dot product <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∣</span><span class="mord"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mord">∣</span><span class="mord"></span></span></span></span> is within a predefined threshold <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">θ</span></span></span></span> (<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∣</span><span class="mord"></span><span class="mord mathnormal" style="margin-right:0.03588em;">y</span><span class="mord">∣</span><span class="mord"></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≤</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">θ</span></span></span></span>).</li>
+</ul>
+<blockquote>
+<p><strong>Note: As part of this lab, you are required to read the paper cited above and summarize its key design in your report.</strong></p>
+</blockquote>
+<h2 id="designing-and-implementing-your-own-bp"><a class="header" href="#designing-and-implementing-your-own-bp">Designing and Implementing Your Own BP</a></h2>
+<p>In this part, you are required to design and implement your custom branch predictor in <code>ChampSim</code>. Your grade for this section will be based on <strong>correct functionality, architectural optimizations, and relative performance ranking</strong>.</p>
+<h3 id="design-freedom--ideas"><a class="header" href="#design-freedom--ideas">Design Freedom &amp; Ideas</a></h3>
+<p>You can implement the baseline perceptron predictor described in the paper, or explore advanced variations to achieve better branch accuracy and CPU IPC, such as:</p>
+<ul>
+<li><strong>Hyperparameter Tuning</strong>: Finding the optimal global history length <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span></span></span></span>, number of perceptrons, and training threshold <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">θ</span></span></span></span>.</li>
+<li><strong>Improved Hashing Functions</strong>: Designing better PC/GHR hashing logic to mitigate aliasing/collisions.</li>
+<li><strong>Hybrid &amp; Local History</strong>: Combining global branch history with local history tables (e.g., Perceptron with Local History).</li>
+<li><strong>Weight Quantization &amp; Budget Limits</strong>: Managing weight bit-widths effectively.</li>
+</ul>
+<h3 id="starter-skeleton"><a class="header" href="#starter-skeleton">Starter Skeleton</a></h3>
+<p>We have provided a code skeleton under the <code>branch/your_perceptron/</code> directory (<code>your_perceptron.h</code> and <code>your_perceptron.cc</code>). You need to fill in the missing logic in <code>ChampSim</code>'s interface functions:</p>
+<ul>
+<li><code>initialize_branch_predictor()</code>: Allocate your predictor tables/structures and initialize GHR, weight vectors, and thresholds.</li>
+<li><code>predict_branch()</code>: Select the predictor entry, compute prediction logic (e.g., dot product), and return <code>1</code> ('taken') or <code>0</code> ('not taken').</li>
+<li><code>last_branch_result()</code>: Train predictor weights/counters based on prediction correctness and threshold criteria, then update the branch history.</li>
+</ul>
 <div id="admonition-tip" class="admonition admonish-tip" role="note" aria-labelledby="admonition-tip-title">
 <div class="admonition-title">
 <div id="admonition-tip-title">
@@ -545,199 +439,167 @@ build/ARM/gem5.opt configs/proj2/simple.py tests/labexe/hello --bp simple
 <a class="admonition-anchor-link" href="proj2/part3.html#admonition-tip"></a>
 </div>
 <div>
-<p>If you cannot figure out how to implement, you can check the implementation of <code>BiModeBP</code> and <code>TournamentBP</code>. They are simple enough, and include all necessary steps to implement a global-history-aware BP in <code>gem5</code>.</p>
+<p>If you are unsure how to manage branch history or table indexing in ChampSim, you can check built-in predictors in the <code>branch/</code> directory (such as <code>gshare/</code> or <code>hashed_perceptron/</code>) for reference.</p>
 </div>
 </div>
-<div id="admonition-delieverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-delieverables-title">
-<div class="admonition-title">
-<div id="admonition-delieverables-title">
-<p>Delieverables</p>
-</div>
-<a class="admonition-anchor-link" href="proj2/part3.html#admonition-delieverables"></a>
-</div>
-<div>
-<p>Please run two BP-sensitive workloads, i.e., <code>shell_sort</code> and <code>spfa</code>, with your <code>LabPerceptronBP</code>. In this part, please (at least) include figures or tables, which show the accuracy of <code>Lab2PerceptronBP</code> and IPC of CPU on executables listed below, in your <em><strong>report</strong></em>:</p>
-<ul>
-<li>BPs: <code>Lab2PerceptronBP</code>.</li>
-<li>exe: <code>shell_sort</code>, <code>spfa</code>.</li>
-<li>With default CPU and Memory (O3 and DDR4).</li>
-</ul>
-<p>You are encouraged to try different parameters, including perceptron threshold, number of perceptrons, and GHR length. However, since running multiple epoches to adjust parameters may take tremendous time, it's ok for you to simply try a set of default parameters. Thus, at lease you need to run <code>gem5</code> twice.</p>
-<p>In this part, you also need to submit:</p>
-<ul>
-<li><em><strong>your codes</strong></em>, including <code>BranchPredictor.py</code>, <code>lab2_bp.hh</code> and <code>lab2_bp.cc</code>.</li>
-<li><em><strong>paper summary</strong></em>, which summarizes the cited paper, including motivations, challenges and designs.</li>
-</ul>
-</div>
-</div>
-<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<h1 id="part-4-optimize-a-program-segment-using-branch-optimization-techniques"><a class="header" href="#part-4-optimize-a-program-segment-using-branch-optimization-techniques">Part 4: Optimize a Program Segment Using Branch Optimization Techniques</a></h1>
-<p>It is well known that branch instructions cause pauses, significantly impacting program performance. To address this issue, hardware manufacturers have developed various branch predictors that reduce pauses by anticipating branches in advance. So, as software developers, can we further optimize program performance at the software level by understanding these branch predictors? The answer is yes.</p>
-<p>In this experiment, we also hope students will gain an initial understanding of how branch optimization enhances program efficiency and appreciate its unique appeal. While compilers may already implement some optimization techniques, we still encourage students to delve into the principles behind these techniques through hands-on practice, thereby gaining a deeper understanding of the importance of branches in CPU architecture.</p>
-<h2 id="lab-setup-preparation"><a class="header" href="#lab-setup-preparation">Lab Setup Preparation</a></h2>
-<p>We need to obtain three files from <a href="https://disk.pku.edu.cn/link/AA8F735492EA4048A282AA5A7B9820B521">PKU Disk</a> or the <a href="https://course.pku.edu.cn/">teaching and learning network</a> for this part of the experiment. These files are <code>branch_optimize.c</code>, <code>branch_optimize_gen.cc</code>, and <code>branch_optimize.h</code>, which we will place in the <code>tests/labexe/</code>. The specific directory structure is shown in the diagram below:</p>
-<pre><code class="language-sh">gem5-root
-    |
-    |---tests
-          |
-          |---labexe
-                |
-                |---branch_optimize.c
-                |---branch_optimize_gen.cc
-                |---branch_optimize.h
-</code></pre>
-<p>At the same time, we need to modify the <code>tests/labexe/makefile</code> file to support the normal compilation of these newly added files:</p>
-<pre><code class="language-makefile">...
-# tests/labexe/makefile
-# DELETE: TGT = shell_sort gemm binary_search spfa
-TGT = shell_sort gemm binary_search spfa branch_optimize # ADD
-...
-lz77_args = 1000000
-branch_optimize_args = 500000 # ADD
-...
-</code></pre>
-<p>You can enter <code>make -j $(nproc)</code> in directory <code>/gem5/tests/labexe/</code> to compile the target program after modifying it. The generated binary file will be located in <code>tests/labexe/branch_optimize</code>.</p>
-<h2 id="our-goal"><a class="header" href="#our-goal">Our Goal</a></h2>
-<p>In this part, we generated a fictional weather database, with each entry defined as follows:</p>
-<pre><code class="language-c">typedef struct WeatherData {
-    int year;
-    int month;
-    int day;
-    int temperature;
-    enum WeatherCondition condition;
-    enum City city;
-    float humidity;
-    float windSpeed;
-    int is_scanned;
-} WeatherData;
-</code></pre>
-<p>The city and weather fields utilize enumeration types, defined as follows:</p>
-<pre><code class="language-c">enum WeatherCondition {
-    SUNNY = 0002,
-    CLOUDY = 1009,
-    RAINY = 1511,
-    STORMY = 3011,
-    SNOWY = 4003
-};
+<h3 id="compiling-and-running"><a class="header" href="#compiling-and-running">Compiling and Running</a></h3>
+<p>To compile ChampSim with your custom BP, update <code>"branch_predictor": "your_perceptron"</code> in <code>lab2_config.json</code>, then build and run:</p>
+<pre><code class="language-sh"># 1. Update lab2_config.json to set "branch_predictor": "your_perceptron"
+./config.sh ./lab2_config.json
+make -j $(nproc)
 
-enum City {
-    NEW_YORK = 1,
-    LOS_ANGELES = 2,
-    CHICAGO = 3,
-    HOUSTON = 4,
-    MIAMI = 5
-};
+# 2. Run test traces
+bin/champsim --warmup-instructions 20000000 --simulation-instructions 100000000 ../trace/shell_sort.champsimtrace.xz
+bin/champsim --warmup-instructions 20000000 --simulation-instructions 100000000 ../trace/spfa.champsimtrace.xz
+
 </code></pre>
-<p>We need to optimize a target program for processing this weather data. The program's primary functions are:</p>
-<ul>
-<li>Exclude entries with outliers from all subsequent statistical calculations</li>
-<li>Count the number of data entries for the period from 2012 to 2024</li>
-<li>Count the number of data entries for the period from June to August</li>
-<li>Count the number of data entries for each city</li>
-<li>Count the frequency of occurrence for each type of weather</li>
-<li>Count the frequency of occurrence for each wind force category, grouping those above force 10 into a single category</li>
-<li>Record the minimum and maximum temperatures observed across all entries</li>
-<li>Record the absolute maximum temperature value</li>
-<li>Count the frequency of humidity levels below 50%</li>
-<li>Count the frequency of temperatures exceeding 30 degrees Celsius</li>
-<li>Mark the entry as scanned</li>
-</ul>
-<p>In <code>tests/labexe/branch_optimize.c</code>, we present a straightforward approach that does not achieve optimal performance. Students can optimize this performance by modifying the code in the designed area.</p>
-<pre><code class="language-c">|        NO MODIFICATINS ALLOWED         |
-/*   START position of editable area    */
-|                 ...                    |
-|            EDITABLE AREA               |
-|                 ...                    |
-/*    END position of editable area     */
-|        NO MODIFICATINS ALLOWED         |
-</code></pre>
-<p>The following requirements apply during this process:</p>
-<ul>
-<li>Multithreading or multiprocessing is not permitted</li>
-<li>No libraries import (via <code>#include</code>)</li>
-<li>Parallel commands such as vectorization are prohibited</li>
-<li><strong>NO loop unrolling technique</strong></li>
-<li>The original program semantics must not be altered</li>
-</ul>
-<h2 id="test"><a class="header" href="#test">Test</a></h2>
-<p>After modifying the code at the specified area, run the following command at <code>tests/labexe/branch_optimize</code> to compile the binary file:</p>
-<pre><code class="language-sh">make -j $(nproc)
-</code></pre>
-<p>Next, you can execute the following command at <code>gem5/</code> to test the code's performance:</p>
-<pre><code class="language-sh">build/ARM/gem5.opt configs/proj2/simple.py tests/labexe/branch_optimize --bp local --cpu o3 --mem DDR4
-</code></pre>
-<p>You can evaluate the actual runtime of your code using the <code>simSeconds</code> in the <code>stat.txt</code> file output by <code>gem5</code>. <strong>Our performance evaluation is also based on this metric</strong>.</p>
-<div id="admonition-note" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-title">
+<hr />
+<div id="admonition-grading-policy--performance-ranking" class="admonition admonish-info" role="note" aria-labelledby="admonition-grading-policy--performance-ranking-title">
 <div class="admonition-title">
-<div id="admonition-note-title">
-<p>Note</p>
+<div id="admonition-grading-policy--performance-ranking-title">
+<p>Grading Policy &amp; Performance Ranking</p>
 </div>
-<a class="admonition-anchor-link" href="proj2/part4.html#admonition-note"></a>
+<a class="admonition-anchor-link" href="proj2/part3.html#admonition-grading-policy--performance-ranking"></a>
 </div>
 <div>
-<p>In this part, the <code>system.cpu.max_insts_any_thread</code> should be set 5e8.</p>
-</div>
-</div>
-<div id="admonition-tip" class="admonition admonish-tip" role="note" aria-labelledby="admonition-tip-title">
-<div class="admonition-title">
-<div id="admonition-tip-title">
-<p>Tip</p>
-</div>
-<a class="admonition-anchor-link" href="proj2/part4.html#admonition-tip"></a>
-</div>
-<div>
-<p>Our performance test consists of <em><strong>a single test case</strong></em> generated from <code>tests/labexe/branch_optimize_gen.cc</code>, which can be vviewed in the <code>tests/labexe/branch_optimize.in</code>.</p>
-</div>
-</div>
-<div id="admonition-delieverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-delieverables-title">
-<div class="admonition-title">
-<div id="admonition-delieverables-title">
-<p>Delieverables</p>
-</div>
-<a class="admonition-anchor-link" href="proj2/part4.html#admonition-delieverables"></a>
-</div>
-<div>
-<p>Please run our target workloads, <code>branch_optimize</code>, with <code>LocalBP</code>. In this part, please (at least) include figures or tables, which show the actual runtime of <code>branch_optimize</code> and IPC of CPU on executables listed below, in your <em><strong>report</strong></em>:</p>
+<p>Your implementation will be evaluated using both the public traces (<code>shell_sort</code>, <code>spfa</code>) and additional hidden evaluation workloads. Total points for this part consist of:</p>
+<ol>
+<li><strong>Basic Functionality &amp; Correctness (70%)</strong>: Correctly implementing a working predictor that successfully completes all simulation runs without crashes and surpasses the <code>simple_bp</code> baseline.</li>
+<li><strong>Performance Ranking &amp; Optimization (30%)</strong>: Graded competitively based on your predictor's <strong>Branch Prediction Accuracy (MPKI)</strong> and <strong>CPU IPC</strong> against your peers on the benchmark suite:
 <ul>
-<li>BPs: <code>LocalBP</code>.</li>
-<li>exe: <code>branch_optimize</code>.</li>
-<li>With default CPU and Memory (O3 and DDR4).</li>
+<li><strong>Top 10% Performance</strong>: Full ranking score.</li>
+<li><strong>Above Average</strong>: High performance score.</li>
+<li><strong>Base Perceptron Baseline</strong>: Standard performance score.</li>
 </ul>
-<p>In this part, you also need to submit:</p>
+</li>
+</ol>
+</div>
+</div>
+<div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
+<div class="admonition-title">
+<div id="admonition-deliverables-title">
+<p>Deliverables</p>
+</div>
+<a class="admonition-anchor-link" href="proj2/part3.html#admonition-deliverables"></a>
+</div>
+<div>
+<p>Please evaluate your implemented <code>your_perceptron</code> predictor against all baselines.</p>
+<p>In your <em><strong>report</strong></em>, please include:</p>
+<ol>
+<li><strong>Paper Summary</strong>: A concise summary (1–2 pages) covering the <strong>motivations</strong>, <strong>key challenges</strong>, and <strong>perceptron design/training mechanisms</strong> described in the Jiménez &amp; Lin paper.</li>
+<li><strong>Custom BP Design Details</strong>: Explain your specific implementation, architectural choices, hashing logic, parameter selections (<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">θ</span></span></span></span>, table sizes), and any extra optimizations you added.</li>
+<li><strong>Performance Evaluation &amp; Comparison</strong>: Figures or tables comparing <strong>Branch Prediction Accuracy / MPKI</strong> and <strong>CPU IPC</strong> of your <code>your_perceptron</code> against <code>simple_bp</code>, <code>bimodal</code>, <code>gshare</code>, and <code>hashed_perceptron</code> across the tested workloads.</li>
+</ol>
+<p><strong>Files to submit</strong>:</p>
 <ul>
-<li><em><strong>your codes</strong></em>, including <code>branch_optimize.c</code>.</li>
-<li><em><strong>technical introduction</strong></em>, which analyzes the optimization techniques used in your code and explain why they improve performance. (Unexplained code or techniques are permitted, but they should constitute <em><strong>less than 50%</strong></em> of the total.)</li>
+<li><strong>Source code</strong>: Files under <code>branch/your_perceptron/</code> (<code>your_perceptron.h</code> and <code>your_perceptron.cc</code>).</li>
+<li><strong>Lab report</strong>: PDF file including the paper summary, design details, and performance analysis.</li>
 </ul>
 </div>
 </div><div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<h1 id="submission"><a class="header" href="#submission">Submission</a></h1>
-<div id="admonition-submission" class="admonition admonish-note" role="note" aria-labelledby="admonition-submission-title">
+<h1 id="part-4-crafting-a-hard-trace-benchmark-for-branch-prediction"><a class="header" href="#part-4-crafting-a-hard-trace-benchmark-for-branch-prediction">Part 4: Crafting a Hard Trace Benchmark for Branch Prediction</a></h1>
+<p>In this part, you will flip your role from a hardware designer to a software/workload developer. You are required to design, compile, and generate a custom <code>ChampSim</code> trace that serves as a <strong>stress test</strong> for branch predictors.</p>
+<h2 id="background--objective"><a class="header" href="#background--objective">Background &amp; Objective</a></h2>
+<p>Standard benchmarks like sorting or matrix multiplication often exhibit regular loops and repetitive control flow patterns. However, real-world software—such as database indexing, cryptosystems, binary parsers, and graph analytics—contains complex, data-dependent, and highly unpredictable branch behavior.</p>
+<p>Your goal is to write a C/C++ program featuring intricate control flow that maximizes branch prediction difficulty, compile it, and collect a trace file using <code>ChampSim</code>'s trace collection tools.</p>
+<h2 id="guidelines-for-designing-unpredictable-workloads"><a class="header" href="#guidelines-for-designing-unpredictable-workloads">Guidelines for Designing Unpredictable Workloads</a></h2>
+<p>To create a high-difficulty trace that forces frequent mispredictions across standard predictors, consider incorporating:</p>
+<ul>
+<li><strong>Data-Dependent Branches</strong>: Branches whose outcomes depend on unpredictable data (e.g., pseudo-random number generators, cryptographic hashes, or Collatz conjecture sequences).</li>
+<li><strong>Long-History Dependencies</strong>: Control flow patterns where branch outcomes correlate with events that happened beyond typical global history lengths (<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7335em;vertical-align:-0.0391em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">64</span></span></span></span>).</li>
+<li><strong>Irregular Memory &amp; Pointer Chasing</strong>: Unstructured graph traversals (e.g., BFS/DFS on sparse graphs, skip lists, or unbalanced tree searches).</li>
+<li><strong>High-Entropy Conditional Statements</strong>: Interleaved conditional logic that induces heavy aliasing (collisions) in branch target/predictor tables.</li>
+</ul>
+<h2 id="trace-generation-rules--constraints"><a class="header" href="#trace-generation-rules--constraints">Trace Generation Rules &amp; Constraints</a></h2>
+<ol>
+<li><strong>Instruction Limit</strong>: The trace evaluation is strictly limited to <strong>10 million instructions</strong> (<code>30,000,000</code> / <code>30M</code>). Your trace generator must capture 10M simulation instructions.</li>
+<li><strong>Compilation &amp; Tracing</strong>: Write your C/C++ workload and generate the trace using the Pintool tracer provided in ChampSim (or the course-provided tracing script):</li>
+</ol>
+<pre><code class="language-sh"># Example: Generating a trace using ChampSim Pin Tracer
+$PIN_ROOT/pin -t tracer/obj-intel64/champsim_tracer.so -o &lt;student_id&gt;_hard.champsimtrace -s 0 -i 30000000 -- ./your_workload
+
+# Compress the generated trace
+xz -z &lt;student_id&gt;_hard.champsimtrace
+
+</code></pre>
+<ol start="3">
+<li><strong>Execution Validation</strong>: Verify that your trace runs properly with ChampSim for 10M instructions without crashing:</li>
+</ol>
+<pre><code class="language-sh">bin/champsim --warmup-instructions 0 --simulation-instructions 10000000 ../trace/&lt;student_id&gt;_hard.champsimtrace.xz
+
+</code></pre>
+<div id="admonition-grading-policy--hardness-leaderboard" class="admonition admonish-info" role="note" aria-labelledby="admonition-grading-policy--hardness-leaderboard-title">
 <div class="admonition-title">
-<div id="admonition-submission-title">
-<p>Submission</p>
+<div id="admonition-grading-policy--hardness-leaderboard-title">
+<p>Grading Policy &amp; Hardness Leaderboard</p>
 </div>
-<a class="admonition-anchor-link" href="proj2/submit.html#admonition-submission"></a>
+<a class="admonition-anchor-link" href="proj2/part4.html#admonition-grading-policy--hardness-leaderboard"></a>
+</div>
+<div>
+<p>All submitted traces will be benchmarked against standard baseline predictors (<code>bimodal</code>, <code>gshare</code>, and <code>hashed_perceptron</code>) under a 10M instruction run. Your grade for this part will be determined by the <strong>hardness</strong> of your trace:</p>
+<ul>
+<li><strong>Hardness Metric</strong>: Measured by the <strong>Branch Mispredictions Per Kilo-Instructions (MPKI)</strong> and <strong>Misprediction Rate</strong> on the baseline predictors (higher MPKI = harder trace).</li>
+<li><strong>Scoring &amp; Leaderboard</strong>:
+<ul>
+<li><strong>Top 10% Hardest Traces</strong>: Full score + Bonus ranking points.</li>
+<li><strong>High Difficulty (Base Hardness Threshold met)</strong>: Full base score.</li>
+<li><strong>Trivial / Easily Predictable Traces</strong>: Reduced points.</li>
+</ul>
+</li>
+<li><strong>Fairness &amp; Validity</strong>: The C/C++ workload must perform legitimate computational work. Fake infinite loops, inline assembly traps, or code causing segment faults/crashes during tracing will be disqualified.</li>
+</ul>
+</div>
+</div>
+<div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
+<div class="admonition-title">
+<div id="admonition-deliverables-title">
+<p>Deliverables</p>
+</div>
+<a class="admonition-anchor-link" href="proj2/part4.html#admonition-deliverables"></a>
+</div>
+<div>
+<p>For Part 4, please submit the following items:</p>
+<ol>
+<li><strong>Workload Source Code</strong>: Your C/C++ source code used to generate the hard trace (e.g., <code>hard_workload.cpp</code>).</li>
+<li><strong>Trace File</strong>: Compressed trace file named strictly as <code>&lt;student_id&gt;_hard.champsimtrace.xz</code>.</li>
+<li><strong>Report Section</strong>: In your lab report, include:
+<ul>
+<li><strong>Control Flow Design</strong>: Describe the mechanisms and algorithms used in your program to trick branch predictors.</li>
+<li><strong>Benchmark Results</strong>: A table showing the MPKI, Prediction Accuracy, and CPU IPC of <code>bimodal</code>, <code>gshare</code>, <code>hashed_perceptron</code>, and your <code>your_perceptron</code> when running on your custom 10M-instruction trace.</li>
+</ul>
+</li>
+</ol>
+</div>
+</div><div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="submission"><a class="header" href="#submission">Submission</a></h1>
+<div id="admonition-submission-instructions" class="admonition admonish-note" role="note" aria-labelledby="admonition-submission-instructions-title">
+<div class="admonition-title">
+<div id="admonition-submission-instructions-title">
+<p>Submission Instructions</p>
+</div>
+<a class="admonition-anchor-link" href="proj2/submit.html#admonition-submission-instructions"></a>
 </div>
 <div>
 <ul>
-<li>Please submit the deliverables for each part in order and clearly defined in a report form (e.g., PDF or Word). Please give a brief description of the results in your report. You also <strong>NEED</strong> to submit your codes, technical introduction and paper summary.</li>
-<li>Please pack your report, codes, technical introduction and summary in an archive and submit it as an attachment at <a href="https://course.pku.edu.cn">course.pku.edu.cn</a>. The title of the attachment should be Student-ID_Name_Proj2 (e.g., 123456789_WangXiaoming_Proj2).</li>
-<li>You can also send the archive to <a href="proj2/">2501112042@stu.pku.edu.cn</a>. The titles of your email AND attachment should both be Student-ID_Name_Proj2.</li>
-<li><strong>DO NOT PLAGIARIZE</strong>. We will select 10 students randomly and ask them to answer our questions related to their results.</li>
+<li>Please submit the deliverables for each part in order, clearly structured in a report form (PDF format). You <strong>NEED</strong> to submit your report, source codes, custom trace file, technical documentation, and paper summary.</li>
+<li>Pack all your submission files into a single archive (<code>.zip</code> or <code>.tar.gz</code>) and submit it as an attachment at <a href="https://course.pku.edu.cn">course.pku.edu.cn</a>. The title of the attachment and archive should follow the format: <code>Student-ID_Name_Proj2</code> (e.g., <code>123456789_WangXiaoming_Proj2</code>).</li>
+<li>You can also send the archive to <a href="mailto:2501112042@stu.pku.edu.cn">2501112042@stu.pku.edu.cn</a>. The titles of your email AND attachment must both be <code>Student-ID_Name_Proj2</code>.</li>
+<li><strong>DO NOT PLAGIARIZE</strong>. We will randomly select 10 students for an oral defense and Q&amp;A session regarding their implementations and trace designs.</li>
 </ul>
 </div>
 </div>
 <div id="admonition-late-policy" class="admonition admonish-warning" role="note" aria-labelledby="admonition-late-policy-title">
 <div class="admonition-title">
 <div id="admonition-late-policy-title">
-<p>Late policy</p>
+<p>Late Policy</p>
 </div>
 <a class="admonition-anchor-link" href="proj2/submit.html#admonition-late-policy"></a>
 </div>
 <div>
 <ul>
-<li>You will be given <strong>3 slip days</strong> (shared by all projects), which can be used to extend project deadlines, e.g., 1 project extended by 3 days or 3 projects each extended by 1 day.</li>
-<li>Projects are due at 23:59:59, no exceptions; 20% off per day late, 1 second late = 1 hour late = 1 day late.</li>
+<li>You are allocated <strong>3 slip days</strong> in total (shared across all course projects), which can be used to extend project deadlines (e.g., 1 project extended by 3 days, or 3 projects each extended by 1 day).</li>
+<li>All projects are strictly due at <strong>23:59:59</strong> on the deadline date. No exceptions.</li>
+<li>Late submissions without slip days will incur a <strong>20% penalty per day</strong> (1 second late = 1 hour late = 1 day late).</li>
 </ul>
 </div>
 </div>
@@ -749,87 +611,67 @@ enum City {
 <a class="admonition-anchor-link" href="proj2/submit.html#admonition-deliverables"></a>
 </div>
 <div>
-<p>You need to submit <em><strong>report</strong></em>, <em><strong>codes</strong></em>, <em><strong>technical introduction</strong></em> and <em><strong>paper summary</strong></em> in this project. The required contents are listed as follows:</p>
+<p>Your submitted package must contain the following components:</p>
+<ol>
+<li><strong>Lab Report (<code>Report.pdf</code>)</strong>:
 <ul>
-<li>report:</li>
-<li>
-<ul>
-<li>Figures and tables which show the BP accuracy and CPU IPC of following BPs on <code>shell_sort</code> and <code>spfa</code>: <code>LocalBP</code>, <code>BiModeBP</code>, <code>TournamentBP</code>, <code>SimpleBP</code>, <code>Lab2PerceptronBP</code>. Please run with <code>O3CPU</code> and <code>DDR4</code> memory.</li>
+<li><strong>Part 1 &amp; 2 Evaluation</strong>: Figures and tables showing Branch Prediction Accuracy (and MPKI) and CPU IPC for built-in predictors (<code>bimodal</code>, <code>gshare</code>, <code>hashed_perceptron</code>) and your <code>simple_bp</code> on <code>shell_sort</code> and <code>spfa</code> traces.</li>
+<li><strong>Part 3 Paper Summary</strong>: A 1–2 page summary of the Jiménez &amp; Lin paper covering <strong>motivations</strong>, <strong>key challenges</strong>, and <strong>perceptron mechanisms</strong>.</li>
+<li><strong>Part 3 Technical Documentation</strong>: Detailed explanation of your custom <code>your_perceptron</code> architecture, parameter selection (s.t. <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">θ</span></span></span></span>, table sizes), and any optimization techniques used.</li>
+<li><strong>Part 4 Hard Trace Analysis</strong>: Detailed description of your custom 10M instruction workload design, the control-flow tricks used, and a performance comparison table of baseline BPs running on your generated trace.</li>
 </ul>
 </li>
-<li>codes:</li>
-<li>
+<li><strong>Source Codes</strong>:
 <ul>
-<li>Your implementation, i.e., <code>BranchPredictor.py</code>, <code>lab2_bp.hh</code>, <code>branch_optimize.c</code> and <code>lab2_bp.cc</code>.</li>
+<li><code>branch/simple_bp/</code>: Code files (<code>simple_bp.h</code> and <code>simple_bp.cc</code>).</li>
+<li><code>branch/your_perceptron/</code>: Code files (<code>your_perceptron.h</code> and <code>your_perceptron.cc</code>).</li>
+<li><code>hard_workload.cpp</code> (or <code>.c</code>): C/C++ source code used to generate your Part 4 hard trace.</li>
 </ul>
 </li>
-<li>summary:</li>
-<li>
+<li><strong>Hard Trace File</strong>:
 <ul>
-<li>A summary of the cited paper including motivations, challenges and designs.</li>
+<li><code>&lt;student_id&gt;_hard.champsimtrace.xz</code>: Your compressed 10M instruction trace file for Part 4.</li>
 </ul>
 </li>
-<li>technical introduction:</li>
-<li>
-<ul>
-<li>A report of the optimization techniques used in your code and explanation why they improve performance. (Unexplained code or techniques are permitted, but they should constitute <em><strong>less than 50%</strong></em> of the total.)</li>
-</ul>
-</li>
-</ul>
-<p>Please pack all files in an archive and submit the archive.</p>
+</ol>
 </div>
 </div>
-<div id="admonition-grading" class="admonition admonish-success" role="note" aria-labelledby="admonition-grading-title">
+<div id="admonition-grading-scheme-20-points-total" class="admonition admonish-success" role="note" aria-labelledby="admonition-grading-scheme-20-points-total-title">
 <div class="admonition-title">
-<div id="admonition-grading-title">
-<p>Grading</p>
+<div id="admonition-grading-scheme-20-points-total-title">
+<p>Grading Scheme (20 Points Total)</p>
 </div>
-<a class="admonition-anchor-link" href="proj2/submit.html#admonition-grading"></a>
+<a class="admonition-anchor-link" href="proj2/submit.html#admonition-grading-scheme-20-points-total"></a>
 </div>
 <div>
-<p>In this project, the grading is partially based on the performance of your implementation. The details are (15 points in total):</p>
+<p>Your final score for Project 2 will be calculated based on the following breakdown:</p>
 <ul>
-<li>Resonable performance statistics of <code>LocalBP</code>, <code>BiModeBP</code> and <code>TournamentBP</code>:</li>
-<li>
+<li><strong>Part 1 &amp; 2: Baseline &amp; Simple BP Evaluation (3 pts)</strong>
 <ul>
-<li><strong>3pts</strong>.</li>
+<li><strong>3 pts</strong>: Reasonable performance statistics (Accuracy/MPKI, IPC) provided for <code>bimodal</code>, <code>gshare</code>, <code>hashed_perceptron</code>, and <code>simple_bp</code> on standard workloads.</li>
 </ul>
 </li>
-<li><em><strong>PLUS</strong></em> reasonable performance statistics of <code>SimpleBP</code>:</li>
-<li>
+<li><strong>Part 3: Perceptron Paper Summary (4 pts)</strong>
 <ul>
-<li><strong>4pts</strong>.</li>
+<li><strong>4 pts</strong>: Comprehensive summary covering motivations, challenges, and architectural designs (Lack of any key section: <strong>-1 pt</strong> each).</li>
 </ul>
 </li>
-<li><em><strong>PLUS</strong></em> a compilable perceptron BP implementation:</li>
-<li>
+<li><strong>Part 3: Custom BP Implementation &amp; Performance Ranking (8 pts)</strong>
 <ul>
-<li><strong>7pts</strong>.</li>
+<li><strong>3 pts</strong>: Compilable and functionally correct <code>your_perceptron</code> code that passes simulation runs without errors.</li>
+<li><strong>2 pts</strong>: Performance surpassing <code>simple_bp</code> and comparable to <code>bimodal</code> / <code>gshare</code>.</li>
+<li><strong>3 pts</strong>: Competitive performance matching/exceeding <code>hashed_perceptron</code>, supported by clear technical explanations and high leaderboard ranking.</li>
 </ul>
 </li>
-<li><em><strong>PLUS</strong></em> a comparable performance with <code>LocalBP</code> of your perceptron BP:</li>
-<li>
+<li><strong>Part 4: Hard Trace Benchmark &amp; Stress Test (5 pts)</strong>
 <ul>
-<li><strong>11pts</strong>.</li>
-</ul>
-</li>
-<li><em><strong>PLUS</strong></em> a comparable performance with <code>BiModeBP</code> or <code>TournamentBP</code> of your perceptron BP:</li>
-<li>
-<ul>
-<li><strong>13pts</strong>.</li>
-</ul>
-</li>
-<li><em><strong>PLUS</strong></em> reasonable performance improvements (minimum 7%) and corresponding technical explanations:</li>
-<li>
-<ul>
-<li><strong>15pts</strong>.</li>
+<li><strong>2 pts</strong>: Valid C/C++ source code and properly formatted 10M-instruction trace file (<code>.champsimtrace.xz</code>) that runs without crashing.</li>
+<li><strong>3 pts</strong>: Trace hardness evaluation score based on MPKI on baseline BPs (Harder traces with higher MPKI achieve higher scores; Top 10% hardest traces receive full score + ranking bonus).</li>
 </ul>
 </li>
 </ul>
-<p>There are additional <strong>5pts</strong> based on your paper summary. A comprehensive summary including motivations, challenges and designs will get 5pts. Lack of any single part will cause <strong>-1pt</strong>.</p>
 </div>
-</div>
-<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+</div><div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="appendix-perceptron-bp-method-brief-description"><a class="header" href="#appendix-perceptron-bp-method-brief-description">Appendix: Perceptron BP Method Brief Description</a></h1>
 <p>The overall structure of a perceptron BP is shown below:</p>
 <p><img src="proj2/./proj2append.svg" alt="Fig" /></p>

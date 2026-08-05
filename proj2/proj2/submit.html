@@ -180,33 +180,34 @@
                     <main>
                         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="submission"><a class="header" href="#submission">Submission</a></h1>
-<div id="admonition-submission" class="admonition admonish-note" role="note" aria-labelledby="admonition-submission-title">
+<div id="admonition-submission-instructions" class="admonition admonish-note" role="note" aria-labelledby="admonition-submission-instructions-title">
 <div class="admonition-title">
-<div id="admonition-submission-title">
-<p>Submission</p>
+<div id="admonition-submission-instructions-title">
+<p>Submission Instructions</p>
 </div>
-<a class="admonition-anchor-link" href="#admonition-submission"></a>
+<a class="admonition-anchor-link" href="#admonition-submission-instructions"></a>
 </div>
 <div>
 <ul>
-<li>Please submit the deliverables for each part in order and clearly defined in a report form (e.g., PDF or Word). Please give a brief description of the results in your report. You also <strong>NEED</strong> to submit your codes, technical introduction and paper summary.</li>
-<li>Please pack your report, codes, technical introduction and summary in an archive and submit it as an attachment at <a href="https://course.pku.edu.cn">course.pku.edu.cn</a>. The title of the attachment should be Student-ID_Name_Proj2 (e.g., 123456789_WangXiaoming_Proj2).</li>
-<li>You can also send the archive to <a href="">2501112042@stu.pku.edu.cn</a>. The titles of your email AND attachment should both be Student-ID_Name_Proj2.</li>
-<li><strong>DO NOT PLAGIARIZE</strong>. We will select 10 students randomly and ask them to answer our questions related to their results.</li>
+<li>Please submit the deliverables for each part in order, clearly structured in a report form (PDF format). You <strong>NEED</strong> to submit your report, source codes, custom trace file, technical documentation, and paper summary.</li>
+<li>Pack all your submission files into a single archive (<code>.zip</code> or <code>.tar.gz</code>) and submit it as an attachment at <a href="https://course.pku.edu.cn">course.pku.edu.cn</a>. The title of the attachment and archive should follow the format: <code>Student-ID_Name_Proj2</code> (e.g., <code>123456789_WangXiaoming_Proj2</code>).</li>
+<li>You can also send the archive to <a href="mailto:2501112042@stu.pku.edu.cn">2501112042@stu.pku.edu.cn</a>. The titles of your email AND attachment must both be <code>Student-ID_Name_Proj2</code>.</li>
+<li><strong>DO NOT PLAGIARIZE</strong>. We will randomly select 10 students for an oral defense and Q&amp;A session regarding their implementations and trace designs.</li>
 </ul>
 </div>
 </div>
 <div id="admonition-late-policy" class="admonition admonish-warning" role="note" aria-labelledby="admonition-late-policy-title">
 <div class="admonition-title">
 <div id="admonition-late-policy-title">
-<p>Late policy</p>
+<p>Late Policy</p>
 </div>
 <a class="admonition-anchor-link" href="#admonition-late-policy"></a>
 </div>
 <div>
 <ul>
-<li>You will be given <strong>3 slip days</strong> (shared by all projects), which can be used to extend project deadlines, e.g., 1 project extended by 3 days or 3 projects each extended by 1 day.</li>
-<li>Projects are due at 23:59:59, no exceptions; 20% off per day late, 1 second late = 1 hour late = 1 day late.</li>
+<li>You are allocated <strong>3 slip days</strong> in total (shared across all course projects), which can be used to extend project deadlines (e.g., 1 project extended by 3 days, or 3 projects each extended by 1 day).</li>
+<li>All projects are strictly due at <strong>23:59:59</strong> on the deadline date. No exceptions.</li>
+<li>Late submissions without slip days will incur a <strong>20% penalty per day</strong> (1 second late = 1 hour late = 1 day late).</li>
 </ul>
 </div>
 </div>
@@ -218,87 +219,67 @@
 <a class="admonition-anchor-link" href="#admonition-deliverables"></a>
 </div>
 <div>
-<p>You need to submit <em><strong>report</strong></em>, <em><strong>codes</strong></em>, <em><strong>technical introduction</strong></em> and <em><strong>paper summary</strong></em> in this project. The required contents are listed as follows:</p>
+<p>Your submitted package must contain the following components:</p>
+<ol>
+<li><strong>Lab Report (<code>Report.pdf</code>)</strong>:
 <ul>
-<li>report:</li>
-<li>
-<ul>
-<li>Figures and tables which show the BP accuracy and CPU IPC of following BPs on <code>shell_sort</code> and <code>spfa</code>: <code>LocalBP</code>, <code>BiModeBP</code>, <code>TournamentBP</code>, <code>SimpleBP</code>, <code>Lab2PerceptronBP</code>. Please run with <code>O3CPU</code> and <code>DDR4</code> memory.</li>
+<li><strong>Part 1 &amp; 2 Evaluation</strong>: Figures and tables showing Branch Prediction Accuracy (and MPKI) and CPU IPC for built-in predictors (<code>bimodal</code>, <code>gshare</code>, <code>hashed_perceptron</code>) and your <code>simple_bp</code> on <code>shell_sort</code> and <code>spfa</code> traces.</li>
+<li><strong>Part 3 Paper Summary</strong>: A 1–2 page summary of the Jiménez &amp; Lin paper covering <strong>motivations</strong>, <strong>key challenges</strong>, and <strong>perceptron mechanisms</strong>.</li>
+<li><strong>Part 3 Technical Documentation</strong>: Detailed explanation of your custom <code>your_perceptron</code> architecture, parameter selection (s.t. <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">θ</span></span></span></span>, table sizes), and any optimization techniques used.</li>
+<li><strong>Part 4 Hard Trace Analysis</strong>: Detailed description of your custom 10M instruction workload design, the control-flow tricks used, and a performance comparison table of baseline BPs running on your generated trace.</li>
 </ul>
 </li>
-<li>codes:</li>
-<li>
+<li><strong>Source Codes</strong>:
 <ul>
-<li>Your implementation, i.e., <code>BranchPredictor.py</code>, <code>lab2_bp.hh</code>, <code>branch_optimize.c</code> and <code>lab2_bp.cc</code>.</li>
+<li><code>branch/simple_bp/</code>: Code files (<code>simple_bp.h</code> and <code>simple_bp.cc</code>).</li>
+<li><code>branch/your_perceptron/</code>: Code files (<code>your_perceptron.h</code> and <code>your_perceptron.cc</code>).</li>
+<li><code>hard_workload.cpp</code> (or <code>.c</code>): C/C++ source code used to generate your Part 4 hard trace.</li>
 </ul>
 </li>
-<li>summary:</li>
-<li>
+<li><strong>Hard Trace File</strong>:
 <ul>
-<li>A summary of the cited paper including motivations, challenges and designs.</li>
+<li><code>&lt;student_id&gt;_hard.champsimtrace.xz</code>: Your compressed 10M instruction trace file for Part 4.</li>
 </ul>
 </li>
-<li>technical introduction:</li>
-<li>
-<ul>
-<li>A report of the optimization techniques used in your code and explanation why they improve performance. (Unexplained code or techniques are permitted, but they should constitute <em><strong>less than 50%</strong></em> of the total.)</li>
-</ul>
-</li>
-</ul>
-<p>Please pack all files in an archive and submit the archive.</p>
+</ol>
 </div>
 </div>
-<div id="admonition-grading" class="admonition admonish-success" role="note" aria-labelledby="admonition-grading-title">
+<div id="admonition-grading-scheme-20-points-total" class="admonition admonish-success" role="note" aria-labelledby="admonition-grading-scheme-20-points-total-title">
 <div class="admonition-title">
-<div id="admonition-grading-title">
-<p>Grading</p>
+<div id="admonition-grading-scheme-20-points-total-title">
+<p>Grading Scheme (20 Points Total)</p>
 </div>
-<a class="admonition-anchor-link" href="#admonition-grading"></a>
+<a class="admonition-anchor-link" href="#admonition-grading-scheme-20-points-total"></a>
 </div>
 <div>
-<p>In this project, the grading is partially based on the performance of your implementation. The details are (15 points in total):</p>
+<p>Your final score for Project 2 will be calculated based on the following breakdown:</p>
 <ul>
-<li>Resonable performance statistics of <code>LocalBP</code>, <code>BiModeBP</code> and <code>TournamentBP</code>:</li>
-<li>
+<li><strong>Part 1 &amp; 2: Baseline &amp; Simple BP Evaluation (3 pts)</strong>
 <ul>
-<li><strong>3pts</strong>.</li>
+<li><strong>3 pts</strong>: Reasonable performance statistics (Accuracy/MPKI, IPC) provided for <code>bimodal</code>, <code>gshare</code>, <code>hashed_perceptron</code>, and <code>simple_bp</code> on standard workloads.</li>
 </ul>
 </li>
-<li><em><strong>PLUS</strong></em> reasonable performance statistics of <code>SimpleBP</code>:</li>
-<li>
+<li><strong>Part 3: Perceptron Paper Summary (4 pts)</strong>
 <ul>
-<li><strong>4pts</strong>.</li>
+<li><strong>4 pts</strong>: Comprehensive summary covering motivations, challenges, and architectural designs (Lack of any key section: <strong>-1 pt</strong> each).</li>
 </ul>
 </li>
-<li><em><strong>PLUS</strong></em> a compilable perceptron BP implementation:</li>
-<li>
+<li><strong>Part 3: Custom BP Implementation &amp; Performance Ranking (8 pts)</strong>
 <ul>
-<li><strong>7pts</strong>.</li>
+<li><strong>3 pts</strong>: Compilable and functionally correct <code>your_perceptron</code> code that passes simulation runs without errors.</li>
+<li><strong>2 pts</strong>: Performance surpassing <code>simple_bp</code> and comparable to <code>bimodal</code> / <code>gshare</code>.</li>
+<li><strong>3 pts</strong>: Competitive performance matching/exceeding <code>hashed_perceptron</code>, supported by clear technical explanations and high leaderboard ranking.</li>
 </ul>
 </li>
-<li><em><strong>PLUS</strong></em> a comparable performance with <code>LocalBP</code> of your perceptron BP:</li>
-<li>
+<li><strong>Part 4: Hard Trace Benchmark &amp; Stress Test (5 pts)</strong>
 <ul>
-<li><strong>11pts</strong>.</li>
-</ul>
-</li>
-<li><em><strong>PLUS</strong></em> a comparable performance with <code>BiModeBP</code> or <code>TournamentBP</code> of your perceptron BP:</li>
-<li>
-<ul>
-<li><strong>13pts</strong>.</li>
-</ul>
-</li>
-<li><em><strong>PLUS</strong></em> reasonable performance improvements (minimum 7%) and corresponding technical explanations:</li>
-<li>
-<ul>
-<li><strong>15pts</strong>.</li>
+<li><strong>2 pts</strong>: Valid C/C++ source code and properly formatted 10M-instruction trace file (<code>.champsimtrace.xz</code>) that runs without crashing.</li>
+<li><strong>3 pts</strong>: Trace hardness evaluation score based on MPKI on baseline BPs (Harder traces with higher MPKI achieve higher scores; Top 10% hardest traces receive full score + ranking bonus).</li>
 </ul>
 </li>
 </ul>
-<p>There are additional <strong>5pts</strong> based on your paper summary. A comprehensive summary including motivations, challenges and designs will get 5pts. Lack of any single part will cause <strong>-1pt</strong>.</p>
 </div>
 </div>
-
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
