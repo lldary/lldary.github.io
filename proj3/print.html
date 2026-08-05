@@ -443,31 +443,49 @@ L1D AVERAGE MISS LATENCY: 24.5 cycles
 <p>In total, you will run <strong>6 simulation runs</strong> (3 prefetcher configurations <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6667em;vertical-align:-0.0833em;"></span><span class="mord">×</span></span></span></span> 2 workloads).</p>
 </div>
 </div><div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<h1 id="part-3-paper-reading-implementation-and-evaluation-of-hyperion-prefetcher"><a class="header" href="#part-3-paper-reading-implementation-and-evaluation-of-hyperion-prefetcher">Part 3: Paper Reading, Implementation, and Evaluation of Hyperion Prefetcher</a></h1>
-<p>In this part, you will first read a state-of-the-art research paper on hardware prefetching, write a paper summary, and then implement your own <strong>Hyperion</strong> prefetcher module in <strong>ChampSim</strong>. Finally, you will evaluate its performance and participate in a competitive benchmark ranking.</p>
+<h1 id="part-3-paper-reading-prefetcher-design-implementation-and-evaluation"><a class="header" href="#part-3-paper-reading-prefetcher-design-implementation-and-evaluation">Part 3: Paper Reading, Prefetcher Design, Implementation, and Evaluation</a></h1>
+<p>In this part, you will first read a state-of-the-art research paper on hardware prefetching and analyze its design principles. Based on the paper and your understanding of memory access prediction, you will then <strong>design and implement your own hardware prefetcher</strong> in <strong>ChampSim</strong>. Finally, you will evaluate your prefetcher performance and participate in a competitive benchmark ranking.</p>
 <hr />
 <h2 id="task-1-paper-reading-and-summary"><a class="header" href="#task-1-paper-reading-and-summary">Task 1: Paper Reading and Summary</a></h2>
-<div id="admonition-target-paper" class="admonition admonish-quote" role="note" aria-labelledby="admonition-target-paper-title">
+<div id="admonition-reference-paper" class="admonition admonish-quote" role="note" aria-labelledby="admonition-reference-paper-title">
 <div class="admonition-title">
-<div id="admonition-target-paper-title">
-<p>Target Paper</p>
+<div id="admonition-reference-paper-title">
+<p>Reference Paper</p>
 </div>
-<a class="admonition-anchor-link" href="proj3/part3.html#admonition-target-paper"></a>
+<a class="admonition-anchor-link" href="proj3/part3.html#admonition-reference-paper"></a>
 </div>
 <div>
 <p>Cui, Y., Chen, W., Cheng, X., &amp; Yi, J. (2024). <strong>Hyperion: A Highly Effective Page and PC Based Delta Prefetcher</strong>. <em>ACM Transactions on Architecture and Code Optimization (TACO)</em>.</p>
 <p><a href="https://dl.acm.org/doi/10.1145/3675398">Download PDF from ACM DL</a></p>
 </div>
 </div>
-<p>You are required to read the paper above and write a concise summary. Your summary should cover:</p>
+<p>You are required to read the paper above and write a concise summary. The goal of this task is to understand the design principles of modern hardware prefetchers and use them as inspiration for your own prefetcher design.</p>
+<p>Your summary should cover:</p>
 <ol>
-<li><strong>Background</strong>: What problem in spatial/delta prefetching does Hyperion address?</li>
-<li><strong>Core Design &amp; Mechanisms</strong>: How does Hyperion leverage both Page information and Instruction Pointer (PC) to track memory access deltas? Explain its main tables, metadata structures, and prefetch generation logic.</li>
+<li>
+<p><strong>Background</strong>: What challenges do modern processors face when predicting future memory accesses? What limitations exist in traditional spatial, stride, or delta-based prefetchers?</p>
+</li>
+<li>
+<p><strong>Core Design &amp; Mechanisms</strong>: How does Hyperion leverage Page information and Instruction Pointer (PC) information to track memory access patterns? Explain its key tables, metadata structures, delta tracking mechanisms, and prefetch generation strategy.</p>
+</li>
+<li>
+<p><strong>Design Insights</strong>: Identify the key ideas from Hyperion that can be applied to designing a new prefetcher. Discuss possible improvements, extensions, or alternative designs.</p>
+</li>
 </ol>
-<p><em>(Note: Motivation discussion is <strong>not</strong> required considering the paper length.)</em></p>
+<p><em>(Note: You are not required to reproduce Hyperion exactly. The purpose of this task is to understand the paper and derive your own prefetcher design.)</em></p>
 <hr />
-<h2 id="task-2-implementing-a-prefetcher-in-champsim"><a class="header" href="#task-2-implementing-a-prefetcher-in-champsim">Task 2: Implementing a Prefetcher in ChampSim</a></h2>
-<p>ChampSim provides a clean, function-based C++ interface for prefetcher modules.</p>
+<h2 id="task-2-designing-and-implementing-your-own-prefetcher-in-champsim"><a class="header" href="#task-2-designing-and-implementing-your-own-prefetcher-in-champsim">Task 2: Designing and Implementing Your Own Prefetcher in ChampSim</a></h2>
+<p>ChampSim provides a clean, function-based C++ interface for implementing hardware prefetchers.</p>
+<p>In this task, you will design and implement your <strong>own prefetcher</strong> based on the ideas learned from the reference paper. Your design should include a prediction mechanism, metadata tracking structures, and a prefetch generation strategy.</p>
+<p>Your prefetcher may be inspired by Hyperion or other existing prefetching techniques, such as:</p>
+<ul>
+<li>PC-based stride prefetching</li>
+<li>Delta correlation prefetching</li>
+<li>Page-based spatial prefetching</li>
+<li>Region-based prefetching</li>
+<li>Hybrid prefetching combining multiple predictors</li>
+<li>Any novel prefetching strategy designed by yourself</li>
+</ul>
 <p>A standard ChampSim prefetcher resides in the <code>prefetcher/</code> directory (or a custom subfolder under <code>prefetcher/</code>) and implements the following core callback functions:</p>
 <pre><code class="language-cpp">#include "cache.h"
 
@@ -483,11 +501,15 @@ void l1d_prefetcher_operate(uint64_t addr, uint64_t ip, uint8_t cache_hit, uint8
     uint64_t page_addr  = addr &gt;&gt; LOG2_PAGE_SIZE;  // LOG2_PAGE_SIZE is typically 12
     uint64_t page_offset = (addr &gt;&gt; LOG2_BLOCK_SIZE) &amp; 0x3F; // 64 blocks per 4KiB page
 
-    // Example: Issue a prefetch for line (addr + 64 bytes)
+    // Implement your prediction algorithm here:
+    // 1. Update access history
+    // 2. Predict future memory addresses
+    // 3. Generate prefetch requests
+
     uint64_t pf_block_addr = block_addr + 1;
     uint64_t pf_addr = pf_block_addr &lt;&lt; LOG2_BLOCK_SIZE;
-    
-    // Call ChampSim helper to trigger prefetch
+
+    // Example prefetch request
     prefetch_line(pf_addr, true, 0); 
 }
 
@@ -495,7 +517,7 @@ void l1d_prefetcher_operate(uint64_t addr, uint64_t ip, uint8_t cache_hit, uint8
 void l1d_prefetcher_cache_fill(uint64_t addr, uint32_t set, uint32_t way, 
                                uint8_t prefetch, uint64_t evicted_addr, 
                                uint8_t metadata_in) {
-    // Update tracking structures upon cache line fill (demand miss or prefetch fill)
+    // Update tracking structures upon cache line fill
 }
 
 // 4. Final Stats: Called at the end of simulation
@@ -522,7 +544,7 @@ void l1d_prefetcher_final_stats() {
 <p><code>type</code>: Access type (e.g., <code>LOAD</code>, <code>RFO</code>, <code>PREFETCH</code>).</p>
 </li>
 <li>
-<p><strong><code>l1d_prefetcher_cache_fill()</code></strong>: Triggered when a cache line is filled from lower memory (L2C/RAM).</p>
+<p><strong><code>l1d_prefetcher_cache_fill()</code></strong>: Triggered when a line is filled from lower memory (L2C/RAM).</p>
 </li>
 <li>
 <p><code>prefetch</code>: <code>1</code> if this fill was triggered by a prior hardware prefetch request; <code>0</code> if it was a demand miss fill.</p>
@@ -540,13 +562,13 @@ void l1d_prefetcher_final_stats() {
 <p><strong>Address Manipulations</strong>:</p>
 </li>
 <li>
-<p>Block Address: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0044em;vertical-align:-0.31em;"></span><span class="mord text"><span class="mord">block_addr</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7335em;vertical-align:-0.0391em;"></span><span class="mord text"><span class="mord">addr</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≫</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.9933em;vertical-align:-0.31em;"></span><span class="mord text"><span class="mord">LOG2_BLOCK_SIZE</span></span></span></span></span></p>
+<p>Block Address: $\text{block_addr} = \text{addr} \gg \text{LOG2_BLOCK_SIZE}$</p>
 </li>
 <li>
-<p>Page Address: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0044em;vertical-align:-0.31em;"></span><span class="mord text"><span class="mord">page_addr</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7335em;vertical-align:-0.0391em;"></span><span class="mord text"><span class="mord">addr</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≫</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.9933em;vertical-align:-0.31em;"></span><span class="mord text"><span class="mord">LOG2_PAGE_SIZE</span></span></span></span></span></p>
+<p>Page Address: $\text{page_addr} = \text{addr} \gg \text{LOG2_PAGE_SIZE}$</p>
 </li>
 <li>
-<p>Page Offset: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0044em;vertical-align:-0.31em;"></span><span class="mord text"><span class="mord">page_offset</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord text"><span class="mord">addr</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≫</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.06em;vertical-align:-0.31em;"></span><span class="mord text"><span class="mord">LOG2_BLOCK_SIZE</span></span><span class="mclose">)</span><span class="mspace"> </span><span class="mord">&amp;</span><span class="mspace"> </span><span class="mord">0</span><span class="mord text"><span class="mord">x</span></span><span class="mord">3</span><span class="mord text"><span class="mord">F</span></span></span></span></span></p>
+<p>Page Offset: $\text{page_offset} = (\text{addr} \gg \text{LOG2_BLOCK_SIZE}) \ &amp; \ 0\text{x}3\text{F}$</p>
 </li>
 </ul>
 <div id="admonition-timestamps-and-custom-data-structures" class="admonition admonish-info" role="note" aria-labelledby="admonition-timestamps-and-custom-data-structures-title">
@@ -558,13 +580,14 @@ void l1d_prefetcher_final_stats() {
 </div>
 <div>
 <p>In ChampSim, you can track logical time or access age using a simple global counter incremented inside <code>l1d_prefetcher_operate()</code> (e.g., <code>uint64_t current_cycle = 0; current_cycle++;</code>), or use standard C++ STL containers (<code>std::vector</code>, <code>std::unordered_map</code>, fixed-size arrays) as global/static variables within your prefetcher file.</p>
+<p>Your implementation should carefully design metadata structures to record memory access history, prediction information, confidence values, or other information required by your prefetching algorithm.</p>
 </div>
 </div>
-<h3 id="adding-your-hyperion-prefetcher-to-champsim"><a class="header" href="#adding-your-hyperion-prefetcher-to-champsim">Adding Your Hyperion Prefetcher to ChampSim</a></h3>
+<h3 id="adding-your-prefetcher-to-champsim"><a class="header" href="#adding-your-prefetcher-to-champsim">Adding Your Prefetcher to ChampSim</a></h3>
 <ol>
-<li>Create a new prefetcher file: <code>prefetcher/hyperion.cc</code> (or <code>prefetcher/hyperion/hyperion.cc</code>).</li>
-<li>Implement your prefetcher logic based on the paper design.</li>
-<li>Update <code>lab3_config.json</code> to assign <code>"prefetcher": "hyperion"</code> to your <code>L1D</code> cache module.</li>
+<li>Create a new prefetcher file: <code>prefetcher/my_prefetcher.cc</code> (or <code>prefetcher/my_prefetcher/my_prefetcher.cc</code>).</li>
+<li>Implement your own prefetcher logic based on the reference paper and your design ideas.</li>
+<li>Update <code>lab3_config.json</code> to assign your prefetcher name to the <code>L1D</code> cache module.</li>
 <li>Generate C++ files and compile:</li>
 </ol>
 <pre><code class="language-sh">./config.sh lab3_config.json
@@ -573,16 +596,37 @@ make -j $(nproc)
 </code></pre>
 <hr />
 <h2 id="evaluation-and-grading-criteria"><a class="header" href="#evaluation-and-grading-criteria">Evaluation and Grading Criteria</a></h2>
-<p>Your Hyperion implementation will be evaluated using a suite of ChampSim trace workloads (including both prefetch-sensitive and undisclosed hidden benchmarks).</p>
+<p>Your prefetcher implementation will be evaluated using a suite of ChampSim trace workloads (including both prefetch-sensitive and undisclosed hidden benchmarks).</p>
 <h3 id="grading-structure"><a class="header" href="#grading-structure">Grading Structure</a></h3>
 <ol>
-<li><strong>Paper Summary (20%)</strong>: Clear and accurate summary of the Hyperion paper's background, architecture, and delta-tracking mechanisms.</li>
-<li><strong>Functional Implementation &amp; Report (40%)</strong>: Correct implementation of the Hyperion algorithm in ChampSim with complete report analyzing IPC, accuracy, coverage, and late prefetches.</li>
-<li><strong>Performance Evaluation (40%)</strong>:</li>
+<li>
+<p><strong>Paper Summary (20%)</strong>:
+Clear and accurate summary of the Hyperion paper, including its background, architecture, prediction mechanisms, and key design insights.</p>
+</li>
+<li>
+<p><strong>Prefetcher Design &amp; Implementation Report (40%)</strong>:
+Students should provide:</p>
+<ul>
+<li>Description of their prefetcher design.</li>
+<li>Motivation behind the design choices.</li>
+<li>Explanation of prediction mechanisms and metadata structures.</li>
+<li>Correct implementation in ChampSim.</li>
+<li>Analysis of IPC, accuracy, coverage, and late prefetches.</li>
+</ul>
+</li>
+<li>
+<p><strong>Performance Evaluation (40%)</strong>:</p>
+</li>
 </ol>
 <ul>
-<li><strong>Absolute Performance (25%)</strong>: Your prefetcher must outperform the baseline <code>next_line</code> prefetcher and achieve a minimum required IPC speedup threshold on the provided workloads.</li>
-<li><strong>Relative Ranking (15%)</strong>: Students will be ranked based on the <strong>geometric mean IPC speedup</strong> across all evaluation traces. Top-performing implementations will receive full ranking points, with a gradual curve applied down the leaderboards.</li>
+<li>
+<p><strong>Absolute Performance (25%)</strong>:
+Your prefetcher must outperform the baseline <code>next_line</code> prefetcher and achieve a minimum required IPC speedup threshold on the provided workloads.</p>
+</li>
+<li>
+<p><strong>Relative Ranking (15%)</strong>:
+Students will be ranked based on the <strong>geometric mean IPC speedup</strong> across all evaluation traces. Top-performing implementations will receive full ranking points, with a gradual curve applied down the leaderboard.</p>
+</li>
 </ul>
 <div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
 <div class="admonition-title">
@@ -592,19 +636,57 @@ make -j $(nproc)
 <a class="admonition-anchor-link" href="proj3/part3.html#admonition-deliverables"></a>
 </div>
 <div>
-<p>Please run your implemented Hyperion prefetcher on the test workloads (<code>shell_sort.champsimtrace.xz</code> and <code>gemm.champsimtrace.xz</code>). Submit the following deliverables:</p>
+<p>Please run your implemented prefetcher on the test workloads (<code>shell_sort.champsimtrace.xz</code> and <code>gemm.champsimtrace.xz</code>). Submit the following deliverables:</p>
 <ol>
-<li><strong>Source Code</strong>: Submit your C++ prefetcher implementation file (<code>hyperion.cc</code>) and any associated header files.</li>
-<li><strong>Paper Summary</strong>: A 1–2 page PDF document summarizing the Hyperion paper (Background + Core Design/Mechanisms).</li>
-<li><strong>Lab Report</strong>:
+<li>
+<p><strong>Source Code</strong>:
+Submit your C++ prefetcher implementation file (<code>my_prefetcher.cc</code>) and any associated header files.</p>
+</li>
+<li>
+<p><strong>Paper Summary</strong>:
+A 1–2 page PDF document summarizing the Hyperion paper:</p>
 <ul>
-<li>Include tables or figures comparing <strong>IPC</strong>, <strong>Accuracy</strong>, <strong>Coverage</strong>, and <strong>Late Prefetches</strong> across <code>no</code>, <code>next_line</code>, <code>ip_stride</code>, and your <code>hyperion</code> implementation.</li>
-<li>Provide a brief discussion on why Hyperion performs better (or worse) on specific memory access patterns.</li>
+<li>Background</li>
+<li>Core Design/Mechanisms</li>
+<li>Key insights for prefetcher design</li>
+</ul>
+</li>
+<li>
+<p><strong>Prefetcher Design Report</strong>:
+Include:</p>
+<ul>
+<li>Overview of your prefetcher architecture.</li>
+<li>Explanation of prediction algorithms and metadata structures.</li>
+<li>Comparison with existing approaches.</li>
+</ul>
+</li>
+<li>
+<p><strong>Lab Report</strong>:
+Include tables or figures comparing:</p>
+<ul>
+<li><strong>IPC</strong></li>
+<li><strong>Prefetch Accuracy</strong></li>
+<li><strong>Prefetch Coverage</strong></li>
+<li><strong>Late Prefetches</strong></li>
+</ul>
+<p>Compare your implementation with:</p>
+<ul>
+<li><code>no</code> prefetcher</li>
+<li><code>next_line</code></li>
+<li><code>ip_stride</code></li>
+<li>Your proposed prefetcher</li>
+</ul>
+<p>Provide a discussion explaining:</p>
+<ul>
+<li>Why your prefetcher improves performance on certain workloads.</li>
+<li>Which access patterns are difficult to predict.</li>
+<li>Potential limitations and future improvements.</li>
 </ul>
 </li>
 </ol>
 </div>
-</div><div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+</div>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="part-4-crafting-a-hard-trace-cache--prefetcher-stress-testing"><a class="header" href="#part-4-crafting-a-hard-trace-cache--prefetcher-stress-testing">Part 4: Crafting a Hard Trace (Cache &amp; Prefetcher Stress Testing)</a></h1>
 <p>In this final part, you will flip the perspective from <strong>defender</strong> (building a prefetcher) to <strong>adversary</strong> (constructing a cache-hostile memory trace). Your goal is to design a synthetic workload or memory access trace that stresses the cache hierarchy, maximizes cache misses, and fools standard prefetchers (such as Next-Line or Stride prefetchers).</p>
 <p>Grading for this part will be determined by the <strong>difficulty score</strong> of your trace—specifically, how effectively it degrades baseline system performance and challenges hardware prefetching mechanisms.</p>
