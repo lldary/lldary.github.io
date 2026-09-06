@@ -183,11 +183,9 @@
 <p>ChampSim provides multiple classic cache prefetchers out of the box (located in the <code>prefetcher/</code> directory). In ChampSim, prefetchers are assigned to a specific cache level (such as <code>L1D</code>, <code>L2C</code>, or <code>LLC</code>) directly in the JSON configuration file via the <code>"prefetcher"</code> key.</p>
 <p>For example, to attach the <code>ip_stride</code> prefetcher to the CPU's L1 Data Cache (<code>L1D</code>), update your <code>lab3_config.json</code>:</p>
 <pre><code class="language-json">  "L1D": {
-    "sets": 64,
-    "ways": 12,
+    "sets": 96,
+    "ways": 8,
     "mshr_size": 16,
-    "hit_latency": 3,
-    "fill_latency": 1,
     "prefetcher": "ip_stride",
     "replacement": "lru"
   }
@@ -201,7 +199,7 @@ make -j $(nproc)
 </code></pre>
 <p><em>Tip</em>: You can set different <code>"executable_name"</code> values in your JSON file (e.g., <code>"champsim_no_pf"</code>, <code>"champsim_next_line"</code>, <code>"champsim_ip_stride"</code>) to build distinct binary executables for different configurations without overwriting them.</p>
 </blockquote>
-<p>In this part, we will explore three L1D prefetcher configurations:</p>
+<p>In this part, we will explore three L1D prefetcher configurations (<strong>The L1I and L2C settings remain unchanged</strong>):</p>
 <ul>
 <li><code>"no"</code>: Disables prefetching for baseline comparison.</li>
 <li><code>"next_line"</code>: A simple prefetcher that fetches the contiguous next cache block on access.</li>

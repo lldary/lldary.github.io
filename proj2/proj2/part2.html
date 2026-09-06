@@ -245,7 +245,18 @@ void simple_bp::last_branch_result(champsim::address ip, champsim::address branc
 </ul>
 <p>Next, to compile <code>ChampSim</code> with our new <code>simple_bp</code>, set <code>"branch_predictor": "simple_bp"</code> in <code>lab2_config.json</code>:</p>
 <pre><code class="language-json">{
-  "branch_predictor": "simple_bp"
+  "ooo_cpu": [
+    {
+      "frequency": 4000,
+
+      "rob_size": 352,
+
+      "branch_predictor": "simple_bp",
+      "btb": "basic_btb",
+
+      "mispredict_penalty": 15
+    }
+  ]
 }
 
 </code></pre>

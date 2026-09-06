@@ -218,7 +218,7 @@ xz -z &lt;student_id&gt;_hard.champsimtrace
 <a class="admonition-anchor-link" href="#admonition-grading-policy--hardness-leaderboard"></a>
 </div>
 <div>
-<p>All submitted traces will be benchmarked against standard baseline predictors (<code>bimodal</code>, <code>gshare</code>, and <code>hashed_perceptron</code>) under a 10M instruction run. Your grade for this part will be determined by the <strong>hardness</strong> of your trace:</p>
+<p>All submitted traces will be benchmarked against standard baseline predictors (<code>bimodal</code>) under a 10M instruction run. Your grade for this part will be determined by the <strong>hardness</strong> of your trace:</p>
 <ul>
 <li><strong>Hardness Metric</strong>: Measured by the <strong>Branch Mispredictions Per Kilo-Instructions (MPKI)</strong> and <strong>Misprediction Rate</strong> on the baseline predictors (higher MPKI = harder trace).</li>
 <li><strong>Scoring &amp; Leaderboard</strong>:
@@ -247,7 +247,7 @@ xz -z &lt;student_id&gt;_hard.champsimtrace
 <li><strong>Report Section</strong>: In your lab report, include:
 <ul>
 <li><strong>Control Flow Design</strong>: Describe the mechanisms and algorithms used in your program to trick branch predictors.</li>
-<li><strong>Benchmark Results</strong>: A table showing the MPKI, Prediction Accuracy, and CPU IPC of <code>bimodal</code>, <code>gshare</code>, <code>hashed_perceptron</code>, and your <code>your_perceptron</code> when running on your custom 10M-instruction trace.</li>
+<li><strong>Benchmark Results</strong>: A table showing the MPKI, Prediction Accuracy, and CPU IPC of <code>bimodal</code> when running on your custom 10M-instruction trace.</li>
 </ul>
 </li>
 </ol>

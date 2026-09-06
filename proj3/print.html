@@ -238,8 +238,8 @@
     "replacement": "lru"
   },
   "L1D": {
-    "sets": 64,
-    "ways": 12,
+    "sets": 96,
+    "ways": 8,
     "mshr_size": 16,
     "prefetcher": "no",
     "replacement": "lru"
@@ -398,11 +398,9 @@ make -j $(nproc)
 <p>ChampSim provides multiple classic cache prefetchers out of the box (located in the <code>prefetcher/</code> directory). In ChampSim, prefetchers are assigned to a specific cache level (such as <code>L1D</code>, <code>L2C</code>, or <code>LLC</code>) directly in the JSON configuration file via the <code>"prefetcher"</code> key.</p>
 <p>For example, to attach the <code>ip_stride</code> prefetcher to the CPU's L1 Data Cache (<code>L1D</code>), update your <code>lab3_config.json</code>:</p>
 <pre><code class="language-json">  "L1D": {
-    "sets": 64,
-    "ways": 12,
+    "sets": 96,
+    "ways": 8,
     "mshr_size": 16,
-    "hit_latency": 3,
-    "fill_latency": 1,
     "prefetcher": "ip_stride",
     "replacement": "lru"
   }
@@ -416,7 +414,7 @@ make -j $(nproc)
 </code></pre>
 <p><em>Tip</em>: You can set different <code>"executable_name"</code> values in your JSON file (e.g., <code>"champsim_no_pf"</code>, <code>"champsim_next_line"</code>, <code>"champsim_ip_stride"</code>) to build distinct binary executables for different configurations without overwriting them.</p>
 </blockquote>
-<p>In this part, we will explore three L1D prefetcher configurations:</p>
+<p>In this part, we will explore three L1D prefetcher configurations (<strong>The L1I and L2C settings remain unchanged</strong>):</p>
 <ul>
 <li><code>"no"</code>: Disables prefetching for baseline comparison.</li>
 <li><code>"next_line"</code>: A simple prefetcher that fetches the contiguous next cache block on access.</li>
@@ -787,12 +785,6 @@ Include tables or figures comparing:</p>
 <ul>
 <li><code>lab3_config.json</code>: Your ChampSim cache hierarchy configuration.</li>
 <li><code>hyperion.cc</code>: Your C++ implementation of the Hyperion prefetcher.</li>
-<li><code>stress_test.c</code> (or <code>trace_generator.py</code>): Source code used to construct your hostile memory trace.</li>
-</ul>
-</li>
-<li><strong>Custom Trace File</strong>:
-<ul>
-<li><code>&lt;student_id&gt;_stress.champsimtrace.xz</code>: Your valid, compressed ChampSim stress trace.</li>
 </ul>
 </li>
 </ol>
@@ -828,14 +820,6 @@ Include tables or figures comparing:</p>
 <li><strong>Code Correctness</strong>: Compilable and functional Hyperion C++ implementation: <strong>2 pts</strong></li>
 <li><strong>Absolute Performance</strong>: Outperforming <code>next_line</code> and meeting the baseline IPC speedup threshold: <strong>2 pts</strong></li>
 <li><strong>Relative Leaderboard Ranking</strong>: Based on geometric mean IPC speedup across all test traces: <strong>2 pts</strong> <em>(Top 20%: 2 pts; Top 50%: 1.5 pts; Others: 1 pt)</em></li>
-</ul>
-</li>
-<li>
-<p><strong>Part 4: Custom Hostile Trace Design (5 pts)</strong></p>
-<ul>
-<li><strong>Trace Validity &amp; Source Code</strong>: Source code provided and trace passes all instruction count, memory density, and address footprint checks: <strong>1 pt</strong></li>
-<li><strong>Absolute Difficulty Threshold</strong>: Successfully achieves <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8056em;vertical-align:-0.0556em;"></span><span class="mord">40%</span></span></span></span> L2C miss rate or significantly degrades baseline IPC: <strong>2 pts</strong></li>
-<li><strong>Trace Difficulty Leaderboard Ranking</strong>: Ranked by Difficulty Score (<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">trace</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>): <strong>2 pts</strong> <em>(Top 20% hardest traces: 2 pts; Top 50%: 1.5 pts; Others: 1 pt)</em></li>
 </ul>
 </li>
 </ul>

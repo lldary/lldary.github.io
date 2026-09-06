@@ -221,11 +221,22 @@
 <p><code>ChampSim</code> is natively a detailed out-of-order (O3) CPU simulator, so you do not need to manually change the CPU model. To select a specific branch predictor, you can configure the <code>"branch_predictor"</code> field in the build JSON script (<code>lab2_config.json</code>).</p>
 <p><code>ChampSim</code> provides several built-in branch predictors in the <code>branch/</code> directory. In this part, we will focus on three of them: <code>bimodal</code>, <code>gshare</code>, and <code>hashed_perceptron</code>. You can specify the desired branch predictor in <code>lab2_config.json</code> as follows:</p>
 <pre><code class="language-json">{
-  "branch_predictor": "bimodal"
+  "ooo_cpu": [
+    {
+      "frequency": 4000,
+
+      "rob_size": 352,
+
+      "branch_predictor": "bimodal",
+      "btb": "basic_btb",
+
+      "mispredict_penalty": 15
+    }
+  ]
 }
 
 </code></pre>
-<p><em>(To test <code>gshare</code> or <code>hashed_perceptron</code>, simply change <code>"bimodal"</code> to <code>"gshare"</code> or <code>"hashed_perceptron"</code> in <code>lab2_config.json</code>.)</em></p>
+<p><em>(To test <code>gshare</code> or <code>hashed_perceptron</code>, simply change <code>"bimodal"</code> to <code>"gshare"</code> or <code>"localbp"</code> in <code>lab2_config.json</code>.)</em></p>
 <p>After updating the JSON file, generate the build files and compile <code>ChampSim</code>:</p>
 <pre><code class="language-sh">./config.sh ./lab2_config.json
 make -j $(nproc)
@@ -238,7 +249,7 @@ bin/champsim --warmup-instructions 20000000 --simulation-instructions 100000000 
 bin/champsim --warmup-instructions 20000000 --simulation-instructions 100000000 ../trace/spfa.champsimtrace.xz
 
 </code></pre>
-<p>The process for testing <code>gshare</code> and <code>hashed_perceptron</code> is similar: update <code>"branch_predictor"</code> in <code>lab2_config.json</code>, re-compile with <code>./config.sh</code> and <code>make</code>, and then re-run the trace files using the commands above.</p>
+<p>The process for testing <code>gshare</code> and <code>local_bp</code> is similar: update <code>"branch_predictor"</code> in <code>lab2_config.json</code>, re-compile with <code>./config.sh</code> and <code>make</code>, and then re-run the trace files using the commands above.</p>
 <div id="admonition-tip" class="admonition admonish-tip" role="note" aria-labelledby="admonition-tip-title">
 <div class="admonition-title">
 <div id="admonition-tip-title">
@@ -268,7 +279,7 @@ bin/champsim --warmup-instructions 20000000 --simulation-instructions 100000000 
 <p>Please run the two BP-sensitive workloads (<code>shell_sort</code> and <code>spfa</code>) across all three branch predictors. The remaining workloads (<code>gemm</code> and <code>binary_search</code>) are insensitive to BP; you can run them for extra exploration if interested.</p>
 <p>In your <em><strong>report</strong></em>, please include figures or tables showing the <strong>Branch Prediction Accuracy</strong>, <strong>MPKI</strong> and <strong>CPU IPC</strong> for the following combinations:</p>
 <ul>
-<li><strong>Branch Predictors:</strong> <code>bimodal</code>, <code>gshare</code>, <code>hashed_perceptron</code></li>
+<li><strong>Branch Predictors:</strong> <code>bimodal</code>, <code>gshare</code>, <code>local_bp</code></li>
 <li><strong>Traces:</strong> <code>shell_sort</code>, <code>spfa</code></li>
 <li><strong>Configuration:</strong> Default 1-core configuration with no prefetchers</li>
 </ul>
@@ -342,7 +353,18 @@ void simple_bp::last_branch_result(champsim::address ip, champsim::address branc
 </ul>
 <p>Next, to compile <code>ChampSim</code> with our new <code>simple_bp</code>, set <code>"branch_predictor": "simple_bp"</code> in <code>lab2_config.json</code>:</p>
 <pre><code class="language-json">{
-  "branch_predictor": "simple_bp"
+  "ooo_cpu": [
+    {
+      "frequency": 4000,
+
+      "rob_size": 352,
+
+      "branch_predictor": "simple_bp",
+      "btb": "basic_btb",
+
+      "mispredict_penalty": 15
+    }
+  ]
 }
 
 </code></pre>
@@ -536,7 +558,7 @@ xz -z &lt;student_id&gt;_hard.champsimtrace
 <a class="admonition-anchor-link" href="proj2/part4.html#admonition-grading-policy--hardness-leaderboard"></a>
 </div>
 <div>
-<p>All submitted traces will be benchmarked against standard baseline predictors (<code>bimodal</code>, <code>gshare</code>, and <code>hashed_perceptron</code>) under a 10M instruction run. Your grade for this part will be determined by the <strong>hardness</strong> of your trace:</p>
+<p>All submitted traces will be benchmarked against standard baseline predictors (<code>bimodal</code>) under a 10M instruction run. Your grade for this part will be determined by the <strong>hardness</strong> of your trace:</p>
 <ul>
 <li><strong>Hardness Metric</strong>: Measured by the <strong>Branch Mispredictions Per Kilo-Instructions (MPKI)</strong> and <strong>Misprediction Rate</strong> on the baseline predictors (higher MPKI = harder trace).</li>
 <li><strong>Scoring &amp; Leaderboard</strong>:
@@ -565,7 +587,7 @@ xz -z &lt;student_id&gt;_hard.champsimtrace
 <li><strong>Report Section</strong>: In your lab report, include:
 <ul>
 <li><strong>Control Flow Design</strong>: Describe the mechanisms and algorithms used in your program to trick branch predictors.</li>
-<li><strong>Benchmark Results</strong>: A table showing the MPKI, Prediction Accuracy, and CPU IPC of <code>bimodal</code>, <code>gshare</code>, <code>hashed_perceptron</code>, and your <code>your_perceptron</code> when running on your custom 10M-instruction trace.</li>
+<li><strong>Benchmark Results</strong>: A table showing the MPKI, Prediction Accuracy, and CPU IPC of <code>bimodal</code> when running on your custom 10M-instruction trace.</li>
 </ul>
 </li>
 </ol>
