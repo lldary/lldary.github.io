@@ -532,22 +532,41 @@ bin/champsim --warmup-instructions 20000000 --simulation-instructions 100000000 
 <li><strong>Irregular Memory &amp; Pointer Chasing</strong>: Unstructured graph traversals (e.g., BFS/DFS on sparse graphs, skip lists, or unbalanced tree searches).</li>
 <li><strong>High-Entropy Conditional Statements</strong>: Interleaved conditional logic that induces heavy aliasing (collisions) in branch target/predictor tables.</li>
 </ul>
+<h2 id="installing-intel-pin"><a class="header" href="#installing-intel-pin">Installing Intel PIN</a></h2>
+<p>Before generating the ChampSim trace, you need to install Intel PIN, a dynamic binary instrumentation framework used by the ChampSim tracer.</p>
+<p>Download the Linux x86-64 version of Intel PIN from the official Intel website:</p>
+<pre><code class="language-sh">wget https://software.intel.com/sites/landingpage/pintool/downloads/pin-external-4.3-99850-gce5652921-gcc-linux.tar.gz
+</code></pre>
+<p>You should download a file with a name similar to: <code>pin-external-4.3-99850-gce5652921-gcc-linux.tar.gz</code>. For this lab, use the Linux x86-64 version compatible with your environment.</p>
+<p>Then create a directory for PIN and extract the downloaded archive:</p>
+<pre><code class="language-sh">mkdir -p ~/tools
+cd ~/tools
+
+tar -xzf pin-external-4.3-99850-gce5652921-gcc-linux.tar.gz
+</code></pre>
+<p>After extraction, you should see a directory similar to: <code>~/tools/pin-external-4.3-99850-gce5652921-gcc-linux/</code>. Inside this directory, the PIN executable should exist:</p>
+<pre><code class="language-sh">ls ~/tools/pin-external-4.3-99850-gce5652921-gcc-linux/pin
+</code></pre>
+<p>PIN_ROOT point to the root directory of the extracted Intel PIN package.</p>
+<p>For example:</p>
+<pre><code class="language-sh">export PIN_ROOT=$HOME/tools/pin-external-4.3-99850-gce5652921-gcc-linux
+</code></pre>
 <h2 id="trace-generation-rules--constraints"><a class="header" href="#trace-generation-rules--constraints">Trace Generation Rules &amp; Constraints</a></h2>
 <ol>
-<li><strong>Instruction Limit</strong>: The trace evaluation is strictly limited to <strong>10 million instructions</strong> (<code>30,000,000</code> / <code>30M</code>). Your trace generator must capture 10M simulation instructions.</li>
+<li><strong>Instruction Limit</strong>: The trace evaluation is strictly limited to <strong>200 million instructions</strong> (<code>200,000,000</code> / <code>200M</code>). Your trace generator must capture 200M simulation instructions.</li>
 <li><strong>Compilation &amp; Tracing</strong>: Write your C/C++ workload and generate the trace using the Pintool tracer provided in ChampSim (or the course-provided tracing script):</li>
 </ol>
 <pre><code class="language-sh"># Example: Generating a trace using ChampSim Pin Tracer
-$PIN_ROOT/pin -t tracer/obj-intel64/champsim_tracer.so -o &lt;student_id&gt;_hard.champsimtrace -s 0 -i 30000000 -- ./your_workload
+$PIN_ROOT/pin -t tracer/obj-intel64/champsim_tracer.so -o &lt;student_id&gt;_hard.champsimtrace -s 0 -i 300000000 -- ./your_workload
 
 # Compress the generated trace
-xz -z &lt;student_id&gt;_hard.champsimtrace
+xz -z -T0 &lt;student_id&gt;_hard.champsimtrace
 
 </code></pre>
 <ol start="3">
 <li><strong>Execution Validation</strong>: Verify that your trace runs properly with ChampSim for 10M instructions without crashing:</li>
 </ol>
-<pre><code class="language-sh">bin/champsim --warmup-instructions 0 --simulation-instructions 10000000 ../trace/&lt;student_id&gt;_hard.champsimtrace.xz
+<pre><code class="language-sh">bin/champsim --warmup-instructions 2000000 --simulation-instructions 10000000 ../trace/&lt;student_id&gt;_hard.champsimtrace.xz
 
 </code></pre>
 <div id="admonition-grading-policy--hardness-leaderboard" class="admonition admonish-info" role="note" aria-labelledby="admonition-grading-policy--hardness-leaderboard-title">
