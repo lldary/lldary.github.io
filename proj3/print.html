@@ -59,7 +59,7 @@
                 }
             });
         </script>
-    <div style="display: none"><a href="#proj3">proj3</a><a href="#proj3-part1">proj3-part1</a><a href="#proj3-part2">proj3-part2</a><a href="#proj3-part3">proj3-part3</a><a href="#proj3-part4">proj3-part4</a><a href="#proj3-submit">proj3-submit</a><a href="#proj3-appendix1">proj3-appendix1</a><a href="#proj3-appendix2">proj3-appendix2</a></div>
+    <div style="display: none"><a href="#proj3">proj3</a><a href="#proj3-part1">proj3-part1</a><a href="#proj3-part2">proj3-part2</a><a href="#proj3-part3">proj3-part3</a><a href="#proj3-submit">proj3-submit</a><a href="#proj3-appendix1">proj3-appendix1</a><a href="#proj3-appendix2">proj3-appendix2</a></div>
 
         <!-- Provide site root and default themes to javascript -->
         <script>
@@ -229,22 +229,11 @@
 <h2 id="1-single-core-baseline-setup"><a class="header" href="#1-single-core-baseline-setup">1. Single-Core Baseline Setup</a></h2>
 <p>Configure <code>lab3_config.json</code> with the following parameters:</p>
 <pre><code class="language-json">{
-  "block_size": 64,
-  "cpu": [
-    {
-      "name": "cpu0",
-      "frequency": 4000,
-      "l1i": "L1I",
-      "l1d": "L1D",
-      "l2c": "L2C"
-    }
-  ],
+  "executable_name": "champsim_proj3",
   "L1I": {
     "sets": 64,
     "ways": 8,
     "mshr_size": 16,
-    "hit_latency": 3,
-    "fill_latency": 1,
     "prefetcher": "no",
     "replacement": "lru"
   },
@@ -252,8 +241,6 @@
     "sets": 64,
     "ways": 12,
     "mshr_size": 16,
-    "hit_latency": 3,
-    "fill_latency": 1,
     "prefetcher": "no",
     "replacement": "lru"
   },
@@ -261,8 +248,6 @@
     "sets": 2048,
     "ways": 16,
     "mshr_size": 20,
-    "hit_latency": 20,
-    "fill_latency": 1,
     "prefetcher": "no",
     "replacement": "lru"
   }
@@ -282,8 +267,8 @@
 <pre><code class="language-sh">./config.sh lab3_config.json
 make -j $(nproc)
 </code></pre>
-<p>Run the generated executable (<code>./bin/champsim_proj3</code>) on <code>gemm.champsimtrace.xz</code>:</p>
-<pre><code class="language-sh">./bin/champsim_proj3 --warmup_instructions 20000000 --simulation_instructions 100000000 traces/gemm.champsimtrace.xz
+<p>Run the generated executable (<code>./bin/champsim_proj3</code>) on <code>cache-example.champsimtrace.xz</code>:</p>
+<pre><code class="language-sh">./bin/champsim_proj3 --warmup_instructions 20000000 --simulation_instructions 100000000 traces/cache-example.champsimtrace.xz
 </code></pre>
 <p>Record the baseline performance, including <strong>IPC, total cycles, and cache miss statistics</strong>.</p>
 <hr />
@@ -296,14 +281,13 @@ make -j $(nproc)
 <p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">total</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">L1I</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">L1D</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">L2C</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span></p>
 <p>where:</p>
 <p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">level</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6984em;vertical-align:-0.0833em;"></span><span class="mord text"><span class="mord">sets</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7778em;vertical-align:-0.1944em;"></span><span class="mord text"><span class="mord">ways</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">64</span><span class="mord text"><span class="mord"> B</span></span><span class="mord">.</span></span></span></span></span></p>
-<p>You will run the given workload (<code>gemm.champsimtrace.xz</code>) and design different cache organizations under the <strong>same total cache capacity</strong>.</p>
+<p>You will run the given workload (<code>cache-example.champsimtrace.xz</code>) and design different cache organizations under the <strong>same total cache capacity</strong>.</p>
 <p>Your goal is to determine:</p>
 <blockquote>
 <p><strong>How should the fixed cache capacity be allocated and organized to maximize the performance of the given workload?</strong></p>
 </blockquote>
 <p>You may change:</p>
 <ul>
-<li>L1I capacity</li>
 <li>L1D capacity</li>
 <li>L2C capacity</li>
 <li>Number of sets</li>
@@ -323,27 +307,15 @@ make -j $(nproc)
 <p>First, investigate how the total cache capacity should be divided between L1 and L2.</p>
 <p>For example, compare configurations such as:</p>
 <ol>
-<li><strong>Strategy A (Small L1, Large L2):</strong> Keep L1I/L1D relatively small and allocate most of the capacity to L2C.</li>
-<li><strong>Strategy B (Balanced L1/L2):</strong> Increase L1I/L1D while reducing L2C by the same amount.</li>
-<li><strong>Strategy C (Large L1, Small L2):</strong> Allocate substantially more capacity to L1I/L1D and reduce L2C accordingly.</li>
+<li><strong>Strategy A (Small L1, Large L2):</strong> Keep L1D relatively small and allocate most of the capacity to L2C.</li>
+<li><strong>Strategy B (Balanced L1/L2):</strong> Increase L1D while reducing L2C by the same amount.</li>
+<li><strong>Strategy C (Large L1, Small L2):</strong> Allocate substantially more capacity to L1D and reduce L2C accordingly.</li>
 </ol>
 <p>The total capacity must always satisfy:</p>
 <p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">L1I</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">L1D</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">L2C</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">==============</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">2.08</span><span class="mord text"><span class="mord"> MB</span></span><span class="mord">.</span></span></span></span></span></p>
 <p>Analyze whether giving more capacity to the faster L1 caches or to the larger L2 cache provides better performance.</p>
 <hr />
-<h3 id="22-l1i-vs-l1d-capacity-allocation"><a class="header" href="#22-l1i-vs-l1d-capacity-allocation">2.2 L1I vs. L1D Capacity Allocation</a></h3>
-<p>Next, investigate whether L1I and L1D should have the same capacity.</p>
-<p>Keep the total cache capacity fixed and compare different L1I/L1D organizations.</p>
-<p>For example:</p>
-<ul>
-<li>Small L1I + Large L1D</li>
-<li>Balanced L1I + L1D</li>
-<li>Large L1I + Small L1D</li>
-</ul>
-<p>The objective is to determine whether the workload is more sensitive to <strong>instruction-cache capacity</strong> or <strong>data-cache capacity</strong>.</p>
-<p>Students should use the measured L1I and L1D miss rates to explain their observations.</p>
-<hr />
-<h3 id="23-cache-sets-and-associativity-optimization"><a class="header" href="#23-cache-sets-and-associativity-optimization">2.3 Cache Sets and Associativity Optimization</a></h3>
+<h3 id="22-cache-sets-and-associativity-optimization"><a class="header" href="#22-cache-sets-and-associativity-optimization">2.2 Cache Sets and Associativity Optimization</a></h3>
 <p>Cache capacity alone does not determine cache performance.</p>
 <p>For the same cache capacity, compare different combinations of <strong>sets and ways</strong>.</p>
 <p>For example, a cache with a fixed capacity can be organized using:</p>
@@ -373,29 +345,11 @@ make -j $(nproc)
 </ul>
 <p>Determine whether the workload benefits more from <strong>higher associativity</strong> or from <strong>a larger number of sets</strong>.</p>
 <hr />
-<h3 id="24-final-cache-optimization-challenge"><a class="header" href="#24-final-cache-optimization-challenge">2.4 Final Cache Optimization Challenge</a></h3>
-<p>After performing the experiments above, design your own final cache hierarchy.</p>
-<p>You must satisfy the following constraint:</p>
-<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">total</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">2.08</span><span class="mord text"><span class="mord"> MB</span></span><span class="mord">.</span></span></span></span></span></p>
-<p>You are free to determine:</p>
-<ul>
-<li>L1I size</li>
-<li>L1D size</li>
-<li>L2C size</li>
-<li>L1I sets/ways</li>
-<li>L1D sets/ways</li>
-<li>L2C sets/ways</li>
-</ul>
-<p>Your objective is to maximize the performance of:</p>
-<pre><code class="language-text">gemm.champsimtrace.xz
-</code></pre>
-<p>The optimal configuration is <strong>not provided in advance</strong>.</p>
 <p>Students should use experimental results to iteratively refine their cache design rather than simply trying random configurations.</p>
 <blockquote>
 <p><strong>Optimization Questions to Answer</strong>:</p>
 <ul>
-<li>How should the fixed capacity budget be split between L1I, L1D, and L2C to maximize IPC?</li>
-<li>Should L1I and L1D have the same capacity?</li>
+<li>How should the fixed capacity budget be split between L1D, and L2C to maximize IPC?</li>
 <li>For a fixed cache capacity, how does associativity affect performance?</li>
 <li>Is increasing the number of ways always beneficial?</li>
 <li>When is it better to increase the number of sets instead of increasing associativity?</li>
@@ -418,7 +372,7 @@ make -j $(nproc)
 <p><strong>Build Verification</strong>: A screenshot of your single-core <code>lab3_config.json</code> file and the terminal output confirming a successful compilation.</p>
 </li>
 <li>
-<p><strong>Single-Core IPC Comparison</strong>: A figure or table comparing <code>CPU 0 cumulative IPC</code> on <code>gemm</code> across the baseline and modified cache configurations.</p>
+<p><strong>Single-Core IPC Comparison</strong>: A figure or table comparing <code>CPU 0 cumulative IPC</code> on <code>cache-example</code> across the baseline and modified cache configurations.</p>
 </li>
 <li>
 <p><strong>Cache Capacity Allocation Analysis</strong>:</p>
@@ -436,15 +390,6 @@ make -j $(nproc)
 <li>Compare at least <strong>3 different sets/ways organizations</strong> while keeping cache capacity unchanged.</li>
 <li>Report the corresponding cache miss rates and IPC.</li>
 <li>Explain the impact of associativity and conflict misses on performance.</li>
-</ul>
-<ol start="5">
-<li><strong>Final Cache Optimization</strong>:</li>
-</ol>
-<ul>
-<li>Show your final <code>lab3_config.json</code> configuration.</li>
-<li>Report the final IPC and cache statistics.</li>
-<li>Compare the optimized configuration against the baseline.</li>
-<li>Explain <em>why your final cache hierarchy achieves the highest performance under the fixed total cache capacity budget</em>.</li>
 </ul>
 </div>
 </div>
@@ -783,88 +728,6 @@ Include tables or figures comparing:</p>
 </div>
 </div>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<h1 id="part-4-crafting-a-hard-trace-cache--prefetcher-stress-testing"><a class="header" href="#part-4-crafting-a-hard-trace-cache--prefetcher-stress-testing">Part 4: Crafting a Hard Trace (Cache &amp; Prefetcher Stress Testing)</a></h1>
-<p>In this final part, you will flip the perspective from <strong>defender</strong> (building a prefetcher) to <strong>adversary</strong> (constructing a cache-hostile memory trace). Your goal is to design a synthetic workload or memory access trace that stresses the cache hierarchy, maximizes cache misses, and fools standard prefetchers (such as Next-Line or Stride prefetchers).</p>
-<p>Grading for this part will be determined by the <strong>difficulty score</strong> of your trace—specifically, how effectively it degrades baseline system performance and challenges hardware prefetching mechanisms.</p>
-<h2 id="trace-generation-overview"><a class="header" href="#trace-generation-overview">Trace Generation Overview</a></h2>
-<p>ChampSim traces (<code>.champsimtrace.xz</code>) capture dynamic execution streams, including instruction PCs, register usage, branch directions, and memory access addresses.</p>
-<p>You can generate your custom trace in the below way:</p>
-<p><strong>Benchmark C Code + Tracer</strong>: Write a custom C/C++ program (e.g., <code>stress_test.c</code>) that implements cache-unfriendly access patterns (e.g., prime-strided array traversals, pointer chasing through randomized linked lists, or dynamic access stride switching), and use the lab-provided Pin/DynamoRIO tracer script to generate <code>stress_test.champsimtrace.xz</code>:</p>
-<pre><code class="language-sh"># Compile your stress test workload
-gcc -O2 stress_test.c -o stress_test
-# Generate ChampSim trace using the provided tracer script
-./scripts/generate_trace.sh ./stress_test -o traces/custom_stress.champsimtrace.xz
-
-</code></pre>
-<h2 id="trace-validity--difficulty-scoring-metrics"><a class="header" href="#trace-validity--difficulty-scoring-metrics">Trace Validity &amp; Difficulty Scoring Metrics</a></h2>
-<p>To ensure fairness, your submitted trace must satisfy basic <strong>validity constraints</strong> (to prevent trivial attacks like zero-instruction traces or non-memory instruction loops).</p>
-<h3 id="1-validity-constraints-filter-rules"><a class="header" href="#1-validity-constraints-filter-rules">1. Validity Constraints (Filter Rules)</a></h3>
-<p>Your trace must meet the following minimum execution bounds when run in ChampSim:</p>
-<ul>
-<li><strong>Minimum Instruction Count</strong>: Must contain at least <strong>20M dynamic instructions</strong> (and run smoothly with <code>--simulation_instructions 20000000</code>).</li>
-<li><strong>Memory Access Density</strong>: At least <strong>20%</strong> of total instructions must be memory-referencing operations (loads/stores).</li>
-<li><strong>Address Space Requirement</strong>: Memory accesses must span across a footprint of at least <strong>8 MB</strong> (exceeding L1D and L2C capacities to force main memory accesses).</li>
-</ul>
-<h3 id="2-difficulty-score-calculation"><a class="header" href="#2-difficulty-score-calculation">2. Difficulty Score Calculation</a></h3>
-<p>Each valid trace will be evaluated on the baseline 2-level cache hierarchy across two test runs:</p>
-<ul>
-<li><strong>Baseline Run</strong>: With no prefetcher (<code>"prefetcher": "no"</code>).</li>
-<li><strong>Prefetcher Run</strong>: With standard Next-Line or IP-Stride prefetcher (<code>"prefetcher": "ip_stride"</code>).</li>
-</ul>
-<p>The <strong>Trace Difficulty Score (<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">trace</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>)</strong> is computed as a combination of cache hostility and prefetcher resistance:</p>
-<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">trace</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.5945em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:2.4em;vertical-align:-0.95em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">(</span></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.4403em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord text"><span class="mord">IPC</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">max</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.757em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord text"><span class="mord">IPC</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">no_pf</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.367em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.836em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">)</span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.5945em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.8em;vertical-align:-0.65em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size2">(</span></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord text"><span class="mord">Coverage</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.242em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">ip_stride</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4611em;"><span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size2">)</span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.5945em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord text"><span class="mord">Miss Rate</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">L2C</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span></p>
-<p>Where:</p>
-<ul>
-<li><strong>Cache Hostility</strong>: Penalizes high baseline IPC and rewards high L1D/L2C miss rates.</li>
-<li><strong>Prefetcher Hostility</strong>: Rewards traces that achieve low prefetcher coverage (<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord text"><span class="mord">Coverage</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0</span></span></span></span>) or induce high useless/late prefetch overhead.</li>
-</ul>
-<hr />
-<h2 id="grading-criteria"><a class="header" href="#grading-criteria">Grading Criteria</a></h2>
-<p>Grading for Part 4 is weighted as follows:</p>
-<ol>
-<li><strong>Validity Check (Pass/Fail)</strong>: The trace must pass all minimum instruction count, memory density, and address footprint requirements.</li>
-<li><strong>Absolute Difficulty Threshold (60%)</strong>: Traces that achieve an L2C miss rate <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8056em;vertical-align:-0.0556em;"></span><span class="mord">40%</span></span></span></span> or reduce baseline IPC below a designated threshold receive full baseline points.</li>
-<li><strong>Relative Leaderboard Ranking (40%)</strong>: Traces will be ranked by their calculated Difficulty Score (<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">trace</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>). The top 15% hardest traces receive top leaderboard marks, with a smooth grading curve applied across the rest of the class.</li>
-</ol>
-<div id="admonition-design-hints-for-hostile-access-patterns" class="admonition admonish-tip" role="note" aria-labelledby="admonition-design-hints-for-hostile-access-patterns-title">
-<div class="admonition-title">
-<div id="admonition-design-hints-for-hostile-access-patterns-title">
-<p>Design Hints for Hostile Access Patterns</p>
-</div>
-<a class="admonition-anchor-link" href="proj3/part4.html#admonition-design-hints-for-hostile-access-patterns"></a>
-</div>
-<div>
-<p>To maximize cache misses and evade prefetching, consider:</p>
-<ul>
-<li><strong>Pointer Chasing</strong>: Random array indexing or non-contiguous node traversal, breaking linear address patterns.</li>
-<li><strong>Conflict Miss Induction</strong>: Accessing addresses that map to the exact same cache set (modulo index alignment) to cause cache thrashing.</li>
-<li><strong>Stride Deception</strong>: Alternating between short predictable strides and sudden large random jumps to trick stride tables into issuing useless prefetches.</li>
-<li><strong>Thrashing the MSHR</strong>: Issuing multiple outstanding misses to unique cache blocks within short instruction windows.</li>
-</ul>
-</div>
-</div>
-<div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
-<div class="admonition-title">
-<div id="admonition-deliverables-title">
-<p>Deliverables</p>
-</div>
-<a class="admonition-anchor-link" href="proj3/part4.html#admonition-deliverables"></a>
-</div>
-<div>
-<p>Please submit your custom trace and source files. Include the following in your <em><strong>report</strong></em>:</p>
-<ol>
-<li><strong>Trace Source / Generator Code</strong>: Submit your C benchmark (<code>stress_test.c</code>) or Python/C++ trace generator script.</li>
-<li><strong>Trace File</strong>: Submit your compressed trace file (<code>&lt;student_id&gt;_stress.champsimtrace.xz</code>).</li>
-<li><strong>Design Explanation &amp; Analysis</strong>:
-<ul>
-<li>Explain the access pattern strategy implemented in your trace.</li>
-<li>Present a table showing <strong>L1D Miss Rate</strong>, <strong>L2C Miss Rate</strong>, <strong>IPC</strong>, and <strong>Prefetcher Accuracy/Coverage</strong> when tested against <code>no</code>, <code>next_line</code>, and <code>ip_stride</code> prefetchers.</li>
-<li>Explain <em>why</em> your memory access pattern successfully degrades cache reuse and neutralizes prefetchers.</li>
-</ul>
-</li>
-</ol>
-</div>
-</div><div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="submission"><a class="header" href="#submission">Submission</a></h1>
 <div id="admonition-submission-guidelines" class="admonition admonish-note" role="note" aria-labelledby="admonition-submission-guidelines-title">
 <div class="admonition-title">
