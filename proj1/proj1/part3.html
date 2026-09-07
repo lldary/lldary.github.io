@@ -176,37 +176,35 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="part-3-add-options-in-the-configuration-script"><a class="header" href="#part-3-add-options-in-the-configuration-script">Part 3: Add Options in the Configuration Script</a></h1>
-<p>In this project, you are required to explore different CPU and memory configurations for different workloads. However, it is cumbersome to edit your configuration script every time you want to test the system with different parameters. To smoothly solve this issue, you can add command-line parameters to your configuration scripts. Since the configuration script is a Python script, it can use Python libraries that support argument parsing (e.g., <code>argparse</code>). Adding options to configuration script requires several steps. After importing <code>argparse</code>, you need to specify the arguments in m5 main process:</p>
-<pre><code class="language-python">import argparse
-if __name__ == "__m5_main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "commands_to_run",
-        nargs="*",
-        help="Command(s) to run",
-    )
-    parser.add_argument(
-        "--cpu",
-        type=str,
-        choices=list(cpu_types.keys()),
-        default="simple",
-        help="CPU model to use",
-    )
-    parser.add_argument(
-        "--mem",
-        type=str,
-        choices=list(mem_types.keys()),
-        default="DDR4",
-        help="type of memory to use",
-    )
-    parser.add_argument(
-        "--clock", 
-        type=str, 
-        default="4GHz"
-    )
-    args = parser.parse_args()
-    ...
+                        <h1 id="part-3-configure-and-run-champsim"><a class="header" href="#part-3-configure-and-run-champsim">Part 3: Configure and Run ChampSim</a></h1>
+<p>In this project, you will run <code>ChampSim</code> with different configurations and workloads. Unlike <code>gem5</code>, <code>ChampSim</code> uses configuration files to specify the microarchitectural components of the simulated system. Therefore, instead of modifying a Python configuration script every time, you can prepare a configuration file and use it to build a corresponding <code>ChampSim</code> executable.</p>
+<p>In this part, we will first go through the basic configuration, compilation, and execution process. <strong>You do not need to explore different CPU configurations in this part.</strong> The goal is simply to make sure that <code>ChampSim</code> can be configured, compiled, and executed correctly in your environment.</p>
+<p>First, create a directory for this project:</p>
+<pre><code class="language-sh">mkdir -p configs/proj1
+</code></pre>
+<p>Then, create a simple configuration file:</p>
+<pre><code class="language-sh">touch configs/proj1/simple.json
+</code></pre>
+<p>The configuration file is a JSON file. It specifies the components and parameters of the simulated microarchitecture. For example, a basic configuration can contain an L1 instruction cache and an L1 data cache as follows:</p>
+<pre><code class="language-json">{
+  "executable_name": "simple",
+
+  "L1I": {
+    "sets": 64,
+    "ways": 8,
+    "mshr_size": 8,
+    "prefetcher": "no",
+    "replacement": "lru"
+  },
+
+  "L1D": {
+    "sets": 64,
+    "ways": 8,
+    "mshr_size": 8,
+    "prefetcher": "no",
+    "replacement": "lru"
+  }
+}
 </code></pre>
 <div id="admonition-info" class="admonition admonish-info" role="note" aria-labelledby="admonition-info-title">
 <div class="admonition-title">
@@ -216,60 +214,42 @@ if __name__ == "__m5_main__":
 <a class="admonition-anchor-link" href="#admonition-info"></a>
 </div>
 <div>
-<p><code>argparse</code> is a very useful Python library that provides a set of methods to help build user-friendly CLI. In codes above we add a <em>positional argument</em> <code>commands_to_run</code> and three <em>options</em> with prefix <code>--</code>. <code>gem5</code> support you to use <code>-h,--help</code> options to check the usage of a configuration script:</p>
-<pre><code class="language-sh">build/ARM/gem5.opt configs/proj1/simple.py --help
-
-# you'll see contents like the following:
-...
-usage: simple.py [-h] [--cpu CPU] [--mem MEM] [--clock CLOCK] [commands_to_run [commands_to_run ...]]
-...
-</code></pre>
-<p>For detailed usage of <code>argparse</code>, please refer to the <a href="https://docs.python.org/3/library/argparse.html">official documentation</a>.</p>
+<p>The exact configuration fields supported by <code>ChampSim</code> may vary between different versions. Please use the configuration format and parameters provided by the version of <code>ChampSim</code> included in this project.</p>
 </div>
 </div>
-<p>You may notice that we have specified the <code>choices</code> in <code>--cpu</code> and <code>--mem</code>, which is a Python <code>list</code> that can specify the available choices. We've also defined <code>cpu_types</code> and <code>mem_types</code> and used their <code>keys()</code> as the choices. This is a convenient way to simplify the arugments used in commands. We can transform the argument short strings to detailed <code>SimObject</code> names with them. <code>gem5</code> provides various alternative CPU and memory models alongside <code>TimingSimpleCPU</code> and <code>DDR4</code> memory, such as <code>O3CPU</code> (out-of-order), <code>MinorCPU</code> (in-order), <code>DDR5</code> memory. We can use these models as choices. Example defines are as follows:</p>
-<pre><code class="language-python">cpu_types = {
-    "simple": TimingSimpleCPU,
-    "minor": MinorCPU,
-    "o3": O3CPU,
-}
-mem_types = {
-    "DDR3": DDR3_1600_8x8,
-    "DDR4": DDR4_2400_8x8,
-    "DDR5": DDR5_8400_4x8,
-}
+<p>After creating the configuration file, we can use it to generate a <code>ChampSim</code> executable:</p>
+<pre><code class="language-sh">./config.sh configs/proj1/simple.json
 </code></pre>
-<p>Next, we need to pass the CPU type option and memory type option to the system. We can modify the <code>init_system()</code> function by following codes:</p>
-<pre><code class="language-python"># DELETE: def init_system(system):
-def init_system(system, args):
-    ...
-    # DELETE: system.mem_ctrl.dram = DDR4_2400_8x8()
-    system.mem_ctrl.dram = mem_types[args.mem]()
-    # DELETE: system.cpu = TimingSimpleCPU()
-    system.cpu = cpu_types[args.cpu]()
-    ...
+<p>Then compile the generated configuration:</p>
+<pre><code class="language-sh">make
 </code></pre>
-<p>We've also set the clock speed (<code>--clock</code>) option in codes above, and we can also pass it to the system:</p>
-<pre><code class="language-python"># DELETE: system.clk_domain = SrcClockDomain(clock='4GHz', voltage_domain=VoltageDomain())
-system.clk_domain = SrcClockDomain(clock=args.clock, voltage_domain=VoltageDomain())
+<p>If everything goes well, the <code>ChampSim</code> executable should be generated successfully.</p>
+<p>You can check the generated executable with:</p>
+<pre><code class="language-sh">ls bin/
 </code></pre>
-<p>Finally, we can pass the first positional argument <code>command_to_run</code> to the process, which allows us to specify executables other than simply <code>hello</code>:</p>
-<pre><code class="language-python"># DELETE: def init_process(root):
-def init_process(root, args):
-    # DELETE: exe_path = 'tests/labexe/hello'
-    exe_path = args.commands_to_run[0]
-    root.system.workload = SEWorkload.init_compatible(exe_path)
-    process = Process()
-    process.executable = exe_path
-    precess.cwd = os.getcwd()
-    # DELETE: process.cmd = [exe_path]
-    process.cmd = args.commands_to_run
-    root.system.cpu.workload = process
-    root.system.cpu.createThreads()
+<p>For example, you may see:</p>
+<pre><code class="language-text">simple
 </code></pre>
-<p>Now, we have completed the modification to our configuration script, we can run the script like follows:</p>
-<pre><code class="language-sh">build/ARM/gem5.opt configs/proj1/simple.py tests/labexe/gemm --cpu minor --mem DDR5 --clock 2GHz
+<p>The exact executable name depends on the <code>executable_name</code> specified in the configuration file.</p>
+<h2 id="running-a-trace"><a class="header" href="#running-a-trace">Running a Trace</a></h2>
+<p>Unlike <code>gem5</code>, which can directly execute a statically compiled application in SE mode, <code>ChampSim</code> is a trace-driven simulator. Therefore, you need an instruction trace as the workload.</p>
+<p>For this project, the provided traces should be placed in the designated trace directory. For example:</p>
+<pre><code class="language-sh">mkdir -p traces
 </code></pre>
+<p>You can then run the generated <code>ChampSim</code> executable with a trace:</p>
+<pre><code class="language-sh">./bin/simple \
+    --warmup_instructions 100000000 \
+    --simulation_instructions 500000000 \
+    traces/&lt;trace-name&gt;.champsimtrace.xz
+</code></pre>
+<p>The <code>--warmup_instructions</code> option specifies the number of instructions used to warm up the microarchitectural state, while <code>--simulation_instructions</code> specifies the number of instructions used for collecting performance statistics.</p>
+<p>For the initial test in this part, you may use a relatively small number of instructions to quickly verify that the simulator works correctly:</p>
+<pre><code class="language-sh">./bin/simple \
+    --warmup_instructions 1000000 \
+    --simulation_instructions 10000000 \
+    traces/&lt;trace-name&gt;.champsimtrace.xz
+</code></pre>
+<p>Once the basic workflow has been verified, you can use the longer simulation length specified by the project.</p>
 <div id="admonition-tip" class="admonition admonish-tip" role="note" aria-labelledby="admonition-tip-title">
 <div class="admonition-title">
 <div id="admonition-tip-title">
@@ -278,16 +258,13 @@ def init_process(root, args):
 <a class="admonition-anchor-link" href="#admonition-tip"></a>
 </div>
 <div>
-<ul>
-<li>
-<p>Except the <code>hello</code>, other executables are quite complex, and will take hours for <code>gem5</code> to finish simulation. You can early-stop the simulation with all statistics printed by specifying the <code>max_insts_any_thread</code> in CPU, which will shutdown the CPU when that many instructions are already executed (you can also set an option for this parameter):</p>
-<pre><code class="language-python">system.cpu.max_insts_any_thread = 1e+9
-</code></pre>
-</li>
-<li>
-<p>Find the proper <code>max_insts_any_thread</code> number for your PC that allows a fast simulation, but still generate reasonable statistics (warmup phases in executables may show quite different performance statistics compared to real execution phases). A <strong>recommended number is <code>5e+8</code></strong> for this project.</p>
-</li>
-</ul>
+<p>The first goal of this part is <strong>not</strong> to obtain meaningful performance results. Instead, you should make sure that all three steps work correctly:</p>
+<ol>
+<li>The configuration file can be successfully processed.</li>
+<li><code>ChampSim</code> can be successfully compiled.</li>
+<li>The generated executable can successfully run an instruction trace and produce simulation statistics.</li>
+</ol>
+<p>If any of these steps fails, please refer to the <code>ChampSim</code> documentation or contact the TAs before proceeding to the following parts.</p>
 </div>
 </div>
 <div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
@@ -298,11 +275,20 @@ def init_process(root, args):
 <a class="admonition-anchor-link" href="#admonition-deliverables"></a>
 </div>
 <div>
-<p>Please include the following in your <em><strong>report</strong></em>:</p>
+<p>Please include the following in your <strong>report</strong>:</p>
 <ul>
-<li>Use these system settings (<code>cpu=simple</code>, <code>clock=2GHz</code>, <code>mem=DDR3</code>) to run simulation. Please use the <strong>complex</strong> executables provided in <code>tests/labexe</code> (i.e., <code>shell_sort</code>, <code>gemm</code>, <code>spfa</code> and <code>binary_search</code>). Please <strong>calculate and show (in tables or figures) the IPC</strong> for these executables.</li>
-<li>Repeat the experiments, but change the CPU type (with <code>mem=DDR3</code> and <code>clock=2GHz</code> unchanged) to achieve better performance for different executables. Also calculate and show the IPC for each executable and CPU type.</li>
-<li>Repeat the experiments, but change the mem type (with a <strong>fixed</strong> CPU type and <code>clock=2GHz</code> unchanged) to achieve better performance for different executables. Also calculate and show the IPC for each executable and mem type.</li>
+<li>
+<p>The <code>ChampSim</code> configuration file used in this part.</p>
+</li>
+<li>
+<p>A <strong>screenshot of the successful compilation</strong> of the <code>ChampSim</code> executable.</p>
+</li>
+<li>
+<p>A <strong>screenshot of the successful execution</strong> of the <code>ChampSim</code> executable with a provided trace.</p>
+</li>
+<li>
+<p>Briefly describe the basic workflow of <code>ChampSim</code>, including configuration, compilation, trace execution, and statistics collection.</p>
+</li>
 </ul>
 </div>
 </div>
@@ -314,29 +300,10 @@ def init_process(root, args):
 <a class="admonition-anchor-link" href="#admonition-important-note"></a>
 </div>
 <div>
-<p>Running complex executables with <code>gem5</code> takes you a lot of time. This part requires you to run multiple settings, so it takes much longer time. Since <code>gem5</code> is basically a single-thread process, you can run different settings <strong>in parallel</strong> to accelerate your experiments.</p>
-<p>Also, please remind to <strong>set a unique output directory</strong> (refer to <a href="./part2.html">part 2</a>) for each parallel run, otherwise these runs may override with each other!</p>
-<p>You can also use a shell script to automate this parallel running. Things may be like the following:</p>
-<pre><code class="language-bash">#!/bin/bash
-
-# examples
-cpus=("c1" "c2")
-mems=("m1" "m2")
-exes=("shell_sort" "gemm" "spfa" "binary_search")
-
-for c in ${cpus[@]}; do
-for m in ${mems[@]}; do
-for e in ${exes[@]}; do
-    # set output dir, name it however you like
-    build/ARM/gem5.opt -d $e$c$m \
-    configs/proj1/simple.py tests/labexe/$e \
-    --cpu $c --mem $m &amp;
-    # add `&amp;` after the command to let it run in background
-done
-done
-done
-</code></pre>
-<p>Then use <code>ctrl+p+q</code> to quit container terminal while keeping the background threads runing.</p>
+<p><code>ChampSim</code> simulations can take a long time when a large number of instructions are simulated. Therefore, you should first use a small number of warmup and simulation instructions to verify that the configuration and executable work correctly.</p>
+<p>After confirming that the basic workflow works, you can increase the simulation length for the actual experiments.</p>
+<p>Unlike the original <code>gem5</code> project, <strong>this part does not require you to compare different CPU types</strong>. CPU configuration changes and other microarchitectural experiments will be introduced in later parts of the project.</p>
+<p>If you need to run multiple ChampSim configurations in parallel in later experiments, please make sure that each experiment saves its output to a different result file or directory so that the results are not accidentally overwritten.</p>
 </div>
 </div>
 

@@ -176,19 +176,71 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="part-2-understand-gem5-statistics-and-output"><a class="header" href="#part-2-understand-gem5-statistics-and-output">Part 2: Understand <code>gem5</code> Statistics and Output</a></h1>
-<p>After <code>gem5</code> simulation completes, by default there are three files generated in directory <code>m5out</code>:</p>
-<ul>
-<li><code>config.ini</code>: contains a list of <code>SimObject</code> and the values of their parameters for simulation.</li>
-<li><code>config.json</code>: same with <code>config.ini</code>, but in json format.</li>
-<li><code>stats.txt</code>: detailed statistics generated from <code>gem5</code> simulation. Specifically, it contains general information about the execution, which is shown as follows:</li>
-</ul>
-<pre><code>---------- Begin Simulation Statistics ----------
-simSeconds                    5.148973        # Number of seconds simulated (Second)
-simTicks                 5148973163000        # Number of ticks simulated (Tick)
+                        <h1 id="part-2-understand-champsim-statistics-and-output"><a class="header" href="#part-2-understand-champsim-statistics-and-output">Part 2: Understand <code>ChampSim</code> Statistics and Output</a></h1>
+<p>After <code>ChampSim</code> simulation completes, it will print detailed simulation statistics to the standard output. You can redirect the output to a file for later analysis, for example:</p>
+<pre><code class="language-sh">./bin/champsim --warmup_instructions 100000000 \
+               --simulation_instructions 500000000 \
+               traces/&lt;trace-name&gt;.champsimtrace.xz \
+               &gt; result.txt
+</code></pre>
+<p>The output file contains detailed statistics generated from the <code>ChampSim</code> simulation. Specifically, it contains general information about the execution and performance of the simulated processor and memory hierarchy.</p>
+<p>For example, the output may contain statistics such as:</p>
+<pre><code class="language-text">=== Simulation ===
+CPU 0 runs ./example.champsimtrace.xz
+
+Region of Interest Statistics
+
+CPU 0 cumulative IPC: 1.481 instructions: 100000002 cycles: 67539293
+CPU 0 Branch Prediction Accuracy: 100% MPKI: 0 Average ROB Occupancy at Mispredict: -
+Branch type MPKI
+BRANCH_DIRECT_JUMP: 0
+BRANCH_INDIRECT: 0
+BRANCH_CONDITIONAL: 0
+BRANCH_DIRECT_CALL: 0
+BRANCH_INDIRECT_CALL: 0
+BRANCH_RETURN: 0
+
+cpu0-&gt;LLC TOTAL        ACCESS:      18424 HIT:      10823 MISS:       7601 MISS_MERGE:          0
+cpu0-&gt;LLC LOAD         ACCESS:      18424 HIT:      10823 MISS:       7601 MISS_MERGE:          0
+cpu0-&gt;LLC RFO          ACCESS:          0 HIT:          0 MISS:          0 MISS_MERGE:          0
+cpu0-&gt;LLC PREFETCH     ACCESS:          0 HIT:          0 MISS:          0 MISS_MERGE:          0
+cpu0-&gt;LLC WRITE        ACCESS:          0 HIT:          0 MISS:          0 MISS_MERGE:          0
+cpu0-&gt;LLC TRANSLATION  ACCESS:          0 HIT:          0 MISS:          0 MISS_MERGE:          0
+cpu0-&gt;LLC PREFETCH REQUESTED:          0 ISSUED:          0 USEFUL:          0 USELESS:          0
+cpu0-&gt;LLC AVERAGE MISS LATENCY: 154 cycles
+...
+cpu0-&gt;cpu0_L1D TOTAL        ACCESS:   22250312 HIT:   21675146 MISS:     575166 MISS_MERGE:        722
+cpu0-&gt;cpu0_L1D LOAD         ACCESS:    4171931 HIT:    3598565 MISS:     573366 MISS_MERGE:          0
+cpu0-&gt;cpu0_L1D RFO          ACCESS:          0 HIT:          0 MISS:          0 MISS_MERGE:          0
+cpu0-&gt;cpu0_L1D PREFETCH     ACCESS:          0 HIT:          0 MISS:          0 MISS_MERGE:          0
+cpu0-&gt;cpu0_L1D WRITE        ACCESS:   18078381 HIT:   18076581 MISS:       1800 MISS_MERGE:        722
+cpu0-&gt;cpu0_L1D TRANSLATION  ACCESS:          0 HIT:          0 MISS:          0 MISS_MERGE:          0
+cpu0-&gt;cpu0_L1D PREFETCH REQUESTED:          0 ISSUED:          0 USEFUL:          0 USELESS:          0
+cpu0-&gt;cpu0_L1D AVERAGE MISS LATENCY: 13.63 cycles
 ...
 </code></pre>
-<p>It contains three columns: left lists the statistics names, middle column lists the values, and the right column shows the explanation. In this project, simSeconds and simInsts are important. You can calculate your simulated computer system performance (instructions per second) by <code>simInsts / simSeconds</code>. You also can find out system.cpu.numCycles and calculate IPC (instruction per cycle) by <code>simInsts / system.cpu.numCycles</code>. Each <code>SimObject</code> in the simulated system will print its own statistics. You can use any finding approach (e.g., <code>grep</code>) to check specific statistics, like the statistics of <code>system.cpu</code>.</p>
+<p>The exact statistics and output format may vary depending on the <code>ChampSim</code> version and configuration.</p>
+<p>In this project, <strong>IPC</strong> and cache/memory statistics are important. IPC (instructions per cycle) is one of the most important performance metrics in ChampSim. You can directly obtain the IPC from the simulation output:</p>
+<pre><code class="language-text">CPU 0 cumulative IPC: 1.XX
+</code></pre>
+<p>IPC can also be calculated from the number of simulated instructions and the number of simulated cycles:</p>
+<pre><code class="language-text">IPC = simulated instructions / simulated cycles
+</code></pre>
+<p>A higher IPC generally indicates that the simulated processor can execute more instructions per cycle.</p>
+<p>You can also use cache statistics to evaluate the behavior of the memory hierarchy. For example, the number of L1D accesses and misses can be used to calculate the L1D miss rate:</p>
+<pre><code class="language-text">L1D miss rate = L1D total misses / L1D total accesses
+</code></pre>
+<p>Similarly, you can calculate the MPKI (misses per thousand instructions):</p>
+<pre><code class="language-text">MPKI = cache misses / simulated instructions × 1000
+</code></pre>
+<p>These statistics are particularly important when studying cache configurations and hardware prefetchers. For example, a prefetcher may increase cache hits and reduce MPKI, but it may also introduce additional memory traffic. Therefore, you should consider multiple statistics when evaluating the effectiveness of a configuration.</p>
+<p>You can use any finding approach (e.g., <code>grep</code>) to check specific statistics from the simulation output:</p>
+<pre><code class="language-sh">grep "cumulative IPC" result.txt
+grep "L1D TOTAL" result.txt
+grep "L2 TOTAL" result.txt
+grep "branch MPKI" result.txt
+</code></pre>
+<p>This can be useful when running a large number of experiments, since you can automatically extract the statistics required for analysis.</p>
 <div id="admonition-tip" class="admonition admonish-tip" role="note" aria-labelledby="admonition-tip-title">
 <div class="admonition-title">
 <div id="admonition-tip-title">
@@ -197,11 +249,34 @@ simTicks                 5148973163000        # Number of ticks simulated (Tick)
 <a class="admonition-anchor-link" href="#admonition-tip"></a>
 </div>
 <div>
-<p>You can change the output directory of <code>gem5</code> using command options like these (the options need to be <strong>before</strong> the script argument):</p>
-<pre><code class="language-sh">build/ARM/gem5.opt -d another-dir configs/proj1/simple.py
-build/ARM/gem5.opt --outdir=another-dir configs/proj1/simple.py
+<p>You can redirect the output of <code>ChampSim</code> to a different file using standard shell redirection:</p>
+<pre><code class="language-sh">./bin/champsim --warmup_instructions 100000000 \
+               --simulation_instructions 500000000 \
+               traces/&lt;trace-name&gt;.champsimtrace.xz \
+               &gt; another-result.txt
 </code></pre>
-<p>This is important for this and other projects, because <code>gem5</code> will override previous output in the same directory, which may delete your experiment results and waste your time. <strong>Make sure to backup important results before running <code>gem5</code> again!</strong></p>
+<p>You can also use <code>tee</code> if you want to see the output on the terminal while saving it to a file:</p>
+<pre><code class="language-sh">./bin/champsim --warmup_instructions 100000000 \
+               --simulation_instructions 500000000 \
+               traces/&lt;trace-name&gt;.champsimtrace.xz \
+               | tee another-result.txt
+</code></pre>
+<p>This is important for this and other projects, because you may run many different configurations and traces during the experiments. Saving the output of each simulation separately can prevent previous experiment results from being accidentally overwritten.</p>
+<p>For example:</p>
+<pre><code class="language-sh">mkdir -p results
+
+./bin/champsim \
+    --warmup_instructions 100000000 \
+    --simulation_instructions 500000000 \
+    traces/&lt;trace-name&gt;.champsimtrace.xz \
+    &gt; results/baseline.txt
+</code></pre>
+<p>You can then use a different output file for each configuration:</p>
+<pre><code class="language-sh">./bin/champsim ... &gt; results/lru.txt
+./bin/champsim ... &gt; results/srrip.txt
+./bin/champsim ... &gt; results/prefetch.txt
+</code></pre>
+<p><strong>Make sure to save important simulation results before running another experiment!</strong></p>
 </div>
 </div>
 

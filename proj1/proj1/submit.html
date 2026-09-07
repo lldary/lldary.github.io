@@ -186,10 +186,18 @@
 </div>
 <div>
 <ul>
-<li>Please submit the deliverables for each part in order and clearly defined in a report form (e.g., PDF or Word). Please give a brief description of the results in your report. You <strong>DO NOT</strong> need to submit your configuration script <strong>in this project</strong>.</li>
-<li>Please submit your report as an attachment at <a href="https://course.pku.edu.cn">course.pku.edu.cn</a>. The title of the attachment should be Student-ID_Name_Proj1 (e.g., 123456789_WangXiaoming_Proj1).</li>
-<li>You can also send your report to <a href="">2501112042@stu.pku.edu.cn</a>. The titles of your email AND attachment should both be Student-ID_Name_Proj1.</li>
-<li><strong>DO NOT PLAGIARIZE</strong>. We will select 10 students randomly and ask them to answer our questions related to their results.</li>
+<li>
+<p>Please submit the deliverables for each part in order and clearly defined in a report form (e.g., PDF or Word). Please give a brief description of the results in your report. You <strong>DO NOT</strong> need to submit your configuration file or trace files <strong>in this project</strong>.</p>
+</li>
+<li>
+<p>Please submit your report as an attachment at <a href="https://course.pku.edu.cn">course.pku.edu.cn</a>. The title of the attachment should be Student-ID_Name_Proj1 (e.g., 123456789_WangXiaoming_Proj1).</p>
+</li>
+<li>
+<p>You can also send your report to 2501112042@stu.pku.edu.cn. The titles of your email AND attachment should both be Student-ID_Name_Proj1.</p>
+</li>
+<li>
+<p><strong>DO NOT PLAGIARIZE</strong>. We will select 10 students randomly and ask them to answer our questions related to their results.</p>
+</li>
 </ul>
 </div>
 </div>
@@ -202,8 +210,12 @@
 </div>
 <div>
 <ul>
-<li>You will be given <strong>3 slip days</strong> (shared by all projects), which can be used to extend project deadlines, e.g., 1 project extended by 3 days or 3 projects each extended by 1 day.</li>
-<li>Projects are due at 23:59:59, no exceptions; 20% off per day late, 1 second late = 1 hour late = 1 day late.</li>
+<li>
+<p>You will be given <strong>3 slip days</strong> (shared by all projects), which can be used to extend project deadlines, e.g., 1 project extended by 3 days or 3 projects each extended by 1 day.</p>
+</li>
+<li>
+<p>Projects are due at 23:59:59, no exceptions; 20% off per day late, 1 second late = 1 hour late = 1 day late.</p>
+</li>
 </ul>
 </div>
 </div>
@@ -215,21 +227,40 @@
 <a class="admonition-anchor-link" href="#admonition-deliverables"></a>
 </div>
 <div>
-<p>Please include the following in your <em><strong>report</strong></em>:</p>
+<p>Please include the following in your <strong>report</strong>:</p>
 <ol>
-<li><strong>Startup:</strong> a screenshot that shows you <code>gem5</code> can compile correctly.</li>
-<li><strong>Part 1:</strong> a screenshot of the output on stdout of your configuration script.</li>
-<li><strong>Part 3:</strong>
+<li>
+<p><strong>Startup:</strong> a screenshot that shows you can successfully configure and compile <code>ChampSim</code>.</p>
+</li>
+<li>
+<p><strong>Part 1:</strong> a screenshot of the output showing that your <code>ChampSim</code> executable can successfully run an instruction trace and generate simulation statistics.</p>
+</li>
+<li>
+<p><strong>Part 2:</strong> a screenshot of the <code>ChampSim</code> simulation statistics. Please identify and briefly explain important performance metrics, such as <strong>IPC</strong>, cache accesses, cache misses, and branch prediction statistics.</p>
+</li>
+<li>
+<p><strong>Part 3:</strong></p>
 <ul>
-<li>Use these system settings (<code>cpu=simple</code>, <code>clock=2GHz</code>, <code>mem=DDR3</code>) to run simulation. Please use the <strong>complex</strong> executables provided in <code>tests/labexe</code>. Please <strong>calculate and show (in tables or figures) the IPC</strong> for these executables.</li>
-<li>Repeat the experiments, but change the CPU type (with <code>mem=DDR3</code> and <code>clock=2GHz</code> unchanged) to achieve better performance for different executables. Also calculate and show the IPC for each executable and CPU type.</li>
-<li>Repeat the experiments, but change the mem type (with and <strong>fixed</strong> CPU type and <code>clock=2GHz</code> unchanged) to achieve better performance for different executables. Also calculate and show the IPC for each executable and mem type.</li>
+<li>
+<p>Use the provided basic configuration to build <code>ChampSim</code> successfully.</p>
+</li>
+<li>
+<p>Use one of the provided instruction traces to run the generated <code>ChampSim</code> executable. You may first use a small number of warmup and simulation instructions to verify that the simulator works correctly.</p>
+</li>
+<li>
+<p>Please <strong>calculate and show the IPC</strong> reported by the simulation. You may also include other relevant statistics, such as cache miss rate or MPKI, if available.</p>
+</li>
+<li>
+<p>Briefly describe the complete workflow of <code>ChampSim</code>, including configuration, compilation, trace execution, and statistics collection.</p>
+</li>
 </ul>
 </li>
 </ol>
+<p>You <strong>DO NOT</strong> need to submit your configuration file or trace files <strong>in this project</strong>.</p>
+</div>
+</div>
 <p>You <strong>DO NOT</strong> need to submit your configuration script <strong>in this project</strong>.</p>
-</div>
-</div>
+<pre><code></code></pre>
 
                     </main>
 

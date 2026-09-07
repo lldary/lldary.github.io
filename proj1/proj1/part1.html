@@ -176,157 +176,161 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="part-1-create-and-run-a-simple-configuration-script"><a class="header" href="#part-1-create-and-run-a-simple-configuration-script">Part 1: Create and Run a Simple Configuration Script</a></h1>
-<p><code>gem5</code> simulator is built from a collection of Python objects, <code>SimObject</code>. In this part, you need to set up a simple configuration script to describe the <code>SimObject</code> to be instantiated, their parameters, and their relationships. Following the instructions in this part, you are able to model a simple computer system, including a simple CPU core, a single DDR4 memory channel, and a system-wide memory bus connecting CPU core and memory channel.</p>
-<p>Let’s get started by creating a new configuration file:</p>
-<pre><code class="language-sh">mkdir configs/proj1
-touch configs/proj1/simple.py
+                        <h1 id="part-1-create-and-run-a-simple-configuration"><a class="header" href="#part-1-create-and-run-a-simple-configuration">Part 1: Create and Run a Simple Configuration</a></h1>
+<p><code>ChampSim</code> is a trace-based microarchitecture simulator widely used in computer architecture research. ChampSim focuses on simulating the processor microarchitecture and memory hierarchy. In this part, you will learn how to configure and run a simple ChampSim system, including the CPU core, cache hierarchy, branch predictor, memory hierarchy, and prefetcher.</p>
+<p>Following the instructions in this part, you will build a basic ChampSim configuration and run it with a representative instruction trace. You will also learn how different processor and memory-system configurations can affect simulation performance.</p>
+<p>Let's get started by creating a working directory for the project:</p>
+<pre><code class="language-sh">mkdir -p configs/proj1
 </code></pre>
-<p>This configuration file is a normal Python file. Therefore, you can use any legal grammar or available libraries in Python.</p>
-<p>The first thing we should write in the script is to import the class definitions from the <code>m5</code> modules and all <code>SimObject</code> as follows:</p>
-<pre><code>import m5
-from m5.objects import *
+<p>ChampSim configurations are specified using JSON files. A configuration describes the major components of the simulated microarchitecture, including the CPU, instruction and data caches, branch predictor, prefetchers, and DRAM system.</p>
+<p>For example, a simple configuration can be organized as follows:</p>
+<pre><code class="language-json">{
+  "executable_name": "simple",
+  "block_size": 64,
+  "page_size": 4096,
+
+  "L1I": {
+    "sets": 64,
+    "ways": 8,
+    "rq_size": 32,
+    "wq_size": 32,
+    "pq_size": 32,
+    "mshr_size": 8,
+    "latency": 4,
+    "max_tag_check": 2,
+    "max_fill": 2,
+    "prefetcher": "no",
+    "replacement": "lru"
+  },
+
+  "L1D": {
+    "sets": 64,
+    "ways": 8,
+    "rq_size": 32,
+    "wq_size": 32,
+    "pq_size": 32,
+    "mshr_size": 8,
+    "latency": 4,
+    "max_tag_check": 2,
+    "max_fill": 2,
+    "prefetcher": "no",
+    "replacement": "lru"
+  }
+}
 </code></pre>
-<div id="admonition-info" class="admonition admonish-info" role="note" aria-labelledby="admonition-info-title">
-<div class="admonition-title">
-<div id="admonition-info-title">
-<p>Info</p>
-</div>
-<a class="admonition-anchor-link" href="#admonition-info"></a>
-</div>
-<div>
-<p><code>gem5</code> is an open-source project based on another project <code>m5</code>, which is still involved in <code>gem5</code> from many aspects.</p>
-</div>
-</div>
-<p>In <code>gem5</code>, to simplify the description of large systems, the overall simulation specification is organized as a tree. Each node in the tree is a <code>SimObject</code> instance. The program must create a special object root of class <code>Root</code> to identify the root of the tree hierarchy. When parsing the configuration program, the tree hierarchy is walked recursively to identify the objects from the root to its descendants. We will create the first object which is the <code>Root</code> and specify its parameters in the “m5 main process”:</p>
-<pre><code class="language-python">if __name__ == '__m5_main__':
-    root = Root()
-    root.full_system = False
-    root.system = System()
+<p>The exact configuration fields may vary depending on the ChampSim version used in this project. Please refer to the configuration files provided with the project for the supported parameters.</p>
+<p>ChampSim executes a previously collected instruction trace and models how the instructions interact with the processor and memory hierarchy.</p>
+<h2 id="selecting-a-cpu-model"><a class="header" href="#selecting-a-cpu-model">Selecting a CPU Model</a></h2>
+<p>ChampSim provides different processor configurations for evaluating microarchitectural behavior. The CPU model determines how instructions are fetched, decoded, scheduled, executed, and retired.</p>
+<p>For this project, you will use the CPU configuration provided by the project repository. The CPU parameters can be adjusted when studying the impact of processor resources on overall performance.</p>
+<p>Important parameters may include:</p>
+<ul>
+<li>Instruction window size</li>
+<li>ROB size</li>
+<li>Load/store queue size</li>
+<li>Number of execution ports</li>
+<li>Dispatch width</li>
+<li>Execute width</li>
+<li>Retire width</li>
+</ul>
+<p>These parameters allow you to study how different processor resources affect IPC and other performance metrics.</p>
+<h2 id="configuring-the-cache-hierarchy"><a class="header" href="#configuring-the-cache-hierarchy">Configuring the Cache Hierarchy</a></h2>
+<p>The cache hierarchy is one of the most important components in ChampSim. A typical configuration contains:</p>
+<ul>
+<li>L1 instruction cache (L1I)</li>
+<li>L1 data cache (L1D)</li>
+<li>L2 cache</li>
+<li>LLC</li>
+<li>DRAM</li>
+</ul>
+<p>Each cache can be configured with different numbers of sets and ways, queue sizes, MSHR capacity, latency, replacement policy, and prefetcher.</p>
+<p>For example, an L1 data cache may be configured as:</p>
+<pre><code class="language-json">"L1D": {
+  "sets": 64,
+  "ways": 8,
+  "rq_size": 32,
+  "wq_size": 32,
+  "pq_size": 32,
+  "mshr_size": 8,
+  "latency": 4,
+  "prefetcher": "no",
+  "replacement": "lru"
+}
 </code></pre>
-<p><code>gem5</code> provides two simulation modes: system call emulation (SE) mode and full system (FS) mode. In FS mode, Gem5 can simulate a complete system with devices and an operating system, while in SE mode, only essential system services are provided by simulator to execute workloads. In our projects, we will use SE mode for faster simulation (<code>root.full_system = False</code>). The above codes also instantiate class <code>System</code>. It is the parent of all the other objects in the simulated system, and contains a lot of functional information, such as the physical memory ranges, the root clock domain, the root voltage domain, etc.</p>
-<div id="admonition-note" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-title">
-<div class="admonition-title">
-<div id="admonition-note-title">
-<p>Note</p>
-</div>
-<a class="admonition-anchor-link" href="#admonition-note"></a>
-</div>
-<div>
-<p>Here is an alternative method to pass the parameters as named arguments:</p>
-<pre><code class="language-python">root = Root(full_system = False, system = System())
+<p>The number of sets and ways determines the cache capacity and associativity. The MSHR size limits the number of outstanding cache misses that can be tracked simultaneously.</p>
+<h2 id="configuring-branch-prediction"><a class="header" href="#configuring-branch-prediction">Configuring Branch Prediction</a></h2>
+<p>Branch prediction is another important component of the ChampSim microarchitecture model. A branch predictor attempts to predict the target and direction of conditional branches before their actual outcomes are known.</p>
+<p>For example, the configuration may specify:</p>
+<pre><code class="language-json">"branch_predictor": "bimodal"
 </code></pre>
-<p>All the definitions of the used Python objects can be found under <code>gem5/src/.../*.py</code>. For example, <code>Root</code> can be found in <code>gem5/src/sim/Root.py</code>. You can check the usages of objects and choose your favorite way.</p>
-</div>
-</div>
-<p>Now that a reference to the system for the simulation has been created, let’s build a simple but complete system. The first thing is to set the clock on the system. We first need to create the clock domain, which is an instance of class <code>SrcCLockDomain</code>. Clock domain contains multiple parameters such as clock (clock frequency), voltage domain (voltage), etc. Each parameter has its default value defined in the python class. We can also manually set the values in the configuration script as follows:</p>
-<pre><code class="language-python">def init_system(system):
-    system.clk_domain = SrcClockDomain(clock='4GHz', voltage_domain=VoltageDomain())
+<p>Different branch predictors can have significantly different prediction accuracy and performance. In later parts of the project, you will compare different branch prediction mechanisms and investigate workloads that are difficult to predict.</p>
+<h2 id="configuring-memory"><a class="header" href="#configuring-memory">Configuring Memory</a></h2>
+<p>ChampSim models the memory hierarchy below the cache hierarchy, including the last-level cache and DRAM.</p>
+<p>The memory subsystem can be configured with parameters such as:</p>
+<ul>
+<li>DRAM capacity</li>
+<li>Number of channels</li>
+<li>Number of ranks</li>
+<li>Number of banks</li>
+<li>DRAM latency</li>
+<li>Request queue size</li>
+</ul>
+<p>Different memory configurations can significantly affect application performance, especially for memory-intensive workloads.</p>
+<h2 id="running-a-trace"><a class="header" href="#running-a-trace">Running a Trace</a></h2>
+<p>ChampSim does not directly execute an application binary. Instead, ChampSim executes an instruction trace generated from a real program.</p>
+<p>Therefore, you first need to obtain a trace:</p>
+<pre><code class="language-sh">mkdir -p traces
 </code></pre>
-<p>Once the clock domain is set up, we can move to create the memory and the memory controller. We need to configure the memory simulation mode and memory range. Since we make configurations for normal simulation, we are going to select <em>timing mode</em> for the memory simulation, which can be applied in most conditions. In other simulation conditions such as restoring memory system from a checkpoint, you may select <em>atomic mode</em>.</p>
-<p>Then, we will also set up a single memory range of size 2GB and assign it to the system. We should also get instances of memory controller (<code>MemCtrl</code>) and memory device from various memory device classes such as DDR4 DRAM (<code>DDR4_2400_8x8</code>), HMC (<code>HMC_2500_x32</code>), etc. All available memory devices classes are listed in <code>src/mem/DRAMInterface.py</code>. Last, we assign the memory device with the memory range.</p>
-<pre><code class="language-python">system.mem_mode = 'timing'
-system.mem_ranges = [AddrRange ('2GB')]
-system.mem_ctrl = MemCtrl()
-system.mem_ctrl.dram = DDR4_2400_8x8()
-system.mem_ctrl.dram.range = root.system.mem_ranges[0]
-</code></pre>
-<p>So far, we have almost completed memory setup. Now, we can create a CPU. <code>gem5</code> provides various types of CPU such as <code>SimpleCPU</code> (simplified CPU timing model), <code>MinorCPU</code> (in-order CPU), <code>O3CPU</code> (out-of-order CPU), etc. As an example, we choose simple timing-based CPU in Gem5, <code>TimingSimpleCPU</code>. This CPU model executes each instruction in a single clock cycle, except for memory requests, which flow through the memory. You can instantiate the object in the system:</p>
-<pre><code class="language-python">system.cpu = TimingSimpleCPU()
-</code></pre>
-<p>Next, we need to create a system bus to connect between the CPU and memory controller. The command to instantiate memory bus is as follows:</p>
-<pre><code class="language-python">system.membus = SystemXBar()
-</code></pre>
-<p>Now that we have created the system bus, the next step is to describe the interconnect logic which actually connect the CPU to the memory. For CPU, we need to connect the ICache and DCache ports to the system bus (currently we do not include any cache in the CPU). For memory, we need to connect memory controller port to the system bus. In addition, we need to create an interrupt controller on the CPU and connect a system port to the memory bus. This port is a functional-only port to allow the system to read/write memory:</p>
-<pre><code class="language-python">system.cpu.icache_port = system.membus.cpu_side_ports
-system.cpu.dcache_port = system.membus.cpu_side_ports
-system.mem_ctrl.port = system.membus.mem_side_ports
-system.cpu.createInterruptController()
-system.system_port = system.membus.cpu_side_ports
-# system.cpu.interrupts[0].pio = system.membus.mem_side_ports
-# system.cpu.interrupts[0].int_requestor = system.membus.cpu_side_ports
-# system.cpu.interrupts[0].int_responder = system.membus.mem_side_ports
-</code></pre>
-<div id="admonition-info-1" class="admonition admonish-info" role="note" aria-labelledby="admonition-info-1-title">
-<div class="admonition-title">
-<div id="admonition-info-1-title">
-<p>Info</p>
-</div>
-<a class="admonition-anchor-link" href="#admonition-info-1"></a>
-</div>
-<div>
-<p>For your information, X86 ISA also requires connecting PIO and interrupt ports to the memory bus. Here we use ARM ISA and ignore these requirements, but we leave the code in comments.</p>
-</div>
-</div>
-<div id="admonition-note-1" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-1-title">
-<div class="admonition-title">
-<div id="admonition-note-1-title">
-<p>Note</p>
-</div>
-<a class="admonition-anchor-link" href="#admonition-note-1"></a>
-</div>
-<div>
-<p>In code above, we manually connect all the necessary ports of CPU to show the details of system wiring up. In fact, <code>gem5</code> source codes have provided a wrapped helper function to perform this procedure. You can use it as follows:</p>
-<pre><code class="language-python">system.cpu.connectBus(system.membus)
-system.mem_ctrl.port = system.membus.mem_side_ports
-system.cpu.createInterruptController()
-system.system_port = system.membus.cpu_side_ports
-</code></pre>
-</div>
-</div>
-<p>So far, we have finished the configuration of simulated system. Next, we will set up the program to be executed. <code>gem5</code> allows you to specify any application built for ARM ISA and that’s been <strong>statically</strong> compiled. In this script, we will execute a simple “Hello World” program. You can compile the code with <code>make</code> in <code>tests/labexe</code>, or download the pre-built binaries from <a href="https://disk.pku.edu.cn/link/AA8F735492EA4048A282AA5A7B9820B521">PKU Disk</a>.</p>
-<div id="admonition-important-note" class="admonition admonish-warning" role="note" aria-labelledby="admonition-important-note-title">
-<div class="admonition-title">
-<div id="admonition-important-note-title">
-<p>Important note</p>
-</div>
-<a class="admonition-anchor-link" href="#admonition-important-note"></a>
-</div>
-<div>
-<p>In our released codes, we've included five simple but representative algorithm programs in <code>gem5/tests/labexe</code>. The Docker image also includes the cross-compile toolchain. To compile these programs, simply run following commands:</p>
-<pre><code class="language-sh">cd tests/labexe
+<p>Place the provided trace files under the <code>traces</code> directory.</p>
+<p>The exact trace format and trace-generation procedure depend on the ChampSim version and the traces provided with this project. You should use the traces distributed with the project unless otherwise specified.</p>
+<h2 id="building-champsim"><a class="header" href="#building-champsim">Building ChampSim</a></h2>
+<p>After preparing the configuration, build ChampSim using the provided build system.</p>
+<p>For example:</p>
+<pre><code class="language-sh">./config.sh configs/proj1/simple.json
 make
 </code></pre>
-<p>Then the executable files can be found under <code>tests/labexe</code>.</p>
-<p>If you want to compile your own programs, just use <code>arm-linux-gnueabihf-gcc</code> and <code>arm-linux-gnueabihf-g++</code> as the compiler. Remember to add <code>-static</code> option so that <code>gem5</code> can correctly load the executables.</p>
-<p>If you are not using Docker and want to compile ARM executables, you should install the cross-compile toolchain:</p>
-<pre><code class="language-sh">sudo apt install gcc-arm-linux-gnueabihf
+<p>After a successful build, the ChampSim executable will be generated according to the selected configuration.</p>
+<p>If the project repository provides a wrapper script for configuration and compilation, please use the provided script instead of manually modifying the generated source files.</p>
+<h2 id="running-champsim"><a class="header" href="#running-champsim">Running ChampSim</a></h2>
+<p>Once ChampSim has been compiled, run the simulator with the selected trace:</p>
+<pre><code class="language-sh">./bin/champsim --warmup_instructions 100000000 \
+               --simulation_instructions 500000000 \
+               traces/&lt;trace-name&gt;.champsimtrace.xz
 </code></pre>
-<p>If you prefer not to build the excutables by yourself or the building process takes a lot of time, you can just download the pre-built binaries from <a href="https://disk.pku.edu.cn/link/AA8F735492EA4048A282AA5A7B9820B521">PKU Disk</a>.</p>
-</div>
-</div>
-<p>To inform <code>gem5</code> to execute our program, we first need to set system workload to the executable. Then we create a process and set the process command to the workload we want to run. This is a list structure with the executable in the first field and the arguments passed to the executable in the rest of the list. Then we configure the CPU to execute the process and finally create the functional execution contexts in the CPU:</p>
-<pre><code class="language-python">import os
-def init_process(root):
-    exe_path = 'tests/labexe/hello'
-    root.system.workload = SEWorkload.init_compatible(exe_path)
-    process = Process()
-    process.executable = exe_path
-    process.cwd = os.getcwd()
-    process.cmd = [exe_path]
-    root.system.cpu.workload = process
-    root.system.cpu.createThreads()
+<p>The warmup period allows the cache hierarchy and branch predictor to reach a more representative state before performance statistics are collected.</p>
+<p>The simulation period determines the number of instructions used for collecting the final performance statistics.</p>
+<p>ChampSim will report statistics such as:</p>
+<ul>
+<li>Instructions per cycle (IPC)</li>
+<li>Branch prediction accuracy</li>
+<li>Cache hit/miss statistics</li>
+<li>MPKI</li>
+<li>Memory bandwidth</li>
+<li>DRAM statistics</li>
+</ul>
+<p>For example, the output may contain information similar to:</p>
+<pre><code class="language-text">CPU 0 cumulative IPC: 1.XX
+CPU 0 branch MPKI: X.XX
+CPU 0 L1D TOTAL ACCESS: XXXXX
+CPU 0 L1D TOTAL MISS: XXXXX
+CPU 0 L2 TOTAL ACCESS: XXXXX
+CPU 0 L2 TOTAL MISS: XXXXX
 </code></pre>
-<p>Finally, we need to instantiate the object hierarchy by calling <code>instantiate()</code> function. Once the object hierarchy has been instantiated, the actual simulation can begin. The <code>simulate()</code> function invokes the C++ event loop. By default, this function will simulate forever, or until some other factor causes the simulation loop to exit (such as the CPU has been shutdown). If a positive integer argument is passed to the simulate function, it will simulate at most that number of additional ticks, but may exit sooner if another cause arises first. In any case, the <code>simulate()</code> function will return an event object that represents the reason for exiting. The object can be queried via its <code>getCause()</code> method for a string explaining that reason. Let’s return to m5 main process, initialize the system and process, then start the simulation:</p>
-<pre><code class="language-python">if __name__ == '__m5_main__':
-    root = Root()
-    root.full_system = False
-    root.system = System()
-    # new codes:
-    init_system(root.system)
-    init_process(root)
-    m5.instantiate()
-    exit_event = m5.simulate()
-    print(f'{exit_event.getCause()} ({exit_event.getCode()}) @ {m5.curTick()}')
-</code></pre>
-<p>Now, we have created a simple but complete simulation script, we are ready to run <code>gem5</code>:</p>
-<pre><code class="language-sh">build/ARM/gem5.opt configs/proj1/simple.py
-</code></pre>
-<p>If everything goes fine, you'll see contents like follows:</p>
-<pre><code>...
-Hello, World!
-exiting with last active thread context (0) @ 14307750
-</code></pre>
+<p>The exact output format depends on the ChampSim version and configuration.</p>
+<h2 id="experiment"><a class="header" href="#experiment">Experiment</a></h2>
+<p>After successfully running the baseline configuration, modify one microarchitectural component at a time and observe its impact on performance.</p>
+<p>For example, you may change:</p>
+<ol>
+<li>L1 cache associativity</li>
+<li>L2 cache capacity</li>
+<li>LLC capacity</li>
+<li>Branch predictor</li>
+<li>Cache replacement policy</li>
+<li>Memory latency</li>
+<li>Memory bandwidth</li>
+<li>Hardware prefetcher</li>
+</ol>
+<p>For each configuration, record the IPC and other relevant performance metrics.</p>
 <div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
 <div class="admonition-title">
 <div id="admonition-deliverables-title">
@@ -335,10 +339,17 @@ exiting with last active thread context (0) @ 14307750
 <a class="admonition-anchor-link" href="#admonition-deliverables"></a>
 </div>
 <div>
-<p>Please include a <strong>screenshot of the output on stdout of your configuration script</strong> in your <em><strong>report</strong></em>.</p>
+<p>Please include the following items in your report:</p>
+<ol>
+<li>A screenshot showing the successful ChampSim compilation.</li>
+<li>A screenshot of the ChampSim simulation output.</li>
+<li>The configuration file used for the experiment.</li>
+<li>The trace used for the simulation.</li>
+<li>The IPC and other required performance statistics.</li>
+<li>A brief discussion explaining how the selected configuration affects performance.</li>
+</ol>
 </div>
 </div>
-
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
