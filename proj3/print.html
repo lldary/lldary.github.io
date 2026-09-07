@@ -525,16 +525,17 @@ L1D AVERAGE MISS LATENCY: 24.5 cycles
 <li>Hybrid prefetching combining multiple predictors</li>
 <li>Any novel prefetching strategy designed by yourself</li>
 </ul>
-<p>A standard ChampSim prefetcher resides in the <code>prefetcher/</code> directory (or a custom subfolder under <code>prefetcher/</code>) and implements the following core callback functions:</p>
+<p>A standard ChampSim prefetcher resides in the <code>prefetcher/</code> directory (or a custom subfolder under <code>prefetcher/</code>) and implements the following module callback functions. The module may also implement <code>prefetcher_cycle_operate()</code> for per-cycle work and, for instruction prefetchers, <code>prefetcher_branch_operate()</code>.</p>
 <pre><code class="language-cpp">#include "cache.h"
 
 // 1. Initialization: Called once when the simulation starts
-void l1d_prefetcher_initialize() {
+void my_prefetcher::prefetcher_initialize() {
     // Initialize your internal tables, tracking structures, and counters here
 }
 
-// 2. Operate: Called on every L1D cache access (hits and misses)
-void l1d_prefetcher_operate(uint64_t addr, uint64_t ip, uint8_t cache_hit, uint8_t type) {
+// 2. Operate: Called when an L1D cache tag is checked
+uint32_t my_prefetcher::prefetcher_cache_operate(
+   uint64_t addr, uint64_t ip, bool cache_hit, uint8_t type, uint32_t metadata_in) {
     // Extract block address and page offset
     uint64_t block_addr = addr &gt;&gt; LOG2_BLOCK_SIZE; // LOG2_BLOCK_SIZE is typically 6
     uint64_t page_addr  = addr &gt;&gt; LOG2_PAGE_SIZE;  // LOG2_PAGE_SIZE is typically 12
@@ -549,18 +550,22 @@ void l1d_prefetcher_operate(uint64_t addr, uint64_t ip, uint8_t cache_hit, uint8
     uint64_t pf_addr = pf_block_addr &lt;&lt; LOG2_BLOCK_SIZE;
 
     // Example prefetch request
-    prefetch_line(pf_addr, true, 0); 
+    prefetch_line(pf_addr, true, 0);
+
+    // Return metadata to associate with the accessed block.
+    return metadata_in;
 }
 
 // 3. Cache Fill: Called when a line is filled into L1D
-void l1d_prefetcher_cache_fill(uint64_t addr, uint32_t set, uint32_t way, 
-                               uint8_t prefetch, uint64_t evicted_addr, 
-                               uint8_t metadata_in) {
+uint32_t my_prefetcher::prefetcher_cache_fill(
+    uint64_t addr, uint32_t set, uint32_t way, bool prefetch,
+    uint64_t evicted_addr, uint32_t metadata_in) {
     // Update tracking structures upon cache line fill
+    return metadata_in;
 }
 
 // 4. Final Stats: Called at the end of simulation
-void l1d_prefetcher_final_stats() {
+void my_prefetcher::prefetcher_final_stats() {
     // Print custom statistics if needed
 }
 
@@ -568,34 +573,37 @@ void l1d_prefetcher_final_stats() {
 <h3 id="key-champsim-prefetcher-interfaces--concepts"><a class="header" href="#key-champsim-prefetcher-interfaces--concepts">Key ChampSim Prefetcher Interfaces &amp; Concepts</a></h3>
 <ul>
 <li>
-<p><strong><code>l1d_prefetcher_operate()</code></strong>: Triggered on every L1D load/store access.</p>
+<p><strong><code>prefetcher_initialize()</code></strong>: Called when the cache module is initialized. Use it to initialize dynamic structures such as <code>std::vector</code> and <code>std::map</code>.</p>
 </li>
 <li>
-<p><code>addr</code>: The byte memory address being accessed.</p>
+<p><strong><code>prefetcher_cache_operate()</code></strong>: Called whenever the cache checks a tag. It receives the packet address, the initiating PC, the hit result, access type, and incoming metadata; it returns metadata to store with the block. Some ChampSim versions include an additional <code>bool useful_prefetch</code> parameter. Use the exact signature generated for your configured version.</p>
 </li>
 <li>
-<p><code>ip</code>: The Instruction Pointer (PC) of the instruction initiating the access.</p>
+<p><code>addr</code>: Address of the packet. At a first-level cache it includes byte-offset bits; at lower levels the offset bits are zero. With virtual prefetching enabled, it is a virtual address; otherwise it is a physical address.</p>
 </li>
 <li>
-<p><code>cache_hit</code>: <code>1</code> if the access hit in L1D, <code>0</code> if it missed.</p>
+<p><code>ip</code>: Instruction pointer of the demand that initiated the access. It is <code>0</code> for a prefetch sent from another cache level.</p>
 </li>
 <li>
-<p><code>type</code>: Access type (e.g., <code>LOAD</code>, <code>RFO</code>, <code>PREFETCH</code>).</p>
+<p><code>cache_hit</code>: <code>true</code> when the tag check hits and <code>false</code> otherwise. When the signature includes <code>useful_prefetch</code>, that parameter is <code>true</code> when the hit consumes a previously prefetched block.</p>
 </li>
 <li>
-<p><strong><code>l1d_prefetcher_cache_fill()</code></strong>: Triggered when a line is filled from lower memory (L2C/RAM).</p>
+<p><code>type</code>: Access type, such as <code>LOAD</code>, <code>RFO</code>, <code>PREFETCH</code>, <code>WRITE</code>, or <code>TRANSLATION</code>.</p>
 </li>
 <li>
-<p><code>prefetch</code>: <code>1</code> if this fill was triggered by a prior hardware prefetch request; <code>0</code> if it was a demand miss fill.</p>
+<p><strong><code>prefetcher_cache_fill()</code></strong>: Called when a miss is filled into the cache. It receives the fill address, set and way, whether the fill is a prefetch, evicted address, and incoming metadata; return the metadata to store with the filled block. A bypass is reported with <code>way == this-&gt;NUM_WAY</code> and a default-constructed evicted address.</p>
 </li>
 <li>
-<p><strong><code>prefetch_line(pf_addr, fill_level, metadata)</code></strong>: The primary API to request a prefetch.</p>
+<p><strong><code>prefetcher_cycle_operate()</code></strong>: Optional callback executed after all other work in each simulation cycle. Use it for time-based training or deferred prefetch issuance.</p>
 </li>
 <li>
-<p><code>pf_addr</code>: Target byte address to prefetch.</p>
+<p><strong><code>prefetcher_branch_operate()</code></strong>: Optional callback for instruction prefetchers. It receives the branch PC, branch type, and branch target.</p>
 </li>
 <li>
-<p><code>fill_level</code>: Set to <code>true</code> to fill into L1D (or <code>false</code> to target lower levels).</p>
+<p><strong><code>prefetcher_final_stats()</code></strong>: Called at the end of the simulation; use it to print custom statistics.</p>
+</li>
+<li>
+<p><strong><code>prefetch_line(pf_addr, fill_level, metadata)</code></strong>: The cache-module method used to request a prefetch. <code>pf_addr</code> is the target byte address, <code>fill_level</code> selects the target fill level, and <code>metadata</code> is carried with the request.</p>
 </li>
 <li>
 <p><strong>Address Manipulations</strong>:</p>
@@ -618,7 +626,7 @@ void l1d_prefetcher_final_stats() {
 <a class="admonition-anchor-link" href="proj3/part3.html#admonition-timestamps-and-custom-data-structures"></a>
 </div>
 <div>
-<p>In ChampSim, you can track logical time or access age using a simple global counter incremented inside <code>l1d_prefetcher_operate()</code> (e.g., <code>uint64_t current_cycle = 0; current_cycle++;</code>), or use standard C++ STL containers (<code>std::vector</code>, <code>std::unordered_map</code>, fixed-size arrays) as global/static variables within your prefetcher file.</p>
+<p>In ChampSim, you can track logical time or access age using a simple counter incremented inside <code>prefetcher_cache_operate()</code> (for example, <code>uint64_t current_cycle = 0; current_cycle++;</code>). For per-cycle timing work, implement <code>prefetcher_cycle_operate()</code>. You can also use standard C++ STL containers (<code>std::vector</code>, <code>std::unordered_map</code>, fixed-size arrays) as members or static data in your prefetcher module.</p>
 <p>Your implementation should carefully design metadata structures to record memory access history, prediction information, confidence values, or other information required by your prefetching algorithm.</p>
 </div>
 </div>
