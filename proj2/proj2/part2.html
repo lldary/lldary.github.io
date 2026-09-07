@@ -208,9 +208,6 @@ mkdir simple_bp
 
 struct simple_bp : champsim::modules::branch_predictor {
 
-  // 初始化钩子（可选但推荐）
-  void initialize_branch_predictor();
-
   bool predict_branch(champsim::address ip);
   void last_branch_result(champsim::address ip, champsim::address branch_target, bool taken, uint8_t branch_type);
 };
@@ -219,11 +216,6 @@ struct simple_bp : champsim::modules::branch_predictor {
 </code></pre>
 <pre><code class="language-cpp">// branch/simple_bp/simple_bp.cc
 #include "simple_bp.h"
-
-// Initialize branch predictor state
-void simple_bp::initialize_branch_predictor() {
-    // Static predictor does not require any internal tables or counters.
-}
 
 // Predict whether a branch is taken (1) or not taken (0)
 uint8_t simple_bp::predict_branch(uint64_t ip, uint64_t predicted_target, uint8_t always_taken, uint8_t branch_type) {
@@ -237,9 +229,8 @@ void simple_bp::last_branch_result(champsim::address ip, champsim::address branc
 }
 
 </code></pre>
-<p>Let's look at the three key interface functions required by <code>ChampSim</code>:</p>
+<p>Let's look at the two key interface functions required by <code>ChampSim</code>:</p>
 <ul>
-<li><code>initialize_branch_predictor()</code>: Called once at CPU startup. You can allocate memory, reset tables, or initialize global history registers here.</li>
 <li><code>predict_branch()</code>: Called when a conditional branch is fetched. It receives the branch instruction address (<code>ip</code>) and returns <code>1</code> for taken or <code>0</code> for not taken.</li>
 <li><code>last_branch_result()</code>: Called when the branch instruction is executed/committed and its actual outcome (<code>taken</code>) is known. You use this callback to update your prediction tables or history registers.</li>
 </ul>

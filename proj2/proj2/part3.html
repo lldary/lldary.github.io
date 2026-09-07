@@ -231,9 +231,8 @@
 <li><strong>Weight Quantization &amp; Budget Limits</strong>: Managing weight bit-widths effectively.</li>
 </ul>
 <h3 id="starter-skeleton"><a class="header" href="#starter-skeleton">Starter Skeleton</a></h3>
-<p>We have provided a code skeleton under the <code>branch/your_perceptron/</code> directory (<code>your_perceptron.h</code> and <code>your_perceptron.cc</code>). You need to fill in the missing logic in <code>ChampSim</code>'s interface functions:</p>
+<p>We have provided a code skeleton under the <code>branch/my_perceptron/</code> directory (<code>my_perceptron.h</code> and <code>my_perceptron.cc</code>). You need to fill in the missing logic in <code>ChampSim</code>'s interface functions:</p>
 <ul>
-<li><code>initialize_branch_predictor()</code>: Allocate your predictor tables/structures and initialize GHR, weight vectors, and thresholds.</li>
 <li><code>predict_branch()</code>: Select the predictor entry, compute prediction logic (e.g., dot product), and return <code>1</code> ('taken') or <code>0</code> ('not taken').</li>
 <li><code>last_branch_result()</code>: Train predictor weights/counters based on prediction correctness and threshold criteria, then update the branch history.</li>
 </ul>
@@ -245,7 +244,7 @@
 <a class="admonition-anchor-link" href="#admonition-tip"></a>
 </div>
 <div>
-<p>If you are unsure how to manage branch history or table indexing in ChampSim, you can check built-in predictors in the <code>branch/</code> directory (such as <code>gshare/</code> or <code>hashed_perceptron/</code>) for reference.</p>
+<p>If you are unsure how to manage branch history or table indexing in ChampSim, you can check built-in predictors in the <code>branch/</code> directory (such as <code>gshare/</code> or <code>bimodal/</code>) for reference.</p>
 </div>
 </div>
 <h3 id="compiling-and-running"><a class="header" href="#compiling-and-running">Compiling and Running</a></h3>

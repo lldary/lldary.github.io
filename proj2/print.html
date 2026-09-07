@@ -316,9 +316,6 @@ mkdir simple_bp
 
 struct simple_bp : champsim::modules::branch_predictor {
 
-  // 初始化钩子（可选但推荐）
-  void initialize_branch_predictor();
-
   bool predict_branch(champsim::address ip);
   void last_branch_result(champsim::address ip, champsim::address branch_target, bool taken, uint8_t branch_type);
 };
@@ -327,11 +324,6 @@ struct simple_bp : champsim::modules::branch_predictor {
 </code></pre>
 <pre><code class="language-cpp">// branch/simple_bp/simple_bp.cc
 #include "simple_bp.h"
-
-// Initialize branch predictor state
-void simple_bp::initialize_branch_predictor() {
-    // Static predictor does not require any internal tables or counters.
-}
 
 // Predict whether a branch is taken (1) or not taken (0)
 uint8_t simple_bp::predict_branch(uint64_t ip, uint64_t predicted_target, uint8_t always_taken, uint8_t branch_type) {
@@ -345,9 +337,8 @@ void simple_bp::last_branch_result(champsim::address ip, champsim::address branc
 }
 
 </code></pre>
-<p>Let's look at the three key interface functions required by <code>ChampSim</code>:</p>
+<p>Let's look at the two key interface functions required by <code>ChampSim</code>:</p>
 <ul>
-<li><code>initialize_branch_predictor()</code>: Called once at CPU startup. You can allocate memory, reset tables, or initialize global history registers here.</li>
 <li><code>predict_branch()</code>: Called when a conditional branch is fetched. It receives the branch instruction address (<code>ip</code>) and returns <code>1</code> for taken or <code>0</code> for not taken.</li>
 <li><code>last_branch_result()</code>: Called when the branch instruction is executed/committed and its actual outcome (<code>taken</code>) is known. You use this callback to update your prediction tables or history registers.</li>
 </ul>
@@ -447,9 +438,8 @@ bin/champsim --warmup-instructions 20000000 --simulation-instructions 100000000 
 <li><strong>Weight Quantization &amp; Budget Limits</strong>: Managing weight bit-widths effectively.</li>
 </ul>
 <h3 id="starter-skeleton"><a class="header" href="#starter-skeleton">Starter Skeleton</a></h3>
-<p>We have provided a code skeleton under the <code>branch/your_perceptron/</code> directory (<code>your_perceptron.h</code> and <code>your_perceptron.cc</code>). You need to fill in the missing logic in <code>ChampSim</code>'s interface functions:</p>
+<p>We have provided a code skeleton under the <code>branch/my_perceptron/</code> directory (<code>my_perceptron.h</code> and <code>my_perceptron.cc</code>). You need to fill in the missing logic in <code>ChampSim</code>'s interface functions:</p>
 <ul>
-<li><code>initialize_branch_predictor()</code>: Allocate your predictor tables/structures and initialize GHR, weight vectors, and thresholds.</li>
 <li><code>predict_branch()</code>: Select the predictor entry, compute prediction logic (e.g., dot product), and return <code>1</code> ('taken') or <code>0</code> ('not taken').</li>
 <li><code>last_branch_result()</code>: Train predictor weights/counters based on prediction correctness and threshold criteria, then update the branch history.</li>
 </ul>
@@ -461,7 +451,7 @@ bin/champsim --warmup-instructions 20000000 --simulation-instructions 100000000 
 <a class="admonition-anchor-link" href="proj2/part3.html#admonition-tip"></a>
 </div>
 <div>
-<p>If you are unsure how to manage branch history or table indexing in ChampSim, you can check built-in predictors in the <code>branch/</code> directory (such as <code>gshare/</code> or <code>hashed_perceptron/</code>) for reference.</p>
+<p>If you are unsure how to manage branch history or table indexing in ChampSim, you can check built-in predictors in the <code>branch/</code> directory (such as <code>gshare/</code> or <code>bimodal/</code>) for reference.</p>
 </div>
 </div>
 <h3 id="compiling-and-running"><a class="header" href="#compiling-and-running">Compiling and Running</a></h3>
