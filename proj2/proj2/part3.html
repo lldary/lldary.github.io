@@ -269,7 +269,7 @@ bin/champsim --warmup-instructions 20000000 --simulation-instructions 100000000 
 <div>
 <p>Your implementation will be evaluated using both the public traces (<code>shell_sort</code>, <code>spfa</code>) and additional hidden evaluation workloads. Total points for this part consist of:</p>
 <ol>
-<li><strong>Basic Functionality &amp; Correctness (70%)</strong>: Correctly implementing a working predictor that successfully completes all simulation runs without crashes and surpasses the <code>simple_bp</code> baseline.</li>
+<li><strong>Basic Functionality &amp; Correctness (70%)</strong>: Correctly implementing a working predictor that successfully completes all simulation runs without crashes and surpasses the <code>local_bp</code> baseline.</li>
 <li><strong>Performance Ranking &amp; Optimization (30%)</strong>: Graded competitively based on your predictor's <strong>Branch Prediction Accuracy (MPKI)</strong> and <strong>CPU IPC</strong> against your peers on the benchmark suite:
 <ul>
 <li><strong>Top 10% Performance</strong>: Full ranking score.</li>
@@ -288,16 +288,16 @@ bin/champsim --warmup-instructions 20000000 --simulation-instructions 100000000 
 <a class="admonition-anchor-link" href="#admonition-deliverables"></a>
 </div>
 <div>
-<p>Please evaluate your implemented <code>your_perceptron</code> predictor against all baselines.</p>
+<p>Please evaluate your implemented <code>my_perceptron</code> predictor against all baselines.</p>
 <p>In your <em><strong>report</strong></em>, please include:</p>
 <ol>
 <li><strong>Paper Summary</strong>: A concise summary (1–2 pages) covering the <strong>motivations</strong>, <strong>key challenges</strong>, and <strong>perceptron design/training mechanisms</strong> described in the Jiménez &amp; Lin paper.</li>
 <li><strong>Custom BP Design Details</strong>: Explain your specific implementation, architectural choices, hashing logic, parameter selections (<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8889em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.03148em;">k</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">θ</span></span></span></span>, table sizes), and any extra optimizations you added.</li>
-<li><strong>Performance Evaluation &amp; Comparison</strong>: Figures or tables comparing <strong>Branch Prediction Accuracy / MPKI</strong> and <strong>CPU IPC</strong> of your <code>your_perceptron</code> against <code>simple_bp</code>, <code>bimodal</code>, <code>gshare</code>, and <code>hashed_perceptron</code> across the tested workloads.</li>
+<li><strong>Performance Evaluation &amp; Comparison</strong>: Figures or tables comparing <strong>Branch Prediction Accuracy / MPKI</strong> and <strong>CPU IPC</strong> of your <code>my_perceptron</code> against <code>simple_bp</code>, <code>local_bp</code>, and <code>gshare</code> across the tested workloads.</li>
 </ol>
 <p><strong>Files to submit</strong>:</p>
 <ul>
-<li><strong>Source code</strong>: Files under <code>branch/your_perceptron/</code> (<code>your_perceptron.h</code> and <code>your_perceptron.cc</code>).</li>
+<li><strong>Source code</strong>: Files under <code>branch/my_perceptron/</code> (<code>my_perceptron.h</code> and <code>my_perceptron.cc</code>).</li>
 <li><strong>Lab report</strong>: PDF file including the paper summary, design details, and performance analysis.</li>
 </ul>
 </div>
