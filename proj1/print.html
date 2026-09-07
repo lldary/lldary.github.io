@@ -213,12 +213,15 @@
 <p>Nowadays, <code>ChampSim</code> has become a widely used trace-based simulation framework in the computer architecture research community, especially for studying cache hierarchies, branch predictors, and memory prefetching techniques. This project will introduce how to build and configure a computer architecture simulation framework using the <code>ChampSim</code> simulator. We will study how different processor components, cache configurations, branch predictors, and memory prefetchers can affect the overall performance of a computer system.</p>
 <p>Please note that <code>ChampSim</code> simulations can be time-consuming, especially when using long traces or running a large number of configurations. Therefore, you are strongly encouraged to start the project as early as possible.</p>
 <p>For your convenience, we have tried to minimize the difficulties of setting up <code>ChampSim</code>. However, some configuration and compilation steps may still be tricky. Whenever you encounter any problems during this project, please refer to the <code>ChampSim</code> documentation or contact the TAs via WeChat or e-mail. All the following instructions and configurations have been verified on Ubuntu 22.04 environments.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="setup-install-toolchain-and-compile-gem5"><a class="header" href="#setup-install-toolchain-and-compile-gem5">Setup: Install Toolchain and Compile <code>gem5</code></a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="setup-install-toolchain-and-compile-champsim"><a class="header" href="#setup-install-toolchain-and-compile-champsim">Setup: Install Toolchain and Compile <code>ChampSim</code></a></h1>
 <h2 id="install-environment"><a class="header" href="#install-environment">Install environment</a></h2>
-<p>As a complicated software, <code>gem5</code> requires several prerequisites to run properly. However, manually preparing the correct environment is very challenging. For your convenience, we provide a Docker image with correctly installed prerequisites. To use the image, you first need to install Docker. On Windows system, you can easily install it by installing <a href="https://www.docker.com/get-started/">Docker Desktop</a>; on Linux system, you can install Docker following the <a href="https://docs.docker.com/engine/install/">documentation</a>. You can use the following command to check your installation:</p>
+<p>As a computer architecture simulator, <code>ChampSim</code> requires several software prerequisites to compile and run properly. To minimize the difficulty of setting up the environment, we provide a Docker image with the required prerequisites already installed.</p>
+<p>To use the image, you first need to install Docker. On Windows systems, you can easily install it by installing <a href="https://www.docker.com/get-started/">Docker Desktop</a>; on Linux systems, you can install Docker following the <a href="https://docs.docker.com/engine/install/">documentation</a>.</p>
+<p>You can use the following command to check your Docker installation:</p>
 <pre><code class="language-sh">docker --version
 
 # You'll see contents like the following:
+
 Docker version 24.0.2, build cb74dfc
 </code></pre>
 <div id="admonition-docker-install-tips" class="admonition admonish-tip" role="note" aria-labelledby="admonition-docker-install-tips-title">
@@ -229,12 +232,13 @@ Docker version 24.0.2, build cb74dfc
 <a class="admonition-anchor-link" href="proj1/setup.html#admonition-docker-install-tips"></a>
 </div>
 <div>
-<p>On Windows system, pay particular attention to verifying whether <strong>WSL2</strong> is already installed on your computer or whether <strong>Hyper-V</strong> functionality is enabled. Failure to do so may result in various unexpected issues during the installation process. We recommend using WSL2 to support Docker. You can verify if WSL2 is installed with the following command:</p>
+<p>On Windows systems, pay particular attention to verifying whether <strong>WSL2</strong> is already installed on your computer or whether <strong>Hyper-V</strong> functionality is enabled. Failure to do so may result in various unexpected issues during the installation process. We recommend using WSL2 to support Docker.</p>
+<p>You can verify if WSL2 is installed with the following command:</p>
 <pre><code class="language-sh">wsl --version
 </code></pre>
 </div>
 </div>
-Once you've installed Docker, you can pull our image with the following command:
+<p>Once you've installed Docker, you can pull our image with the following command:</p>
 <pre><code class="language-sh">docker pull chaselab/archlab
 </code></pre>
 <div id="admonition-note" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-title">
@@ -251,12 +255,13 @@ Once you've installed Docker, you can pull our image with the following command:
 <p>All the resources used in labs will be visible in the PKU Disk.</p>
 </div>
 </div>
-<p>After pull (load) the image, you can find it by running the following command:</p>
+<p>After pulling (loading) the image, you can find it by running the following command:</p>
 <pre><code class="language-sh">docker images
 
 # you'll see contents like the following:
-REPOSITORY         TAG           IMAGE ID       CREATED        SIZE
-chaselab/archlab   latest        c028b12a3ac4   1 second ago   1.8GB
+
+REPOSITORY          TAG       IMAGE ID       CREATED        SIZE
+chaselab/archlab    latest    c028b12a3ac4   1 second ago    1.8GB
 </code></pre>
 <div id="admonition-note-1" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-1-title">
 <div class="admonition-title">
@@ -266,17 +271,16 @@ chaselab/archlab   latest        c028b12a3ac4   1 second ago   1.8GB
 <a class="admonition-anchor-link" href="proj1/setup.html#admonition-note-1"></a>
 </div>
 <div>
-<p>If you prefer to install the prerequisites for <code>gem5</code> manually, you can follow the commands listed below.</p>
-<pre><code class="language-sh">sudo apt-get update; sudo apt-get upgrade
-# For Ubuntu 20.04
-sudo apt install build-essential git m4 scons zlib1g zlib1g-dev libprotobuf-dev protobuf-compiler libprotoc-dev libgoogle-perftools-dev python3-dev python-is-python3 libboost-all-dev pkg-config
+<p>If you prefer to install the prerequisites for <code>ChampSim</code> manually, you can install the basic development tools with the following commands:</p>
+<pre><code class="language-sh">sudo apt-get update
+sudo apt-get upgrade
 
-# For Ubuntu 18.04
-sudo apt install build-essential git m4 scons zlib1g zlib1g-dev libprotobuf-dev protobuf-compiler libprotoc-dev libgoogle-perftools-dev python3-dev python libboost-all-dev pkg-config
+sudo apt install build-essential git cmake python3
 </code></pre>
+<p>Depending on the version of <code>ChampSim</code> used in this project, additional packages may be required. If you encounter a missing dependency during compilation, please refer to the error message or contact the TAs.</p>
 </div>
 </div>
-<p>After preparing the environment, you should clone the codes of <code>gem5</code>. We have provided a skeleton code which you can clone from its <a href="https://github.com/ChaseLab-PKU/archlab-gem5">repo</a>, or download the code package from <a href="https://disk.pku.edu.cn/link/AA8F735492EA4048A282AA5A7B9820B521">PKU Disk</a> and then extract the codes to a directory.</p>
+<p>After preparing the environment, you should clone the codes of <code>ChampSim</code>. We have provided a skeleton code which you can clone from its <a href="https://github.com/ChaseLab-PKU/archlab-champsim">repo</a>, or download the code package from <a href="https://disk.pku.edu.cn/link/AA8F735492EA4048A282AA5A7B9820B521">PKU Disk</a> and then extract the codes to a directory.</p>
 <div id="admonition-code-clone-tips" class="admonition admonish-tip" role="note" aria-labelledby="admonition-code-clone-tips-title">
 <div class="admonition-title">
 <div id="admonition-code-clone-tips-title">
@@ -285,31 +289,44 @@ sudo apt install build-essential git m4 scons zlib1g zlib1g-dev libprotobuf-dev 
 <a class="admonition-anchor-link" href="proj1/setup.html#admonition-code-clone-tips"></a>
 </div>
 <div>
-<p>On Windows system, please run the following command before cloning the code repository:</p>
+<p>On Windows systems, please run the following command before cloning the code repository:</p>
 <pre><code class="language-sh">git config --global core.autocrlf false
 </code></pre>
 <p>This will prevent compilation issues caused by differences in line ending definitions between Windows and Linux.</p>
 </div>
 </div>
-<p>Once you have the codes, you are able to compile <code>gem5</code>. If you are using Docker (if not you can skip this part), you need to firstly create a container to setup the environment. Also, you need to mount the code onto the container when you start it, so that you can read and modify the code files inside the container. The command is as follows:</p>
+<p>Once you have the code, you can proceed to build <code>ChampSim</code>.</p>
+<p>If you are using Docker, you need to first create a container to set up the environment. You also need to mount the code onto the container when you start it, so that you can read and modify the code files inside the container.</p>
+<p>The command is as follows:</p>
 <pre><code class="language-sh">docker run -it --name &lt;container name&gt; -v &lt;local path&gt;:&lt;container path&gt; chaselab/archlab /bin/bash
 </code></pre>
 <ul>
-<li>The <code>-it</code> option means to attach stdin, stdout and stderr to current terminal, so you can operate the container interactively.</li>
-<li>The <code>--name &lt;container name&gt;</code> option specifies the name of the new container. It may be useful when you try to run other commands on the container, but it is rather optional, because you can always specify a container by its individual ID. You can see the IDs and names of all existing containers with this command:
+<li>
+<p>The <code>-it</code> option means to attach stdin, stdout and stderr to the current terminal, so you can operate the container interactively.</p>
+</li>
+<li>
+<p>The <code>--name &lt;container name&gt;</code> option specifies the name of the new container. It may be useful when you try to run other commands on the container, but it is optional, because you can always specify a container by its individual ID. You can see the IDs and names of all existing containers with this command:</p>
 <pre><code class="language-sh">docker ps -a
 
 # you'll see contents like the following:
-CONTAINER ID   IMAGE                  COMMAND       CREATED          STATUS                      PORTS     NAMES
-43518d84eb29   chaselab/archlab       "/bin/bash"   14 seconds ago   Exited (0) 14 seconds ago             lab1
+
+CONTAINER ID   IMAGE                COMMAND     CREATED         STATUS
+43518d84eb29   chaselab/archlab     "/bin/bash" 14 seconds ago Exited (0)
 </code></pre>
 </li>
-<li>The <code>-v &lt;local path&gt;:&lt;container path&gt;</code> allows you to mount a local directory to a directory in the container. Here, you need to specify the <code>local path</code> as the path to your <code>gem5</code> code, for example, <code>C:\Users\myname\gem5</code>. The <code>container path</code> can be simple, for example, <code>/gem5</code>. When you enter the container, you can see all the codes under container path. Please note that this option <strong>only accepts absolute paths</strong>, otherwise the contents in the directory will not be correctly mounted.</li>
-<li>The first argument after the options is the image name, here is <code>chaselab/archlab</code>.</li>
-<li>The second argument is the command you want to run upon container start. Here we use <code>/bin/bash</code> to start an interactive terminal.</li>
+<li>
+<p>The <code>-v &lt;local path&gt;:&lt;container path&gt;</code> option allows you to mount a local directory to a directory in the container. Here, you need to specify the <code>local path</code> as the path to your <code>ChampSim</code> code, for example, <code>C:\Users\myname\ChampSim</code>. The <code>container path</code> can be simple, for example, <code>/champsim</code>. When you enter the container, you can see all the code under the container path.</p>
+<p>Please note that this option <strong>only accepts absolute paths</strong>, otherwise the contents in the directory will not be correctly mounted.</p>
+</li>
+<li>
+<p>The first argument after the options is the image name, here is <code>chaselab/archlab</code>.</p>
+</li>
+<li>
+<p>The second argument is the command you want to run upon container start. Here we use <code>/bin/bash</code> to start an interactive terminal.</p>
+</li>
 </ul>
 <p>Thus, filling up all the options and arguments makes the command look like this:</p>
-<pre><code class="language-sh">docker run -it --name lab1 -v C:\Users\myname\gem5:/gem5 chaselab/archlab /bin/bash
+<pre><code class="language-sh">docker run -it --name lab1 -v C:\Users\myname\ChampSim:/champsim chaselab/archlab /bin/bash
 </code></pre>
 <div id="admonition-server-account" class="admonition admonish-tip" role="note" aria-labelledby="admonition-server-account-title">
 <div class="admonition-title">
@@ -319,7 +336,7 @@ CONTAINER ID   IMAGE                  COMMAND       CREATED          STATUS     
 <a class="admonition-anchor-link" href="proj1/setup.html#admonition-server-account"></a>
 </div>
 <div>
-<p>If you still cannot compile or cannot setup WSL and Docker Desktop, feel free to contact TA for a <a href="proj1/./appendix.html">server account</a>.</p>
+<p>If you still cannot compile or cannot set up WSL and Docker Desktop, feel free to contact TA for a <a href="proj1/./appendix.html">server account</a>.</p>
 </div>
 </div>
 <div id="admonition-docker-command-tips" class="admonition admonish-tip" role="note" aria-labelledby="admonition-docker-command-tips-title">
@@ -330,26 +347,39 @@ CONTAINER ID   IMAGE                  COMMAND       CREATED          STATUS     
 <a class="admonition-anchor-link" href="proj1/setup.html#admonition-docker-command-tips"></a>
 </div>
 <div>
-<p>After starting the container, you can run any commands in it. However, you need to know more docker commands when meeting other situations:</p>
+<p>After starting the container, you can run any commands in it. However, you need to know more Docker commands when meeting other situations:</p>
 <ul>
-<li>If you've closed the container by running <code>exit</code> and want to run the lab again, you do not need to create another container with <code>docker run</code>. Instead, you can use the following command to restart your container and attach stdin, stdout and stderr to your terminal:
+<li>
+<p>If you've closed the container by running <code>exit</code> and want to run the lab again, you do not need to create another container with <code>docker run</code>. Instead, you can use the following command to restart your container and attach stdin, stdout and stderr to your terminal:</p>
 <pre><code class="language-sh">docker start -ia &lt;container ID/name&gt;
 </code></pre>
-If you are using a Windows system, you can also launch the corresponding container directly from the graphical interface of the Docker Desktop software.</li>
-<li>If you start the simulation and want to close the terminal while keeping <code>gem5</code> running, you can type <code>ctrl+p+q</code> to stop the interactive evironment and return to your own terminal. Then, when you want to return to the container, you can use the following commands:
+<p>If you are using a Windows system, you can also launch the corresponding container directly from the graphical interface of Docker Desktop.</p>
+</li>
+<li>
+<p>If you start a simulation and want to close the terminal while keeping <code>ChampSim</code> running, you can type <code>ctrl+p+q</code> to detach from the interactive environment and return to your own terminal. Then, when you want to return to the container, you can use the following commands:</p>
 <pre><code class="language-sh">docker attach &lt;container ID/name&gt; # return to the original container terminal
+
 docker exec -it &lt;container ID/name&gt; &lt;command&gt; # start a new container terminal
 </code></pre>
 </li>
-<li>If you want to make accessing Docker feel similar to accessing a remote server, you can use the <em>Dev Containers</em> extension for VS Code (refer to <a href="proj1/./vscode-settings.html">Appendix</a>). This allows you to directly access the running container through VS Code, and use VS Code to edit code and execute command-line commands.</li>
+<li>
+<p>If you want to make accessing Docker feel similar to accessing a remote server, you can use the <em>Dev Containers</em> extension for VS Code (refer to <a href="proj1/./vscode-settings.html">Appendix</a>). This allows you to directly access the running container through VS Code, and use VS Code to edit code and execute command-line commands.</p>
+</li>
 </ul>
 </div>
 </div>
-<h2 id="compile-gem5"><a class="header" href="#compile-gem5">Compile <code>gem5</code></a></h2>
-<p>Once the container has started, or if you have manually prepared the environment, you can proceed to compile <code>gem5</code>. Please note that <code>gem5</code> must be built on a Unix platform (e.g., Linux and MacOS). <code>gem5</code> uses SCons to manage its compilation. In this lab, we'll compile for ARM ISA:</p>
-<pre><code class="language-sh">cd gem5
-scons build/ARM/gem5.opt -j $(nproc) # use all your cores to compile
+<h2 id="compile-champsim"><a class="header" href="#compile-champsim">Compile <code>ChampSim</code></a></h2>
+<p>Once the container has started, or if you have manually prepared the environment, you can proceed to compile <code>ChampSim</code>.</p>
+<p>First, enter the <code>ChampSim</code> source directory:</p>
+<pre><code class="language-sh">cd ChampSim
 </code></pre>
+<p>Before compilation, create a basic configuration for the simulator:</p>
+<pre><code class="language-sh">./config.sh configs/proj1/simple.json
+</code></pre>
+<p>Then compile the generated configuration:</p>
+<pre><code class="language-sh">make -j $(nproc)
+</code></pre>
+<p>The <code>-j $(nproc)</code> option allows <code>make</code> to use all available CPU cores to accelerate the compilation process.</p>
 <div id="admonition-compile-tips" class="admonition admonish-tip" role="note" aria-labelledby="admonition-compile-tips-title">
 <div class="admonition-title">
 <div id="admonition-compile-tips-title">
@@ -358,24 +388,37 @@ scons build/ARM/gem5.opt -j $(nproc) # use all your cores to compile
 <a class="admonition-anchor-link" href="proj1/setup.html#admonition-compile-tips"></a>
 </div>
 <div>
-<p>If you run <code>scons</code> to compile and are warned with <code>Cannot find 'pre-commit'</code> (messages like the following), you can ignore the message (press enter and then press y). This is only required for contributing to <code>gem5</code> and will not prevent the compilation.</p>
-<pre><code>You're missing the pre-commit/commit-msg hooks. These hook help to ensure your
-code follows gem5's style rules on git commit and your commit messages follow
-our commit message requirements. This script will now install these hooks in
-your .git/hooks/ directory.
-Press enter to continue, or ctrl-c to abort:
- Cannot find 'pre-commit'. Please ensure all Python requirements are
-installed. This can be done via 'pip install -r requirements.txt'.
-It is strongly recommended you install the pre-commit hooks before working with gem5. Do you want to continue compilation (y/n)?
+<p>If you encounter compilation errors, first check whether the required compiler and build tools are installed:</p>
+<pre><code class="language-sh">g++ --version
+make --version
+python3 --version
 </code></pre>
+<p>You can also clean the generated build files and try again:</p>
+<pre><code class="language-sh">make clean
+./config.sh configs/proj1/simple.json
+make -j $(nproc)
+</code></pre>
+<p>Please make sure that the configuration file is valid before compiling.</p>
 </div>
 </div>
-<p>Building <code>gem5</code> may take you <em>more than 30 minutes</em> on your PC. If it completes successfully, you will see the following results:</p>
-<pre><code> [     CXX] ARM/base/date.cc -&gt; .o
- [    LINK]  -&gt; ARM/gem5.opt
-scons: done building targets.
+<p>Building <code>ChampSim</code> is generally much faster than building a full-system simulator such as <code>gem5</code>. The exact compilation time depends on your computer and the selected configuration.</p>
+<p>If compilation completes successfully, you should see output indicating that the ChampSim executable has been built successfully.</p>
+<p>You can then check the generated executable:</p>
+<pre><code class="language-sh">ls bin/
 </code></pre>
-<p>You now have a binary in the directory <code>build/ARM</code> called <code>gem5.opt</code>.</p>
+<p>For example, if the configuration contains:</p>
+<pre><code class="language-json">{
+  "executable_name": "simple"
+}
+</code></pre>
+<p>you should see:</p>
+<pre><code class="language-text">simple
+</code></pre>
+<p>in the <code>bin/</code> directory.</p>
+<p>You can verify that the executable is runnable with:</p>
+<pre><code class="language-sh">./bin/simple --help
+</code></pre>
+<p>If the command successfully prints the available command-line options, your ChampSim installation and compilation are working correctly.</p>
 <div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
 <div class="admonition-title">
 <div id="admonition-deliverables-title">
@@ -384,7 +427,7 @@ scons: done building targets.
 <a class="admonition-anchor-link" href="proj1/setup.html#admonition-deliverables"></a>
 </div>
 <div>
-<p>Please include a <strong>screenshot that shows your <code>gem5</code> can compile correctly</strong> in your report.</p>
+<p>Please include a <strong>screenshot that shows your <code>ChampSim</code> can be configured and compiled correctly</strong> in your report.</p>
 </div>
 </div>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="part-1-create-and-run-a-simple-configuration"><a class="header" href="#part-1-create-and-run-a-simple-configuration">Part 1: Create and Run a Simple Configuration</a></h1>
