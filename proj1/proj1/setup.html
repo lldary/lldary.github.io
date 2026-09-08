@@ -261,7 +261,7 @@ sudo apt install build-essential git cmake python3
 <p>Once you have the code, you can proceed to build <code>ChampSim</code>.</p>
 <p>If you are using Docker, you need to first create a container to set up the environment. You also need to mount the code onto the container when you start it, so that you can read and modify the code files inside the container.</p>
 <p>The command is as follows:</p>
-<pre><code class="language-sh">docker run -it --name &lt;container name&gt; -v &lt;local path&gt;:&lt;container path&gt; chaselab/archlab /bin/bash
+<pre><code class="language-sh">docker run -it --name &lt;container name&gt; -v &lt;local path&gt;:&lt;container path&gt; lldary/archlab-champsim:v0.1 /bin/bash
 </code></pre>
 <ul>
 <li>
@@ -337,7 +337,7 @@ docker exec -it &lt;container ID/name&gt; &lt;command&gt; # start a new containe
 <pre><code class="language-sh">cd ChampSim
 </code></pre>
 <p>Before compilation, create a basic configuration for the simulator:</p>
-<pre><code class="language-sh">./config.sh configs/proj1/simple.json
+<pre><code class="language-sh">./config.sh champsim_config.json
 </code></pre>
 <p>Then compile the generated configuration:</p>
 <pre><code class="language-sh">make -j $(nproc)
@@ -358,7 +358,7 @@ python3 --version
 </code></pre>
 <p>You can also clean the generated build files and try again:</p>
 <pre><code class="language-sh">make clean
-./config.sh configs/proj1/simple.json
+./config.sh champsim_config.json
 make -j $(nproc)
 </code></pre>
 <p>Please make sure that the configuration file is valid before compiling.</p>
@@ -379,7 +379,7 @@ make -j $(nproc)
 </code></pre>
 <p>in the <code>bin/</code> directory.</p>
 <p>You can verify that the executable is runnable with:</p>
-<pre><code class="language-sh">./bin/simple --help
+<pre><code class="language-sh">./bin/champsim --help
 </code></pre>
 <p>If the command successfully prints the available command-line options, your ChampSim installation and compilation are working correctly.</p>
 <div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
