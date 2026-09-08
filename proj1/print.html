@@ -433,42 +433,54 @@ make -j $(nproc)
 <div style="break-before: page; page-break-before: always;"></div><h1 id="part-1-create-and-run-a-simple-configuration"><a class="header" href="#part-1-create-and-run-a-simple-configuration">Part 1: Create and Run a Simple Configuration</a></h1>
 <p><code>ChampSim</code> is a trace-based microarchitecture simulator widely used in computer architecture research. ChampSim focuses on simulating the processor microarchitecture and memory hierarchy. In this part, you will learn how to configure and run a simple ChampSim system, including the CPU core, cache hierarchy, branch predictor, memory hierarchy, and prefetcher.</p>
 <p>Following the instructions in this part, you will build a basic ChampSim configuration and run it with a representative instruction trace. You will also learn how different processor and memory-system configurations can affect simulation performance.</p>
-<p>Let's get started by creating a working directory for the project:</p>
-<pre><code class="language-sh">mkdir -p configs/proj1
+<p>Let's get started by creating a config json for the project:</p>
+<pre><code class="language-sh">touch lab1_config.json
 </code></pre>
 <p>ChampSim configurations are specified using JSON files. A configuration describes the major components of the simulated microarchitecture, including the CPU, instruction and data caches, branch predictor, prefetchers, and DRAM system.</p>
 <p>For example, a simple configuration can be organized as follows:</p>
 <pre><code class="language-json">{
-  "executable_name": "simple",
-  "block_size": 64,
-  "page_size": 4096,
-
+  "executable_name": "champsim-lab1", // Name of the compiled simulator executable
+  "ooo_cpu": [
+    {
+      "frequency": 4000, // Core operating frequency (in MHz)
+      "ifetch_buffer_size": 64, // Size of the instruction fetch buffer
+      "decode_buffer_size": 32, // Size of the decode buffer
+      "dispatch_buffer_size": 32, // Size of the dispatch/allocation buffer
+      "register_file_size": 128, // Size of the physical register file
+      "rob_size": 352, // Size of the Reorder Buffer (ROB)
+      "lq_size": 128, // Load Queue (LQ) size
+      "sq_size": 72, // Store Queue (SQ) size
+      "fetch_width": 6, // Number of instructions fetched per cycle
+      "decode_width": 6, // Number of instructions decoded per cycle
+      "dispatch_width": 6, // Number of instructions dispatched per cycle
+      "execute_width": 4, // Number of instructions executed per cycle
+      "lq_width": 2, // Load Queue bandwidth (operations per cycle)
+      "sq_width": 2, // Store Queue bandwidth (operations per cycle)
+      "retire_width": 5, // Number of instructions retired per cycle
+      "branch_predictor": "hashed_perception", // Branch predictor algorithm type
+      "btb": "basic_btb" // Branch Target Buffer (BTB) type
+    }
+  ],
   "L1I": {
-    "sets": 64,
-    "ways": 8,
-    "rq_size": 32,
-    "wq_size": 32,
-    "pq_size": 32,
-    "mshr_size": 8,
-    "latency": 4,
-    "max_tag_check": 2,
-    "max_fill": 2,
-    "prefetcher": "no",
-    "replacement": "lru"
+    "sets": 64, // Number of sets in the L1 instruction cache
+    "ways": 8, // Associativity (ways) of the L1 instruction cache
+    "mshr_size": 16, // Number of MSHRs for L1 instruction cache
+    "prefetcher": "no", // L1 instruction cache prefetcher type ("no" for disabled)
+    "replacement": "lru" // Cache replacement policy (Least Recently Used)
   },
-
   "L1D": {
-    "sets": 64,
-    "ways": 8,
-    "rq_size": 32,
-    "wq_size": 32,
-    "pq_size": 32,
-    "mshr_size": 8,
-    "latency": 4,
-    "max_tag_check": 2,
-    "max_fill": 2,
-    "prefetcher": "no",
-    "replacement": "lru"
+    "sets": 96, // Number of sets in the L1 data cache
+    "ways": 8, // Associativity (ways) of the L1 data cache
+    "mshr_size": 16, // Number of MSHRs for L1 data cache
+    "prefetcher": "no", // L1 data cache prefetcher type ("no" for disabled)
+    "replacement": "lru" // Cache replacement policy (Least Recently Used)
+  },
+  "L2C": {
+    "sets": 2048, // Number of sets in the L2 cache
+    "ways": 16, // Associativity (ways) of the L2 cache
+    "mshr_size": 20, // Number of MSHRs for L2 cache
+    "prefetcher": "no", // L2 cache prefetcher type ("no" for disabled)
+    "replacement": "lru" // Cache replacement policy (Least Recently Used)
   }
 }
 </code></pre>
@@ -476,7 +488,6 @@ make -j $(nproc)
 <p>ChampSim executes a previously collected instruction trace and models how the instructions interact with the processor and memory hierarchy.</p>
 <h2 id="selecting-a-cpu-model"><a class="header" href="#selecting-a-cpu-model">Selecting a CPU Model</a></h2>
 <p>ChampSim provides different processor configurations for evaluating microarchitectural behavior. The CPU model determines how instructions are fetched, decoded, scheduled, executed, and retired.</p>
-<p>For this project, you will use the CPU configuration provided by the project repository. The CPU parameters can be adjusted when studying the impact of processor resources on overall performance.</p>
 <p>Important parameters may include:</p>
 <ul>
 <li>Instruction window size</li>
@@ -518,38 +529,25 @@ make -j $(nproc)
 <pre><code class="language-json">"branch_predictor": "bimodal"
 </code></pre>
 <p>Different branch predictors can have significantly different prediction accuracy and performance. In later parts of the project, you will compare different branch prediction mechanisms and investigate workloads that are difficult to predict.</p>
-<h2 id="configuring-memory"><a class="header" href="#configuring-memory">Configuring Memory</a></h2>
-<p>ChampSim models the memory hierarchy below the cache hierarchy, including the last-level cache and DRAM.</p>
-<p>The memory subsystem can be configured with parameters such as:</p>
-<ul>
-<li>DRAM capacity</li>
-<li>Number of channels</li>
-<li>Number of ranks</li>
-<li>Number of banks</li>
-<li>DRAM latency</li>
-<li>Request queue size</li>
-</ul>
-<p>Different memory configurations can significantly affect application performance, especially for memory-intensive workloads.</p>
 <h2 id="running-a-trace"><a class="header" href="#running-a-trace">Running a Trace</a></h2>
 <p>ChampSim does not directly execute an application binary. Instead, ChampSim executes an instruction trace generated from a real program.</p>
 <p>Therefore, you first need to obtain a trace:</p>
-<pre><code class="language-sh">mkdir -p traces
+<pre><code class="language-sh">cd traces
 </code></pre>
-<p>Place the provided trace files under the <code>traces</code> directory.</p>
+<p>The provided trace files under the <code>traces</code> directory.</p>
 <p>The exact trace format and trace-generation procedure depend on the ChampSim version and the traces provided with this project. You should use the traces distributed with the project unless otherwise specified.</p>
 <h2 id="building-champsim"><a class="header" href="#building-champsim">Building ChampSim</a></h2>
 <p>After preparing the configuration, build ChampSim using the provided build system.</p>
 <p>For example:</p>
-<pre><code class="language-sh">./config.sh configs/proj1/simple.json
-make
+<pre><code class="language-sh">./config.sh lab1_config.json
+make -j $(nproc)
 </code></pre>
 <p>After a successful build, the ChampSim executable will be generated according to the selected configuration.</p>
-<p>If the project repository provides a wrapper script for configuration and compilation, please use the provided script instead of manually modifying the generated source files.</p>
 <h2 id="running-champsim"><a class="header" href="#running-champsim">Running ChampSim</a></h2>
 <p>Once ChampSim has been compiled, run the simulator with the selected trace:</p>
-<pre><code class="language-sh">./bin/champsim --warmup_instructions 100000000 \
+<pre><code class="language-sh">./bin/&lt;executable_name&gt; --warmup_instructions 100000000 \
                --simulation_instructions 500000000 \
-               traces/&lt;trace-name&gt;.champsimtrace.xz
+               traces/binary_search.champsimtrace.xz
 </code></pre>
 <p>The warmup period allows the cache hierarchy and branch predictor to reach a more representative state before performance statistics are collected.</p>
 <p>The simulation period determines the number of instructions used for collecting the final performance statistics.</p>
@@ -571,20 +569,6 @@ CPU 0 L2 TOTAL ACCESS: XXXXX
 CPU 0 L2 TOTAL MISS: XXXXX
 </code></pre>
 <p>The exact output format depends on the ChampSim version and configuration.</p>
-<h2 id="experiment"><a class="header" href="#experiment">Experiment</a></h2>
-<p>After successfully running the baseline configuration, modify one microarchitectural component at a time and observe its impact on performance.</p>
-<p>For example, you may change:</p>
-<ol>
-<li>L1 cache associativity</li>
-<li>L2 cache capacity</li>
-<li>LLC capacity</li>
-<li>Branch predictor</li>
-<li>Cache replacement policy</li>
-<li>Memory latency</li>
-<li>Memory bandwidth</li>
-<li>Hardware prefetcher</li>
-</ol>
-<p>For each configuration, record the IPC and other relevant performance metrics.</p>
 <div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
 <div class="admonition-title">
 <div id="admonition-deliverables-title">
@@ -598,9 +582,6 @@ CPU 0 L2 TOTAL MISS: XXXXX
 <li>A screenshot showing the successful ChampSim compilation.</li>
 <li>A screenshot of the ChampSim simulation output.</li>
 <li>The configuration file used for the experiment.</li>
-<li>The trace used for the simulation.</li>
-<li>The IPC and other required performance statistics.</li>
-<li>A brief discussion explaining how the selected configuration affects performance.</li>
 </ol>
 </div>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="part-2-understand-champsim-statistics-and-output"><a class="header" href="#part-2-understand-champsim-statistics-and-output">Part 2: Understand <code>ChampSim</code> Statistics and Output</a></h1>
