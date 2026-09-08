@@ -793,7 +793,7 @@ grep "branch MPKI" result.txt
 <p><strong>Part 2:</strong> a screenshot of the <code>ChampSim</code> simulation statistics. Please identify and briefly explain important performance metrics, such as <strong>IPC</strong>, cache accesses, cache misses, and branch prediction statistics.</p>
 </li>
 </ol>
-<p>You <strong>DO NOT</strong> need to submit your configuration file or trace files <strong>in this project</strong>.</p>
+<p>You <strong>DO NOT</strong> need to submit your trace files <strong>in this project</strong>.</p>
 </div>
 </div>
 <!-- You **DO NOT** need to submit your configuration script **in this project**. -->
@@ -882,9 +882,11 @@ ssh -p 14514 root@127.0.0.1
 <p>Here are some common questions that we collected on Part 1, especially for installing environment and compiling <code>gem5</code>:</p>
 <h2 id="pull-image-issue"><a class="header" href="#pull-image-issue">Pull image issue</a></h2>
 <p>If you failed to pull the Docker image with <code>docker pull</code>, it is probably because the Docker Hub is blocked currently. Try to use VPN or download the image from our <a href="https://disk.pku.edu.cn/link/AA8F735492EA4048A282AA5A7B9820B521">PKU Disk</a>.</p>
-<h2 id="warning-about-pre-commit"><a class="header" href="#warning-about-pre-commit">Warning about <code>pre-commit</code></a></h2>
-<p>If you run <code>scons</code> to compile and are warned with <code>Cannot find 'pre-commit'</code> (messages like the following), you can ignore the message. This is only required for contributing to <code>gem5</code> and will not prevent the compilation.</p>
-<pre><code>You're missing the pre-commit/commit-msg hooks. These hook help to ensure your
+<!-- ## Warning about `pre-commit`
+
+If you run `scons` to compile and are warned with `Cannot find 'pre-commit'` (messages like the following), you can ignore the message. This is only required for contributing to `gem5` and will not prevent the compilation.
+```
+You're missing the pre-commit/commit-msg hooks. These hook help to ensure your
 code follows gem5's style rules on git commit and your commit messages follow
 our commit message requirements. This script will now install these hooks in
 your .git/hooks/ directory.
@@ -892,7 +894,7 @@ Press enter to continue, or ctrl-c to abort:
  Cannot find 'pre-commit'. Please ensure all Python requirements are
 installed. This can be done via 'pip install -r requirements.txt'.
 It is strongly recommended you install the pre-commit hooks before working with gem5. Do you want to continue compilation (y/n)?
-</code></pre>
+``` -->
 <h2 id="format-issue-r-with-git-and-windows"><a class="header" href="#format-issue-r-with-git-and-windows">Format issue (<code>\r</code>) with <code>git</code> and Windows</a></h2>
 <p>If you use Docker Desktop on a Windows system, you may meet a file format issue during compilation, especially when you clone the codes under Windows using <code>git</code>. <code>git</code> will automatically replace <code>\n</code> (LF) with <code>\r\n</code> (CRLF) for you. SCons may report the occurance of <code>\r</code> (or <code>^M</code>) and throw an error. Here's three possible solutions:</p>
 <ul>
@@ -903,26 +905,36 @@ It is strongly recommended you install the pre-commit hooks before working with 
 </li>
 <li>Clone the codes inside container. Be careful, <strong>you will lose your codes when you remove the container</strong> if you choose this solution.</li>
 </ul>
-<h2 id="run-out-of-memory-scons-killed-issue"><a class="header" href="#run-out-of-memory-scons-killed-issue">Run out of memory (SCons killed) issue</a></h2>
-<p>If you fail to compile and SCons reports message like the following, you are probably running out of memory:</p>
-<pre><code class="language-sh">collect2: fatal error: ld terminated with signal 9 [Killed]
+<!-- ## Run out of memory (SCons killed) issue
+
+If you fail to compile and SCons reports message like the following, you are probably running out of memory:
+```sh
+collect2: fatal error: ld terminated with signal 9 [Killed]
 # ... or
 g++: fatal error: Killed signal terminated program cc1plus
-</code></pre>
-<p>As reference values, with 8 compile jobs (<code>-j 8</code>), the compilation and the link process (<code>[LINK]  -&gt; build/ARM/gem5.opt</code>) may both take up to <strong><em>12GB</em></strong> memory. If your PC's physical memory is equal to or less than 16GB, you may probably meet this issue.</p>
-<p>If you face this trouble, you can manually enlarge the swap space used by Docker container. On Windows, you need to firstly change the backend to WSL2 (installation method can be found in <a href="https://learn.microsoft.com/zh-cn/windows/wsl/install">official doc</a>). The setting process is like the following:
-<img src="proj1/./part1append.png" alt="setting" /></p>
-<p>Next, stop Docker Desktop, and stop WSL by <code>wsl --shutdown</code>. Then, create a file named <code>.wslconfig</code> under <code>C:\Users\Yourname</code>, and write the following configs:</p>
-<pre><code class="language-toml">[wsl2]
+```
+
+As reference values, with 8 compile jobs (`-j 8`), the compilation and the link process (`[LINK]  -> build/ARM/gem5.opt`) may both take up to **_12GB_** memory. If your PC's physical memory is equal to or less than 16GB, you may probably meet this issue.
+
+If you face this trouble, you can manually enlarge the swap space used by Docker container. On Windows, you need to firstly change the backend to WSL2 (installation method can be found in [official doc](https://learn.microsoft.com/zh-cn/windows/wsl/install)). The setting process is like the following:
+    ![setting](./part1append.png)
+
+Next, stop Docker Desktop, and stop WSL by `wsl --shutdown`. Then, create a file named `.wslconfig` under `C:\Users\Yourname`, and write the following configs:
+
+```toml
+[wsl2]
 memory=4GB
 swap=32GB
 autoMemoryReclaim=gradual
-</code></pre>
-<p>You can adjust the <code>memory</code> and <code>swap</code> values based on your PC's physical memory and disk space limits. WSL2 uses up to 50% of your physical memory by default. According to the memory usage values described above, the <code>swap</code> is recommended to be larger than <strong><em>20GB</em></strong>. Set <code>autoMemoryReclaim=gradual</code> to save your physical memory when you are not running WSL or containers.</p>
-<p>Lastly, start WSL, Docker Desktop and your container again. You can also start a new container by restricting its memory and swap limits:</p>
-<pre><code class="language-sh">docker run -it --memory 4G --memory-swap 20G -v ...
-</code></pre>
-<p>Remember to use the same <code>&lt;container path&gt;</code> in <code>-v</code>, otherwise compilation may fail. Or you can delete <code>build/</code> and re-compile completely.</p>
+```
+
+You can adjust the `memory` and `swap` values based on your PC's physical memory and disk space limits. WSL2 uses up to 50% of your physical memory by default. According to the memory usage values described above, the `swap` is recommended to be larger than **_20GB_**. Set `autoMemoryReclaim=gradual` to save your physical memory when you are not running WSL or containers.
+
+Lastly, start WSL, Docker Desktop and your container again. You can also start a new container by restricting its memory and swap limits:
+```sh
+docker run -it --memory 4G --memory-swap 20G -v ...
+```
+Remember to use the same `<container path>` in `-v`, otherwise compilation may fail. Or you can delete `build/` and re-compile completely. -->
 <h2 id="use-docker-on-server"><a class="header" href="#use-docker-on-server">Use docker on server</a></h2>
 <p>If you still cannot compile or cannot setup WSL and Docker Desktop, feel free to contact TA for a server account. However, please note:</p>
 <!-- - You still need to **use docker image**, since the environment on the server is not checked. -->
