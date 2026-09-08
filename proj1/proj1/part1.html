@@ -323,14 +323,38 @@ CPU 0 L2 TOTAL MISS: XXXXX
 <a class="admonition-anchor-link" href="#admonition-deliverables"></a>
 </div>
 <div>
-<p>Please include the following items in your report:</p>
-<ol>
-<li>A screenshot showing the successful ChampSim compilation.</li>
-<li>A screenshot of the ChampSim simulation output.</li>
-<li>The configuration file used for the experiment.</li>
-</ol>
+<p>Please include the following in your <strong>report</strong>:</p>
+<ul>
+<li>
+<p>The <code>ChampSim</code> configuration file used in this part.</p>
+</li>
+<li>
+<p>A <strong>screenshot of the successful compilation</strong> of the <code>ChampSim</code> executable.</p>
+</li>
+<li>
+<p>A <strong>screenshot of the successful execution</strong> of the <code>ChampSim</code> executable with a provided trace.</p>
+</li>
+<li>
+<p>Briefly describe the basic workflow of <code>ChampSim</code>, including configuration, compilation, trace execution, and statistics collection.</p>
+</li>
+</ul>
 </div>
 </div>
+<div id="admonition-important-note" class="admonition admonish-warning" role="note" aria-labelledby="admonition-important-note-title">
+<div class="admonition-title">
+<div id="admonition-important-note-title">
+<p>Important note</p>
+</div>
+<a class="admonition-anchor-link" href="#admonition-important-note"></a>
+</div>
+<div>
+<p><code>ChampSim</code> simulations can take a long time when a large number of instructions are simulated. Therefore, you should first use a small number of warmup and simulation instructions to verify that the configuration and executable work correctly.</p>
+<p>After confirming that the basic workflow works, you can increase the simulation length for the actual experiments.</p>
+<p>Unlike the original <code>gem5</code> project, <strong>this part does not require you to compare different CPU types</strong>. CPU configuration changes and other microarchitectural experiments will be introduced in later parts of the project.</p>
+<p>If you need to run multiple ChampSim configurations in parallel in later experiments, please make sure that each experiment saves its output to a different result file or directory so that the results are not accidentally overwritten.</p>
+</div>
+</div>
+
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

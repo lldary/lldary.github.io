@@ -65,7 +65,7 @@
                 }
             });
         </script>
-    <div style="display: none"><a href="#proj1">proj1</a><a href="#proj1-setup">proj1-setup</a><a href="#proj1-part1">proj1-part1</a><a href="#proj1-part2">proj1-part2</a><a href="#proj1-part3">proj1-part3</a><a href="#proj1-submit">proj1-submit</a><a href="#proj1-vscode-settings">proj1-vscode-settings</a><a href="#proj1-vscode-login">proj1-vscode-login</a><a href="#proj1-appendix">proj1-appendix</a></div>
+    <div style="display: none"><a href="#proj1">proj1</a><a href="#proj1-setup">proj1-setup</a><a href="#proj1-part1">proj1-part1</a><a href="#proj1-part2">proj1-part2</a><a href="#proj1-submit">proj1-submit</a><a href="#proj1-vscode-settings">proj1-vscode-settings</a><a href="#proj1-vscode-login">proj1-vscode-login</a><a href="#proj1-appendix">proj1-appendix</a></div>
         <!-- Start loading toc.js asap -->
         <script src="toc.js"></script>
     </head>
@@ -577,14 +577,38 @@ CPU 0 L2 TOTAL MISS: XXXXX
 <a class="admonition-anchor-link" href="proj1/part1.html#admonition-deliverables"></a>
 </div>
 <div>
-<p>Please include the following items in your report:</p>
-<ol>
-<li>A screenshot showing the successful ChampSim compilation.</li>
-<li>A screenshot of the ChampSim simulation output.</li>
-<li>The configuration file used for the experiment.</li>
-</ol>
+<p>Please include the following in your <strong>report</strong>:</p>
+<ul>
+<li>
+<p>The <code>ChampSim</code> configuration file used in this part.</p>
+</li>
+<li>
+<p>A <strong>screenshot of the successful compilation</strong> of the <code>ChampSim</code> executable.</p>
+</li>
+<li>
+<p>A <strong>screenshot of the successful execution</strong> of the <code>ChampSim</code> executable with a provided trace.</p>
+</li>
+<li>
+<p>Briefly describe the basic workflow of <code>ChampSim</code>, including configuration, compilation, trace execution, and statistics collection.</p>
+</li>
+</ul>
 </div>
-</div><div style="break-before: page; page-break-before: always;"></div><h1 id="part-2-understand-champsim-statistics-and-output"><a class="header" href="#part-2-understand-champsim-statistics-and-output">Part 2: Understand <code>ChampSim</code> Statistics and Output</a></h1>
+</div>
+<div id="admonition-important-note" class="admonition admonish-warning" role="note" aria-labelledby="admonition-important-note-title">
+<div class="admonition-title">
+<div id="admonition-important-note-title">
+<p>Important note</p>
+</div>
+<a class="admonition-anchor-link" href="proj1/part1.html#admonition-important-note"></a>
+</div>
+<div>
+<p><code>ChampSim</code> simulations can take a long time when a large number of instructions are simulated. Therefore, you should first use a small number of warmup and simulation instructions to verify that the configuration and executable work correctly.</p>
+<p>After confirming that the basic workflow works, you can increase the simulation length for the actual experiments.</p>
+<p>Unlike the original <code>gem5</code> project, <strong>this part does not require you to compare different CPU types</strong>. CPU configuration changes and other microarchitectural experiments will be introduced in later parts of the project.</p>
+<p>If you need to run multiple ChampSim configurations in parallel in later experiments, please make sure that each experiment saves its output to a different result file or directory so that the results are not accidentally overwritten.</p>
+</div>
+</div>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="part-2-understand-champsim-statistics-and-output"><a class="header" href="#part-2-understand-champsim-statistics-and-output">Part 2: Understand <code>ChampSim</code> Statistics and Output</a></h1>
 <p>After <code>ChampSim</code> simulation completes, it will print detailed simulation statistics to the standard output. You can redirect the output to a file for later analysis, for example:</p>
 <pre><code class="language-sh">./bin/champsim --warmup_instructions 100000000 \
                --simulation_instructions 500000000 \
@@ -687,136 +711,6 @@ grep "branch MPKI" result.txt
 ./bin/champsim ... &gt; results/prefetch.txt
 </code></pre>
 <p><strong>Make sure to save important simulation results before running another experiment!</strong></p>
-</div>
-</div>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="part-3-configure-and-run-champsim"><a class="header" href="#part-3-configure-and-run-champsim">Part 3: Configure and Run ChampSim</a></h1>
-<p>In this project, you will run <code>ChampSim</code> with different configurations and workloads. Unlike <code>gem5</code>, <code>ChampSim</code> uses configuration files to specify the microarchitectural components of the simulated system. Therefore, instead of modifying a Python configuration script every time, you can prepare a configuration file and use it to build a corresponding <code>ChampSim</code> executable.</p>
-<p>In this part, we will first go through the basic configuration, compilation, and execution process. <strong>You do not need to explore different CPU configurations in this part.</strong> The goal is simply to make sure that <code>ChampSim</code> can be configured, compiled, and executed correctly in your environment.</p>
-<p>First, create a directory for this project:</p>
-<pre><code class="language-sh">mkdir -p configs/proj1
-</code></pre>
-<p>Then, create a simple configuration file:</p>
-<pre><code class="language-sh">touch configs/proj1/simple.json
-</code></pre>
-<p>The configuration file is a JSON file. It specifies the components and parameters of the simulated microarchitecture. For example, a basic configuration can contain an L1 instruction cache and an L1 data cache as follows:</p>
-<pre><code class="language-json">{
-  "executable_name": "simple",
-
-  "L1I": {
-    "sets": 64,
-    "ways": 8,
-    "mshr_size": 8,
-    "prefetcher": "no",
-    "replacement": "lru"
-  },
-
-  "L1D": {
-    "sets": 64,
-    "ways": 8,
-    "mshr_size": 8,
-    "prefetcher": "no",
-    "replacement": "lru"
-  }
-}
-</code></pre>
-<div id="admonition-info" class="admonition admonish-info" role="note" aria-labelledby="admonition-info-title">
-<div class="admonition-title">
-<div id="admonition-info-title">
-<p>Info</p>
-</div>
-<a class="admonition-anchor-link" href="proj1/part3.html#admonition-info"></a>
-</div>
-<div>
-<p>The exact configuration fields supported by <code>ChampSim</code> may vary between different versions. Please use the configuration format and parameters provided by the version of <code>ChampSim</code> included in this project.</p>
-</div>
-</div>
-<p>After creating the configuration file, we can use it to generate a <code>ChampSim</code> executable:</p>
-<pre><code class="language-sh">./config.sh configs/proj1/simple.json
-</code></pre>
-<p>Then compile the generated configuration:</p>
-<pre><code class="language-sh">make
-</code></pre>
-<p>If everything goes well, the <code>ChampSim</code> executable should be generated successfully.</p>
-<p>You can check the generated executable with:</p>
-<pre><code class="language-sh">ls bin/
-</code></pre>
-<p>For example, you may see:</p>
-<pre><code class="language-text">simple
-</code></pre>
-<p>The exact executable name depends on the <code>executable_name</code> specified in the configuration file.</p>
-<h2 id="running-a-trace-1"><a class="header" href="#running-a-trace-1">Running a Trace</a></h2>
-<p>Unlike <code>gem5</code>, which can directly execute a statically compiled application in SE mode, <code>ChampSim</code> is a trace-driven simulator. Therefore, you need an instruction trace as the workload.</p>
-<p>For this project, the provided traces should be placed in the designated trace directory. For example:</p>
-<pre><code class="language-sh">mkdir -p traces
-</code></pre>
-<p>You can then run the generated <code>ChampSim</code> executable with a trace:</p>
-<pre><code class="language-sh">./bin/simple \
-    --warmup_instructions 100000000 \
-    --simulation_instructions 500000000 \
-    traces/&lt;trace-name&gt;.champsimtrace.xz
-</code></pre>
-<p>The <code>--warmup_instructions</code> option specifies the number of instructions used to warm up the microarchitectural state, while <code>--simulation_instructions</code> specifies the number of instructions used for collecting performance statistics.</p>
-<p>For the initial test in this part, you may use a relatively small number of instructions to quickly verify that the simulator works correctly:</p>
-<pre><code class="language-sh">./bin/simple \
-    --warmup_instructions 1000000 \
-    --simulation_instructions 10000000 \
-    traces/&lt;trace-name&gt;.champsimtrace.xz
-</code></pre>
-<p>Once the basic workflow has been verified, you can use the longer simulation length specified by the project.</p>
-<div id="admonition-tip" class="admonition admonish-tip" role="note" aria-labelledby="admonition-tip-title">
-<div class="admonition-title">
-<div id="admonition-tip-title">
-<p>Tip</p>
-</div>
-<a class="admonition-anchor-link" href="proj1/part3.html#admonition-tip"></a>
-</div>
-<div>
-<p>The first goal of this part is <strong>not</strong> to obtain meaningful performance results. Instead, you should make sure that all three steps work correctly:</p>
-<ol>
-<li>The configuration file can be successfully processed.</li>
-<li><code>ChampSim</code> can be successfully compiled.</li>
-<li>The generated executable can successfully run an instruction trace and produce simulation statistics.</li>
-</ol>
-<p>If any of these steps fails, please refer to the <code>ChampSim</code> documentation or contact the TAs before proceeding to the following parts.</p>
-</div>
-</div>
-<div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
-<div class="admonition-title">
-<div id="admonition-deliverables-title">
-<p>Deliverables</p>
-</div>
-<a class="admonition-anchor-link" href="proj1/part3.html#admonition-deliverables"></a>
-</div>
-<div>
-<p>Please include the following in your <strong>report</strong>:</p>
-<ul>
-<li>
-<p>The <code>ChampSim</code> configuration file used in this part.</p>
-</li>
-<li>
-<p>A <strong>screenshot of the successful compilation</strong> of the <code>ChampSim</code> executable.</p>
-</li>
-<li>
-<p>A <strong>screenshot of the successful execution</strong> of the <code>ChampSim</code> executable with a provided trace.</p>
-</li>
-<li>
-<p>Briefly describe the basic workflow of <code>ChampSim</code>, including configuration, compilation, trace execution, and statistics collection.</p>
-</li>
-</ul>
-</div>
-</div>
-<div id="admonition-important-note" class="admonition admonish-warning" role="note" aria-labelledby="admonition-important-note-title">
-<div class="admonition-title">
-<div id="admonition-important-note-title">
-<p>Important note</p>
-</div>
-<a class="admonition-anchor-link" href="proj1/part3.html#admonition-important-note"></a>
-</div>
-<div>
-<p><code>ChampSim</code> simulations can take a long time when a large number of instructions are simulated. Therefore, you should first use a small number of warmup and simulation instructions to verify that the configuration and executable work correctly.</p>
-<p>After confirming that the basic workflow works, you can increase the simulation length for the actual experiments.</p>
-<p>Unlike the original <code>gem5</code> project, <strong>this part does not require you to compare different CPU types</strong>. CPU configuration changes and other microarchitectural experiments will be introduced in later parts of the project.</p>
-<p>If you need to run multiple ChampSim configurations in parallel in later experiments, please make sure that each experiment saves its output to a different result file or directory so that the results are not accidentally overwritten.</p>
 </div>
 </div>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="submission"><a class="header" href="#submission">Submission</a></h1>
