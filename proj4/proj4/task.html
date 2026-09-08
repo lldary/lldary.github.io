@@ -206,7 +206,7 @@
 <li><strong>RW block merge</strong>. When all RW blocks are full (with valid and invalid pages, no more free page), FAST choose a victim RW block to be merged. A RW block may contains logical pages that belong to different logical blocks. FAST first finds all related LBNs of the LPNs in the victim block. Then, it reads all valid pages that belong to these LBNs from all RW blocks and corresponding data blocks (will scan RW blocks, but check the mapping table to find the data blocks to read). It then allocates multiple free blocks for these LBNs, one for each, and write the valid pages to them. Lastly, it erases the old data blocks and the victim block, then allocates a new free RW block.</li>
 </ol>
 <h2 id="provided-contents-in-code-package"><a class="header" href="#provided-contents-in-code-package">Provided contents in code package</a></h2>
-<p>We've provided a few contents in the code package for your convenience (you can download the package from <a href="https://disk.pku.edu.cn/link/AA8F735492EA4048A282AA5A7B9820B521">PKU Disk</a>):</p>
+<p>We've provided a few contents in the code package for your convenience (you can download the package from <a href="https://disk.pku.edu.cn/link/AA03FB514ED846474BBAAA5C4C97092C84">PKU Disk</a>):</p>
 <ol>
 <li><code>config/simulation_sample.cfg</code>: A sample configuration file.</li>
 <li><code>config/&lt;trace name&gt;.cfg</code>: Four configuration files that configure the program to run on the traces.</li>
