@@ -336,6 +336,11 @@ docker exec -it &lt;container ID/name&gt; &lt;command&gt; # start a new containe
 <p>First, enter the <code>ChampSim</code> source directory:</p>
 <pre><code class="language-sh">cd ChampSim
 </code></pre>
+<p><code>ChampSim</code> uses vcpkg to manage its dependencies. In this repository, vcpkg is included as a submodule. You can download the dependencies with</p>
+<pre><code class="language-sh">git submodule update --init
+vcpkg/bootstrap-vcpkg.sh
+vcpkg/vcpkg install
+</code></pre>
 <p>Before compilation, create a basic configuration for the simulator:</p>
 <pre><code class="language-sh">./config.sh champsim_config.json
 </code></pre>
