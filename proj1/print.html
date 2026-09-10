@@ -250,7 +250,7 @@ Docker version 24.0.2, build cb74dfc
 </div>
 <div>
 <p>If you can't connect to Docker Hub, you can also download the image archive from our <a href="https://disk.pku.edu.cn/link/AA03FB514ED846474BBAAA5C4C97092C84">PKU Disk</a> and load it with the following command:</p>
-<pre><code class="language-sh">docker load -i archlab-image.tar
+<pre><code class="language-sh">docker load -i archlab-champsim.tar
 </code></pre>
 <p>All the resources used in labs will be visible in the PKU Disk.</p>
 </div>
@@ -311,7 +311,7 @@ sudo apt install build-essential git cmake python3
 # you'll see contents like the following:
 
 CONTAINER ID   IMAGE                COMMAND     CREATED         STATUS
-43518d84eb29   chaselab/archlab     "/bin/bash" 14 seconds ago Exited (0)
+43518d84eb29   lldary/archlab-champsim:v0.1     "/bin/bash" 14 seconds ago Exited (0)
 </code></pre>
 </li>
 <li>
@@ -319,14 +319,14 @@ CONTAINER ID   IMAGE                COMMAND     CREATED         STATUS
 <p>Please note that this option <strong>only accepts absolute paths</strong>, otherwise the contents in the directory will not be correctly mounted.</p>
 </li>
 <li>
-<p>The first argument after the options is the image name, here is <code>chaselab/archlab</code>.</p>
+<p>The first argument after the options is the image name, here is <code>lldary/archlab-champsim:v0.1</code>.</p>
 </li>
 <li>
 <p>The second argument is the command you want to run upon container start. Here we use <code>/bin/bash</code> to start an interactive terminal.</p>
 </li>
 </ul>
 <p>Thus, filling up all the options and arguments makes the command look like this:</p>
-<pre><code class="language-sh">docker run -it --name lab1 -v C:\Users\myname\ChampSim:/champsim chaselab/archlab /bin/bash
+<pre><code class="language-sh">docker run -it --name lab1 -v C:\Users\myname\ChampSim:/champsim lldary/archlab-champsim:v0.1 /bin/bash
 </code></pre>
 <div id="admonition-server-account" class="admonition admonish-tip" role="note" aria-labelledby="admonition-server-account-title">
 <div class="admonition-title">
