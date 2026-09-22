@@ -373,19 +373,19 @@ make -j $(nproc)
 <p>The exact compilation time depends on your computer and the selected configuration.</p>
 <p>If compilation completes successfully, verify both the executable and the success message explicitly:</p>
 <p>You can then check the generated executable:</p>
-<pre><code class="language-sh">test -x bin/champsim-lab1 &amp;&amp; echo "ChampSim compilation succeeded: bin/champsim-lab1"
+<pre><code class="language-sh">test -x bin/champsim &amp;&amp; echo "ChampSim compilation succeeded: bin/champsim"
 </code></pre>
-<p>The executable name comes from the <code>executable_name</code> field in the configuration. For the configuration used in Part 1, it is:</p>
+<p>The executable name comes from the <code>executable_name</code> field in the configuration (default: champsim). For the configuration used in Part 1, it is:</p>
 <pre><code class="language-json">{
   "executable_name": "champsim-lab1"
 }
 </code></pre>
 <p>The command above should print:</p>
-<pre><code class="language-text">ChampSim compilation succeeded: bin/champsim-lab1
+<pre><code class="language-text">ChampSim compilation succeeded: bin/champsim
 </code></pre>
 <p>The check is intentionally executable-specific, so a screenshot of it demonstrates that the configuration was compiled successfully.</p>
 <p>You can verify that the executable is runnable with:</p>
-<pre><code class="language-sh">./bin/champsim-lab1 --help
+<pre><code class="language-sh">./bin/champsim --help
 </code></pre>
 <p>If the command successfully prints the available command-line options, your ChampSim installation and compilation are working correctly.</p>
 <!-- ```admonish example title="Deliverables"
