@@ -457,7 +457,7 @@ Please include a **screenshot that shows your `ChampSim` can be configured and c
       "lq_width": 2,
       "sq_width": 2,
       "retire_width": 5,
-      "branch_predictor": "hashed_perception",
+      "branch_predictor": "hashed_perceptron",
       "btb": "basic_btb"
     }
   ],
@@ -486,7 +486,8 @@ Please include a **screenshot that shows your `ChampSim` can be configured and c
 </code></pre>
 <p>The exact configuration fields may vary depending on the ChampSim version used in this project. Please refer to the configuration files provided with the project for the supported parameters.</p>
 <p>ChampSim executes a previously collected instruction trace and models how the instructions interact with the processor and memory hierarchy.</p>
-<h2 id="selecting-a-cpu-model"><a class="header" href="#selecting-a-cpu-model">Selecting a CPU Model</a></h2>
+<h2 id="explanation-of-parameters-in-the-config-file"><a class="header" href="#explanation-of-parameters-in-the-config-file">Explanation of Parameters in the Config File</a></h2>
+<h3 id="selecting-a-cpu-model"><a class="header" href="#selecting-a-cpu-model">Selecting a CPU Model</a></h3>
 <p>ChampSim provides different processor configurations for evaluating microarchitectural behavior. The CPU model determines how instructions are fetched, decoded, scheduled, executed, and retired.</p>
 <p>Important parameters may include:</p>
 <ul>
@@ -499,7 +500,7 @@ Please include a **screenshot that shows your `ChampSim` can be configured and c
 <li>Retire width</li>
 </ul>
 <p>These parameters allow you to study how different processor resources affect IPC and other performance metrics.</p>
-<h2 id="configuring-the-cache-hierarchy"><a class="header" href="#configuring-the-cache-hierarchy">Configuring the Cache Hierarchy</a></h2>
+<h3 id="configuring-the-cache-hierarchy"><a class="header" href="#configuring-the-cache-hierarchy">Configuring the Cache Hierarchy</a></h3>
 <p>The cache hierarchy is one of the most important components in ChampSim. A typical configuration contains:</p>
 <ul>
 <li>L1 instruction cache (L1I)</li>
@@ -523,7 +524,7 @@ Please include a **screenshot that shows your `ChampSim` can be configured and c
 }
 </code></pre>
 <p>The number of sets and ways determines the cache capacity and associativity. The MSHR size limits the number of outstanding cache misses that can be tracked simultaneously.</p>
-<h2 id="configuring-branch-prediction"><a class="header" href="#configuring-branch-prediction">Configuring Branch Prediction</a></h2>
+<h3 id="configuring-branch-prediction"><a class="header" href="#configuring-branch-prediction">Configuring Branch Prediction</a></h3>
 <p>Branch prediction is another important component of the ChampSim microarchitecture model. A branch predictor attempts to predict the target and direction of conditional branches before their actual outcomes are known.</p>
 <p>For example, the configuration may specify:</p>
 <pre><code class="language-json">"branch_predictor": "bimodal"
