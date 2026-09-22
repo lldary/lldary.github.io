@@ -241,18 +241,19 @@ Docker version 24.0.2, build cb74dfc
 <p>Once you've installed Docker, you can pull our image with the following command:</p>
 <pre><code class="language-sh">docker pull lldary/archlab-champsim:v0.1
 </code></pre>
-<div id="admonition-note" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-title">
+<div id="admonition-network-access" class="admonition admonish-note" role="note" aria-labelledby="admonition-network-access-title">
 <div class="admonition-title">
-<div id="admonition-note-title">
-<p>Note</p>
+<div id="admonition-network-access-title">
+<p>Network access</p>
 </div>
-<a class="admonition-anchor-link" href="proj1/setup.html#admonition-note"></a>
+<a class="admonition-anchor-link" href="proj1/setup.html#admonition-network-access"></a>
 </div>
 <div>
 <p>If you can't connect to Docker Hub, you can also download the image archive from our <a href="https://disk.pku.edu.cn/link/AA03FB514ED846474BBAAA5C4C97092C84">PKU Disk</a> and load it with the following command:</p>
 <pre><code class="language-sh">docker load -i archlab-champsim.tar
 </code></pre>
 <p>All the resources used in labs will be visible in the PKU Disk.</p>
+<p>If Docker reports a timeout or a <code>curl</code> error while pulling the image, check the network connection first. If your network requires a proxy, configure the proxy for Docker Desktop or the Docker daemon before retrying. As an alternative, use the image archive above; configuring a proxy inside a container does not fix a pull performed by the Docker daemon.</p>
 </div>
 </div>
 <p>After pulling (loading) the image, you can find it by running the following command:</p>
@@ -263,12 +264,12 @@ Docker version 24.0.2, build cb74dfc
 IMAGE                          ID             DISK USAGE   CONTENT SIZE   EXTRA
 lldary/archlab-champsim:v0.1   4ef6e30da79f       5.45GB         2.31GB
 </code></pre>
-<div id="admonition-note-1" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-1-title">
+<div id="admonition-note" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-title">
 <div class="admonition-title">
-<div id="admonition-note-1-title">
+<div id="admonition-note-title">
 <p>Note</p>
 </div>
-<a class="admonition-anchor-link" href="proj1/setup.html#admonition-note-1"></a>
+<a class="admonition-anchor-link" href="proj1/setup.html#admonition-note"></a>
 </div>
 <div>
 <p>If you prefer to install the prerequisites for <code>ChampSim</code> manually, you can install the basic development tools with the following commands:</p>
@@ -373,8 +374,13 @@ docker exec -it &lt;container ID/name&gt; &lt;command&gt; # start a new containe
 <p>First, enter the <code>ChampSim</code> source directory:</p>
 <pre><code class="language-sh">cd ChampSim
 </code></pre>
+<p><code>ChampSim</code> uses vcpkg to manage its dependencies. In this repository, vcpkg is included as a submodule. You can download the dependencies with</p>
+<pre><code class="language-sh">git submodule update --init
+vcpkg/bootstrap-vcpkg.sh
+vcpkg/vcpkg install
+</code></pre>
 <p>Before compilation, create a basic configuration for the simulator:</p>
-<pre><code class="language-sh">./config.sh champsim_config.json
+<pre><code class="language-sh">./config.sh lab1_config.json
 </code></pre>
 <p>Then compile the generated configuration:</p>
 <pre><code class="language-sh">make -j $(nproc)
@@ -395,28 +401,28 @@ python3 --version
 </code></pre>
 <p>You can also clean the generated build files and try again:</p>
 <pre><code class="language-sh">make clean
-./config.sh champsim_config.json
+./config.sh lab1_config.json
 make -j $(nproc)
 </code></pre>
 <p>Please make sure that the configuration file is valid before compiling.</p>
 </div>
 </div>
-<p>Building <code>ChampSim</code> is generally much faster than building a full-system simulator such as <code>gem5</code>. The exact compilation time depends on your computer and the selected configuration.</p>
-<p>If compilation completes successfully, you should see output indicating that the ChampSim executable has been built successfully.</p>
+<p>The exact compilation time depends on your computer and the selected configuration.</p>
+<p>If compilation completes successfully, verify both the executable and the success message explicitly:</p>
 <p>You can then check the generated executable:</p>
-<pre><code class="language-sh">ls bin/
+<pre><code class="language-sh">test -x bin/champsim-lab1 &amp;&amp; echo "ChampSim compilation succeeded: bin/champsim-lab1"
 </code></pre>
-<p>For example, if the configuration contains:</p>
+<p>The executable name comes from the <code>executable_name</code> field in the configuration. For the configuration used in Part 1, it is:</p>
 <pre><code class="language-json">{
-  "executable_name": "simple"
+  "executable_name": "champsim-lab1"
 }
 </code></pre>
-<p>you should see:</p>
-<pre><code class="language-text">simple
+<p>The command above should print:</p>
+<pre><code class="language-text">ChampSim compilation succeeded: bin/champsim-lab1
 </code></pre>
-<p>in the <code>bin/</code> directory.</p>
+<p>The check is intentionally executable-specific, so a screenshot of it demonstrates that the configuration was compiled successfully.</p>
 <p>You can verify that the executable is runnable with:</p>
-<pre><code class="language-sh">./bin/champsim --help
+<pre><code class="language-sh">./bin/champsim-lab1 --help
 </code></pre>
 <p>If the command successfully prints the available command-line options, your ChampSim installation and compilation are working correctly.</p>
 <div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
@@ -432,55 +438,55 @@ make -j $(nproc)
 </div>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="part-1-create-and-run-a-simple-configuration"><a class="header" href="#part-1-create-and-run-a-simple-configuration">Part 1: Create and Run a Simple Configuration</a></h1>
 <p><code>ChampSim</code> is a trace-based microarchitecture simulator widely used in computer architecture research. ChampSim focuses on simulating the processor microarchitecture and memory hierarchy. In this part, you will learn how to configure and run a simple ChampSim system, including the CPU core, cache hierarchy, branch predictor, memory hierarchy, and prefetcher.</p>
-<p>Following the instructions in this part, you will build a basic ChampSim configuration and run it with a representative instruction trace. You will also learn how different processor and memory-system configurations can affect simulation performance.</p>
+<p>Following the instructions in this part, you will build a basic ChampSim configuration and run it with a representative instruction trace. The later parts use the resulting statistics for performance analysis.</p>
 <p>Let's get started by creating a config json for the project:</p>
 <pre><code class="language-sh">touch lab1_config.json
 </code></pre>
 <p>ChampSim configurations are specified using JSON files. A configuration describes the major components of the simulated microarchitecture, including the CPU, instruction and data caches, branch predictor, prefetchers, and DRAM system.</p>
 <p>For example, a simple configuration can be organized as follows:</p>
 <pre><code class="language-json">{
-  "executable_name": "champsim-lab1", // Name of the compiled simulator executable
+  "executable_name": "champsim-lab1",
   "ooo_cpu": [
     {
-      "frequency": 4000, // Core operating frequency (in MHz)
-      "ifetch_buffer_size": 64, // Size of the instruction fetch buffer
-      "decode_buffer_size": 32, // Size of the decode buffer
-      "dispatch_buffer_size": 32, // Size of the dispatch/allocation buffer
-      "register_file_size": 128, // Size of the physical register file
-      "rob_size": 352, // Size of the Reorder Buffer (ROB)
-      "lq_size": 128, // Load Queue (LQ) size
-      "sq_size": 72, // Store Queue (SQ) size
-      "fetch_width": 6, // Number of instructions fetched per cycle
-      "decode_width": 6, // Number of instructions decoded per cycle
-      "dispatch_width": 6, // Number of instructions dispatched per cycle
-      "execute_width": 4, // Number of instructions executed per cycle
-      "lq_width": 2, // Load Queue bandwidth (operations per cycle)
-      "sq_width": 2, // Store Queue bandwidth (operations per cycle)
-      "retire_width": 5, // Number of instructions retired per cycle
-      "branch_predictor": "hashed_perception", // Branch predictor algorithm type
-      "btb": "basic_btb" // Branch Target Buffer (BTB) type
+      "frequency": 4000,
+      "ifetch_buffer_size": 64,
+      "decode_buffer_size": 32,
+      "dispatch_buffer_size": 32,
+      "register_file_size": 128,
+      "rob_size": 352,
+      "lq_size": 128,
+      "sq_size": 72,
+      "fetch_width": 6,
+      "decode_width": 6,
+      "dispatch_width": 6,
+      "execute_width": 4,
+      "lq_width": 2,
+      "sq_width": 2,
+      "retire_width": 5,
+      "branch_predictor": "hashed_perception",
+      "btb": "basic_btb"
     }
   ],
   "L1I": {
-    "sets": 64, // Number of sets in the L1 instruction cache
-    "ways": 8, // Associativity (ways) of the L1 instruction cache
-    "mshr_size": 16, // Number of MSHRs for L1 instruction cache
-    "prefetcher": "no", // L1 instruction cache prefetcher type ("no" for disabled)
-    "replacement": "lru" // Cache replacement policy (Least Recently Used)
+    "sets": 64,
+    "ways": 8,
+    "mshr_size": 16,
+    "prefetcher": "no",
+    "replacement": "lru"
   },
   "L1D": {
-    "sets": 96, // Number of sets in the L1 data cache
-    "ways": 8, // Associativity (ways) of the L1 data cache
-    "mshr_size": 16, // Number of MSHRs for L1 data cache
-    "prefetcher": "no", // L1 data cache prefetcher type ("no" for disabled)
-    "replacement": "lru" // Cache replacement policy (Least Recently Used)
+    "sets": 96,
+    "ways": 8,
+    "mshr_size": 16,
+    "prefetcher": "no",
+    "replacement": "lru"
   },
   "L2C": {
-    "sets": 2048, // Number of sets in the L2 cache
-    "ways": 16, // Associativity (ways) of the L2 cache
-    "mshr_size": 20, // Number of MSHRs for L2 cache
-    "prefetcher": "no", // L2 cache prefetcher type ("no" for disabled)
-    "replacement": "lru" // Cache replacement policy (Least Recently Used)
+    "sets": 2048,
+    "ways": 16,
+    "mshr_size": 20,
+    "prefetcher": "no",
+    "replacement": "lru"
   }
 }
 </code></pre>
@@ -534,7 +540,7 @@ make -j $(nproc)
 <p>Therefore, you first need to obtain a trace:</p>
 <pre><code class="language-sh">cd traces
 </code></pre>
-<p>The provided trace files under the <code>traces</code> directory.</p>
+<p>The provided trace files are under the <code>traces</code> directory. In the commands below, use the provided <code>binary_search.champsimtrace.xz</code> trace.</p>
 <p>The exact trace format and trace-generation procedure depend on the ChampSim version and the traces provided with this project. You should use the traces distributed with the project unless otherwise specified.</p>
 <h2 id="building-champsim"><a class="header" href="#building-champsim">Building ChampSim</a></h2>
 <p>After preparing the configuration, build ChampSim using the provided build system.</p>
@@ -545,8 +551,8 @@ make -j $(nproc)
 <p>After a successful build, the ChampSim executable will be generated according to the selected configuration.</p>
 <h2 id="running-champsim"><a class="header" href="#running-champsim">Running ChampSim</a></h2>
 <p>Once ChampSim has been compiled, run the simulator with the selected trace:</p>
-<pre><code class="language-sh">./bin/&lt;executable_name&gt; --warmup_instructions 100000000 \
-               --simulation_instructions 500000000 \
+<pre><code class="language-sh">./bin/champsim-lab1 --warmup-instructions 100000000 \
+               --simulation-instructions 500000000 \
                traces/binary_search.champsimtrace.xz
 </code></pre>
 <p>The warmup period allows the cache hierarchy and branch predictor to reach a more representative state before performance statistics are collected.</p>
@@ -568,7 +574,14 @@ CPU 0 L1D TOTAL MISS: XXXXX
 CPU 0 L2 TOTAL ACCESS: XXXXX
 CPU 0 L2 TOTAL MISS: XXXXX
 </code></pre>
-<p>The exact output format depends on the ChampSim version and configuration.</p>
+<p>For the first run, use a short test so that you can distinguish setup problems from a long simulation:</p>
+<pre><code class="language-sh">./bin/champsim-lab1 --warmup-instructions 1000000 \
+               --simulation-instructions 10000000 \
+               traces/binary_search.champsimtrace.xz \
+               | tee results-part1.txt
+</code></pre>
+<p>The command should finish without an error and print a <code>Region of Interest Statistics</code> section containing lines such as <code>CPU 0 cumulative IPC</code>, branch prediction statistics, and cache <code>ACCESS</code>/<code>MISS</code> counters. The exact values depend on the ChampSim version and configuration.</p>
+<p>The warning <code>physical memory size is smaller than virtual memory size</code> is a non-fatal memory-model warning. The deprecated-option warnings are avoided by using <code>--warmup-instructions</code> and <code>--simulation-instructions</code> above. If the short run completes and prints the statistics section, the warning did not prevent the simulation.</p>
 <div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
 <div class="admonition-title">
 <div id="admonition-deliverables-title">
@@ -579,9 +592,6 @@ CPU 0 L2 TOTAL MISS: XXXXX
 <div>
 <p>Please include the following in your <strong>report</strong>:</p>
 <ul>
-<li>
-<p>The <code>ChampSim</code> configuration file used in this part.</p>
-</li>
 <li>
 <p>A <strong>screenshot of the successful compilation</strong> of the <code>ChampSim</code> executable.</p>
 </li>
@@ -602,16 +612,15 @@ CPU 0 L2 TOTAL MISS: XXXXX
 <a class="admonition-anchor-link" href="proj1/part1.html#admonition-important-note"></a>
 </div>
 <div>
-<p><code>ChampSim</code> simulations can take a long time when a large number of instructions are simulated. Therefore, you should first use a small number of warmup and simulation instructions to verify that the configuration and executable work correctly.</p>
+<p><code>ChampSim</code> simulations can take a long time when a large number of instructions are simulated. Therefore, use the short command above first to verify that the configuration, executable, and trace work correctly. After it succeeds, run the longer command for the report.</p>
 <p>After confirming that the basic workflow works, you can increase the simulation length for the actual experiments.</p>
-<p>Unlike the original <code>gem5</code> project, <strong>this part does not require you to compare different CPU types</strong>. CPU configuration changes and other microarchitectural experiments will be introduced in later parts of the project.</p>
 <p>If you need to run multiple ChampSim configurations in parallel in later experiments, please make sure that each experiment saves its output to a different result file or directory so that the results are not accidentally overwritten.</p>
 </div>
 </div>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="part-2-understand-champsim-statistics-and-output"><a class="header" href="#part-2-understand-champsim-statistics-and-output">Part 2: Understand <code>ChampSim</code> Statistics and Output</a></h1>
 <p>After <code>ChampSim</code> simulation completes, it will print detailed simulation statistics to the standard output. You can redirect the output to a file for later analysis, for example:</p>
-<pre><code class="language-sh">./bin/champsim --warmup_instructions 100000000 \
-               --simulation_instructions 500000000 \
+<pre><code class="language-sh">./bin/champsim-lab1 --warmup-instructions 100000000 \
+               --simulation-instructions 500000000 \
                traces/&lt;trace-name&gt;.champsimtrace.xz \
                &gt; result.txt
 </code></pre>
@@ -684,14 +693,14 @@ grep "branch MPKI" result.txt
 </div>
 <div>
 <p>You can redirect the output of <code>ChampSim</code> to a different file using standard shell redirection:</p>
-<pre><code class="language-sh">./bin/champsim --warmup_instructions 100000000 \
-               --simulation_instructions 500000000 \
+<pre><code class="language-sh">./bin/champsim-lab1 --warmup-instructions 100000000 \
+               --simulation-instructions 500000000 \
                traces/&lt;trace-name&gt;.champsimtrace.xz \
                &gt; another-result.txt
 </code></pre>
 <p>You can also use <code>tee</code> if you want to see the output on the terminal while saving it to a file:</p>
-<pre><code class="language-sh">./bin/champsim --warmup_instructions 100000000 \
-               --simulation_instructions 500000000 \
+<pre><code class="language-sh">./bin/champsim-lab1 --warmup-instructions 100000000 \
+               --simulation-instructions 500000000 \
                traces/&lt;trace-name&gt;.champsimtrace.xz \
                | tee another-result.txt
 </code></pre>
@@ -699,9 +708,9 @@ grep "branch MPKI" result.txt
 <p>For example:</p>
 <pre><code class="language-sh">mkdir -p results
 
-./bin/champsim \
-    --warmup_instructions 100000000 \
-    --simulation_instructions 500000000 \
+./bin/champsim-lab1 \
+    --warmup-instructions 100000000 \
+    --simulation-instructions 500000000 \
     traces/&lt;trace-name&gt;.champsimtrace.xz \
     &gt; results/baseline.txt
 </code></pre>
@@ -879,22 +888,9 @@ ssh -p 14514 root@127.0.0.1
 <p>The provided server account uses an intranet IP address. Please access it within the <strong>campus network environment</strong>.</p>
 </div>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="appendix-common-questions"><a class="header" href="#appendix-common-questions">Appendix: Common Questions</a></h1>
-<p>Here are some common questions that we collected on Part 1, especially for installing environment and compiling <code>gem5</code>:</p>
+<p>Here are some common questions that we collected on Part 1, especially for installing the environment and compiling <code>ChampSim</code>:</p>
 <h2 id="pull-image-issue"><a class="header" href="#pull-image-issue">Pull image issue</a></h2>
 <p>If you failed to pull the Docker image with <code>docker pull</code>, it is probably because the Docker Hub is blocked currently. Try to use VPN or download the image from our <a href="https://disk.pku.edu.cn/link/AA03FB514ED846474BBAAA5C4C97092C84">PKU Disk</a>.</p>
-<!-- ## Warning about `pre-commit`
-
-If you run `scons` to compile and are warned with `Cannot find 'pre-commit'` (messages like the following), you can ignore the message. This is only required for contributing to `gem5` and will not prevent the compilation.
-```
-You're missing the pre-commit/commit-msg hooks. These hook help to ensure your
-code follows gem5's style rules on git commit and your commit messages follow
-our commit message requirements. This script will now install these hooks in
-your .git/hooks/ directory.
-Press enter to continue, or ctrl-c to abort:
- Cannot find 'pre-commit'. Please ensure all Python requirements are
-installed. This can be done via 'pip install -r requirements.txt'.
-It is strongly recommended you install the pre-commit hooks before working with gem5. Do you want to continue compilation (y/n)?
-``` -->
 <h2 id="format-issue-r-with-git-and-windows"><a class="header" href="#format-issue-r-with-git-and-windows">Format issue (<code>\r</code>) with <code>git</code> and Windows</a></h2>
 <p>If you use Docker Desktop on a Windows system, you may meet a file format issue during compilation, especially when you clone the codes under Windows using <code>git</code>. <code>git</code> will automatically replace <code>\n</code> (LF) with <code>\r\n</code> (CRLF) for you. SCons may report the occurance of <code>\r</code> (or <code>^M</code>) and throw an error. Here's three possible solutions:</p>
 <ul>
@@ -905,36 +901,6 @@ It is strongly recommended you install the pre-commit hooks before working with 
 </li>
 <li>Clone the codes inside container. Be careful, <strong>you will lose your codes when you remove the container</strong> if you choose this solution.</li>
 </ul>
-<!-- ## Run out of memory (SCons killed) issue
-
-If you fail to compile and SCons reports message like the following, you are probably running out of memory:
-```sh
-collect2: fatal error: ld terminated with signal 9 [Killed]
-# ... or
-g++: fatal error: Killed signal terminated program cc1plus
-```
-
-As reference values, with 8 compile jobs (`-j 8`), the compilation and the link process (`[LINK]  -> build/ARM/gem5.opt`) may both take up to **_12GB_** memory. If your PC's physical memory is equal to or less than 16GB, you may probably meet this issue.
-
-If you face this trouble, you can manually enlarge the swap space used by Docker container. On Windows, you need to firstly change the backend to WSL2 (installation method can be found in [official doc](https://learn.microsoft.com/zh-cn/windows/wsl/install)). The setting process is like the following:
-    ![setting](./part1append.png)
-
-Next, stop Docker Desktop, and stop WSL by `wsl --shutdown`. Then, create a file named `.wslconfig` under `C:\Users\Yourname`, and write the following configs:
-
-```toml
-[wsl2]
-memory=4GB
-swap=32GB
-autoMemoryReclaim=gradual
-```
-
-You can adjust the `memory` and `swap` values based on your PC's physical memory and disk space limits. WSL2 uses up to 50% of your physical memory by default. According to the memory usage values described above, the `swap` is recommended to be larger than **_20GB_**. Set `autoMemoryReclaim=gradual` to save your physical memory when you are not running WSL or containers.
-
-Lastly, start WSL, Docker Desktop and your container again. You can also start a new container by restricting its memory and swap limits:
-```sh
-docker run -it --memory 4G --memory-swap 20G -v ...
-```
-Remember to use the same `<container path>` in `-v`, otherwise compilation may fail. Or you can delete `build/` and re-compile completely. -->
 <h2 id="use-docker-on-server"><a class="header" href="#use-docker-on-server">Use docker on server</a></h2>
 <p>If you still cannot compile or cannot setup WSL and Docker Desktop, feel free to contact TA for a server account. However, please note:</p>
 <!-- - You still need to **use docker image**, since the environment on the server is not checked. -->

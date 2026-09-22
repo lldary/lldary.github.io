@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Part 1: Create and Run a Simple Configuration Script - Archlab gem5 Project 1</title>
+        <title>Part 1: Create and Run a Simple Configuration - Archlab gem5 Project 1</title>
 
 
         <!-- Custom HTML head -->
@@ -178,55 +178,55 @@
                     <main>
                         <h1 id="part-1-create-and-run-a-simple-configuration"><a class="header" href="#part-1-create-and-run-a-simple-configuration">Part 1: Create and Run a Simple Configuration</a></h1>
 <p><code>ChampSim</code> is a trace-based microarchitecture simulator widely used in computer architecture research. ChampSim focuses on simulating the processor microarchitecture and memory hierarchy. In this part, you will learn how to configure and run a simple ChampSim system, including the CPU core, cache hierarchy, branch predictor, memory hierarchy, and prefetcher.</p>
-<p>Following the instructions in this part, you will build a basic ChampSim configuration and run it with a representative instruction trace. You will also learn how different processor and memory-system configurations can affect simulation performance.</p>
+<p>Following the instructions in this part, you will build a basic ChampSim configuration and run it with a representative instruction trace. The later parts use the resulting statistics for performance analysis.</p>
 <p>Let's get started by creating a config json for the project:</p>
 <pre><code class="language-sh">touch lab1_config.json
 </code></pre>
 <p>ChampSim configurations are specified using JSON files. A configuration describes the major components of the simulated microarchitecture, including the CPU, instruction and data caches, branch predictor, prefetchers, and DRAM system.</p>
 <p>For example, a simple configuration can be organized as follows:</p>
 <pre><code class="language-json">{
-  "executable_name": "champsim-lab1", // Name of the compiled simulator executable
+  "executable_name": "champsim-lab1",
   "ooo_cpu": [
     {
-      "frequency": 4000, // Core operating frequency (in MHz)
-      "ifetch_buffer_size": 64, // Size of the instruction fetch buffer
-      "decode_buffer_size": 32, // Size of the decode buffer
-      "dispatch_buffer_size": 32, // Size of the dispatch/allocation buffer
-      "register_file_size": 128, // Size of the physical register file
-      "rob_size": 352, // Size of the Reorder Buffer (ROB)
-      "lq_size": 128, // Load Queue (LQ) size
-      "sq_size": 72, // Store Queue (SQ) size
-      "fetch_width": 6, // Number of instructions fetched per cycle
-      "decode_width": 6, // Number of instructions decoded per cycle
-      "dispatch_width": 6, // Number of instructions dispatched per cycle
-      "execute_width": 4, // Number of instructions executed per cycle
-      "lq_width": 2, // Load Queue bandwidth (operations per cycle)
-      "sq_width": 2, // Store Queue bandwidth (operations per cycle)
-      "retire_width": 5, // Number of instructions retired per cycle
-      "branch_predictor": "hashed_perception", // Branch predictor algorithm type
-      "btb": "basic_btb" // Branch Target Buffer (BTB) type
+      "frequency": 4000,
+      "ifetch_buffer_size": 64,
+      "decode_buffer_size": 32,
+      "dispatch_buffer_size": 32,
+      "register_file_size": 128,
+      "rob_size": 352,
+      "lq_size": 128,
+      "sq_size": 72,
+      "fetch_width": 6,
+      "decode_width": 6,
+      "dispatch_width": 6,
+      "execute_width": 4,
+      "lq_width": 2,
+      "sq_width": 2,
+      "retire_width": 5,
+      "branch_predictor": "hashed_perception",
+      "btb": "basic_btb"
     }
   ],
   "L1I": {
-    "sets": 64, // Number of sets in the L1 instruction cache
-    "ways": 8, // Associativity (ways) of the L1 instruction cache
-    "mshr_size": 16, // Number of MSHRs for L1 instruction cache
-    "prefetcher": "no", // L1 instruction cache prefetcher type ("no" for disabled)
-    "replacement": "lru" // Cache replacement policy (Least Recently Used)
+    "sets": 64,
+    "ways": 8,
+    "mshr_size": 16,
+    "prefetcher": "no",
+    "replacement": "lru"
   },
   "L1D": {
-    "sets": 96, // Number of sets in the L1 data cache
-    "ways": 8, // Associativity (ways) of the L1 data cache
-    "mshr_size": 16, // Number of MSHRs for L1 data cache
-    "prefetcher": "no", // L1 data cache prefetcher type ("no" for disabled)
-    "replacement": "lru" // Cache replacement policy (Least Recently Used)
+    "sets": 96,
+    "ways": 8,
+    "mshr_size": 16,
+    "prefetcher": "no",
+    "replacement": "lru"
   },
   "L2C": {
-    "sets": 2048, // Number of sets in the L2 cache
-    "ways": 16, // Associativity (ways) of the L2 cache
-    "mshr_size": 20, // Number of MSHRs for L2 cache
-    "prefetcher": "no", // L2 cache prefetcher type ("no" for disabled)
-    "replacement": "lru" // Cache replacement policy (Least Recently Used)
+    "sets": 2048,
+    "ways": 16,
+    "mshr_size": 20,
+    "prefetcher": "no",
+    "replacement": "lru"
   }
 }
 </code></pre>
@@ -280,7 +280,7 @@
 <p>Therefore, you first need to obtain a trace:</p>
 <pre><code class="language-sh">cd traces
 </code></pre>
-<p>The provided trace files under the <code>traces</code> directory.</p>
+<p>The provided trace files are under the <code>traces</code> directory. In the commands below, use the provided <code>binary_search.champsimtrace.xz</code> trace.</p>
 <p>The exact trace format and trace-generation procedure depend on the ChampSim version and the traces provided with this project. You should use the traces distributed with the project unless otherwise specified.</p>
 <h2 id="building-champsim"><a class="header" href="#building-champsim">Building ChampSim</a></h2>
 <p>After preparing the configuration, build ChampSim using the provided build system.</p>
@@ -291,8 +291,8 @@ make -j $(nproc)
 <p>After a successful build, the ChampSim executable will be generated according to the selected configuration.</p>
 <h2 id="running-champsim"><a class="header" href="#running-champsim">Running ChampSim</a></h2>
 <p>Once ChampSim has been compiled, run the simulator with the selected trace:</p>
-<pre><code class="language-sh">./bin/&lt;executable_name&gt; --warmup_instructions 100000000 \
-               --simulation_instructions 500000000 \
+<pre><code class="language-sh">./bin/champsim-lab1 --warmup-instructions 100000000 \
+               --simulation-instructions 500000000 \
                traces/binary_search.champsimtrace.xz
 </code></pre>
 <p>The warmup period allows the cache hierarchy and branch predictor to reach a more representative state before performance statistics are collected.</p>
@@ -314,7 +314,14 @@ CPU 0 L1D TOTAL MISS: XXXXX
 CPU 0 L2 TOTAL ACCESS: XXXXX
 CPU 0 L2 TOTAL MISS: XXXXX
 </code></pre>
-<p>The exact output format depends on the ChampSim version and configuration.</p>
+<p>For the first run, use a short test so that you can distinguish setup problems from a long simulation:</p>
+<pre><code class="language-sh">./bin/champsim-lab1 --warmup-instructions 1000000 \
+               --simulation-instructions 10000000 \
+               traces/binary_search.champsimtrace.xz \
+               | tee results-part1.txt
+</code></pre>
+<p>The command should finish without an error and print a <code>Region of Interest Statistics</code> section containing lines such as <code>CPU 0 cumulative IPC</code>, branch prediction statistics, and cache <code>ACCESS</code>/<code>MISS</code> counters. The exact values depend on the ChampSim version and configuration.</p>
+<p>The warning <code>physical memory size is smaller than virtual memory size</code> is a non-fatal memory-model warning. The deprecated-option warnings are avoided by using <code>--warmup-instructions</code> and <code>--simulation-instructions</code> above. If the short run completes and prints the statistics section, the warning did not prevent the simulation.</p>
 <div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
 <div class="admonition-title">
 <div id="admonition-deliverables-title">
@@ -325,9 +332,6 @@ CPU 0 L2 TOTAL MISS: XXXXX
 <div>
 <p>Please include the following in your <strong>report</strong>:</p>
 <ul>
-<li>
-<p>The <code>ChampSim</code> configuration file used in this part.</p>
-</li>
 <li>
 <p>A <strong>screenshot of the successful compilation</strong> of the <code>ChampSim</code> executable.</p>
 </li>
@@ -348,9 +352,8 @@ CPU 0 L2 TOTAL MISS: XXXXX
 <a class="admonition-anchor-link" href="#admonition-important-note"></a>
 </div>
 <div>
-<p><code>ChampSim</code> simulations can take a long time when a large number of instructions are simulated. Therefore, you should first use a small number of warmup and simulation instructions to verify that the configuration and executable work correctly.</p>
+<p><code>ChampSim</code> simulations can take a long time when a large number of instructions are simulated. Therefore, use the short command above first to verify that the configuration, executable, and trace work correctly. After it succeeds, run the longer command for the report.</p>
 <p>After confirming that the basic workflow works, you can increase the simulation length for the actual experiments.</p>
-<p>Unlike the original <code>gem5</code> project, <strong>this part does not require you to compare different CPU types</strong>. CPU configuration changes and other microarchitectural experiments will be introduced in later parts of the project.</p>
 <p>If you need to run multiple ChampSim configurations in parallel in later experiments, please make sure that each experiment saves its output to a different result file or directory so that the results are not accidentally overwritten.</p>
 </div>
 </div>

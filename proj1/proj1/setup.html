@@ -204,18 +204,19 @@ Docker version 24.0.2, build cb74dfc
 <p>Once you've installed Docker, you can pull our image with the following command:</p>
 <pre><code class="language-sh">docker pull lldary/archlab-champsim:v0.1
 </code></pre>
-<div id="admonition-note" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-title">
+<div id="admonition-network-access" class="admonition admonish-note" role="note" aria-labelledby="admonition-network-access-title">
 <div class="admonition-title">
-<div id="admonition-note-title">
-<p>Note</p>
+<div id="admonition-network-access-title">
+<p>Network access</p>
 </div>
-<a class="admonition-anchor-link" href="#admonition-note"></a>
+<a class="admonition-anchor-link" href="#admonition-network-access"></a>
 </div>
 <div>
 <p>If you can't connect to Docker Hub, you can also download the image archive from our <a href="https://disk.pku.edu.cn/link/AA03FB514ED846474BBAAA5C4C97092C84">PKU Disk</a> and load it with the following command:</p>
 <pre><code class="language-sh">docker load -i archlab-champsim.tar
 </code></pre>
 <p>All the resources used in labs will be visible in the PKU Disk.</p>
+<p>If Docker reports a timeout or a <code>curl</code> error while pulling the image, check the network connection first. If your network requires a proxy, configure the proxy for Docker Desktop or the Docker daemon before retrying. As an alternative, use the image archive above; configuring a proxy inside a container does not fix a pull performed by the Docker daemon.</p>
 </div>
 </div>
 <p>After pulling (loading) the image, you can find it by running the following command:</p>
@@ -226,12 +227,12 @@ Docker version 24.0.2, build cb74dfc
 IMAGE                          ID             DISK USAGE   CONTENT SIZE   EXTRA
 lldary/archlab-champsim:v0.1   4ef6e30da79f       5.45GB         2.31GB
 </code></pre>
-<div id="admonition-note-1" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-1-title">
+<div id="admonition-note" class="admonition admonish-note" role="note" aria-labelledby="admonition-note-title">
 <div class="admonition-title">
-<div id="admonition-note-1-title">
+<div id="admonition-note-title">
 <p>Note</p>
 </div>
-<a class="admonition-anchor-link" href="#admonition-note-1"></a>
+<a class="admonition-anchor-link" href="#admonition-note"></a>
 </div>
 <div>
 <p>If you prefer to install the prerequisites for <code>ChampSim</code> manually, you can install the basic development tools with the following commands:</p>
@@ -336,8 +337,13 @@ docker exec -it &lt;container ID/name&gt; &lt;command&gt; # start a new containe
 <p>First, enter the <code>ChampSim</code> source directory:</p>
 <pre><code class="language-sh">cd ChampSim
 </code></pre>
+<p><code>ChampSim</code> uses vcpkg to manage its dependencies. In this repository, vcpkg is included as a submodule. You can download the dependencies with</p>
+<pre><code class="language-sh">git submodule update --init
+vcpkg/bootstrap-vcpkg.sh
+vcpkg/vcpkg install
+</code></pre>
 <p>Before compilation, create a basic configuration for the simulator:</p>
-<pre><code class="language-sh">./config.sh champsim_config.json
+<pre><code class="language-sh">./config.sh lab1_config.json
 </code></pre>
 <p>Then compile the generated configuration:</p>
 <pre><code class="language-sh">make -j $(nproc)
@@ -358,28 +364,28 @@ python3 --version
 </code></pre>
 <p>You can also clean the generated build files and try again:</p>
 <pre><code class="language-sh">make clean
-./config.sh champsim_config.json
+./config.sh lab1_config.json
 make -j $(nproc)
 </code></pre>
 <p>Please make sure that the configuration file is valid before compiling.</p>
 </div>
 </div>
-<p>Building <code>ChampSim</code> is generally much faster than building a full-system simulator such as <code>gem5</code>. The exact compilation time depends on your computer and the selected configuration.</p>
-<p>If compilation completes successfully, you should see output indicating that the ChampSim executable has been built successfully.</p>
+<p>The exact compilation time depends on your computer and the selected configuration.</p>
+<p>If compilation completes successfully, verify both the executable and the success message explicitly:</p>
 <p>You can then check the generated executable:</p>
-<pre><code class="language-sh">ls bin/
+<pre><code class="language-sh">test -x bin/champsim-lab1 &amp;&amp; echo "ChampSim compilation succeeded: bin/champsim-lab1"
 </code></pre>
-<p>For example, if the configuration contains:</p>
+<p>The executable name comes from the <code>executable_name</code> field in the configuration. For the configuration used in Part 1, it is:</p>
 <pre><code class="language-json">{
-  "executable_name": "simple"
+  "executable_name": "champsim-lab1"
 }
 </code></pre>
-<p>you should see:</p>
-<pre><code class="language-text">simple
+<p>The command above should print:</p>
+<pre><code class="language-text">ChampSim compilation succeeded: bin/champsim-lab1
 </code></pre>
-<p>in the <code>bin/</code> directory.</p>
+<p>The check is intentionally executable-specific, so a screenshot of it demonstrates that the configuration was compiled successfully.</p>
 <p>You can verify that the executable is runnable with:</p>
-<pre><code class="language-sh">./bin/champsim --help
+<pre><code class="language-sh">./bin/champsim-lab1 --help
 </code></pre>
 <p>If the command successfully prints the available command-line options, your ChampSim installation and compilation are working correctly.</p>
 <div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">

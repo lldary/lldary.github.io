@@ -178,8 +178,8 @@
                     <main>
                         <h1 id="part-2-understand-champsim-statistics-and-output"><a class="header" href="#part-2-understand-champsim-statistics-and-output">Part 2: Understand <code>ChampSim</code> Statistics and Output</a></h1>
 <p>After <code>ChampSim</code> simulation completes, it will print detailed simulation statistics to the standard output. You can redirect the output to a file for later analysis, for example:</p>
-<pre><code class="language-sh">./bin/champsim --warmup_instructions 100000000 \
-               --simulation_instructions 500000000 \
+<pre><code class="language-sh">./bin/champsim-lab1 --warmup-instructions 100000000 \
+               --simulation-instructions 500000000 \
                traces/&lt;trace-name&gt;.champsimtrace.xz \
                &gt; result.txt
 </code></pre>
@@ -252,14 +252,14 @@ grep "branch MPKI" result.txt
 </div>
 <div>
 <p>You can redirect the output of <code>ChampSim</code> to a different file using standard shell redirection:</p>
-<pre><code class="language-sh">./bin/champsim --warmup_instructions 100000000 \
-               --simulation_instructions 500000000 \
+<pre><code class="language-sh">./bin/champsim-lab1 --warmup-instructions 100000000 \
+               --simulation-instructions 500000000 \
                traces/&lt;trace-name&gt;.champsimtrace.xz \
                &gt; another-result.txt
 </code></pre>
 <p>You can also use <code>tee</code> if you want to see the output on the terminal while saving it to a file:</p>
-<pre><code class="language-sh">./bin/champsim --warmup_instructions 100000000 \
-               --simulation_instructions 500000000 \
+<pre><code class="language-sh">./bin/champsim-lab1 --warmup-instructions 100000000 \
+               --simulation-instructions 500000000 \
                traces/&lt;trace-name&gt;.champsimtrace.xz \
                | tee another-result.txt
 </code></pre>
@@ -267,9 +267,9 @@ grep "branch MPKI" result.txt
 <p>For example:</p>
 <pre><code class="language-sh">mkdir -p results
 
-./bin/champsim \
-    --warmup_instructions 100000000 \
-    --simulation_instructions 500000000 \
+./bin/champsim-lab1 \
+    --warmup-instructions 100000000 \
+    --simulation-instructions 500000000 \
     traces/&lt;trace-name&gt;.champsimtrace.xz \
     &gt; results/baseline.txt
 </code></pre>
