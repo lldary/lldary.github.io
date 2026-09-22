@@ -234,8 +234,7 @@ cpu0-&gt;cpu0_L1D AVERAGE MISS LATENCY: 13.63 cycles
 <p>Similarly, you can calculate the MPKI (misses per thousand instructions) for a particular component:</p>
 <pre><code class="language-text">MPKI = misses / simulated instructions × 1000
 </code></pre>
-<p>In this document, the term <strong>MPKI</strong> is mainly referring to the branch predictor's <strong>branch MPKI</strong> as reported by <code>ChampSim</code>: it measures how many branch mispredictions occur per 1,000 instructions.</p>
-<p>These statistics are particularly important when studying branch predictors, cache configurations, and hardware prefetchers. For example, a prefetcher may increase cache hits and reduce cache MPKI, while a branch predictor may reduce branch MPKI and improve IPC. Therefore, you should consider multiple statistics when evaluating the effectiveness of a configuration.</p>
+<p>In this document, the term <strong>MPKI</strong> is mainly referring to the branch predictor's <strong>branch MPKI</strong> as reported by <code>ChampSim</code>: it measures how many branch mispredictions occur per 1,000 instructions. These statistics are particularly important when studying branch predictors, cache configurations, and hardware prefetchers. For example, a prefetcher may increase cache hits and reduce cache MPKI, while a branch predictor may reduce branch MPKI and improve IPC. Therefore, you should consider multiple statistics when evaluating the effectiveness of a configuration.</p>
 <p>You can use any finding approach (e.g., <code>grep</code>) to check specific statistics from the simulation output:</p>
 <pre><code class="language-sh">grep "cumulative IPC" result.txt
 grep "L1D TOTAL" result.txt
