@@ -307,12 +307,40 @@ make -j $(nproc)
 <li>DRAM statistics</li>
 </ul>
 <p>For example, the output may contain information similar to:</p>
-<pre><code class="language-text">CPU 0 cumulative IPC: 1.XX
-CPU 0 branch MPKI: X.XX
-CPU 0 L1D TOTAL ACCESS: XXXXX
-CPU 0 L1D TOTAL MISS: XXXXX
-CPU 0 L2 TOTAL ACCESS: XXXXX
-CPU 0 L2 TOTAL MISS: XXXXX
+<pre><code class="language-text">=== Simulation ===
+CPU 0 runs ./example.champsimtrace.xz
+
+Region of Interest Statistics
+
+CPU 0 cumulative IPC: 1.481 instructions: 100000002 cycles: 67539293
+CPU 0 Branch Prediction Accuracy: 100% MPKI: 0 Average ROB Occupancy at Mispredict: -
+Branch type MPKI
+BRANCH_DIRECT_JUMP: 0
+BRANCH_INDIRECT: 0
+BRANCH_CONDITIONAL: 0
+BRANCH_DIRECT_CALL: 0
+BRANCH_INDIRECT_CALL: 0
+BRANCH_RETURN: 0
+
+...
+cpu0-&gt;LLC TOTAL        ACCESS:      18424 HIT:      10823 MISS:       7601 MISS_MERGE:          0
+cpu0-&gt;LLC LOAD         ACCESS:      18424 HIT:      10823 MISS:       7601 MISS_MERGE:          0
+cpu0-&gt;LLC RFO          ACCESS:          0 HIT:          0 MISS:          0 MISS_MERGE:          0
+cpu0-&gt;LLC PREFETCH     ACCESS:          0 HIT:          0 MISS:          0 MISS_MERGE:          0
+cpu0-&gt;LLC WRITE        ACCESS:          0 HIT:          0 MISS:          0 MISS_MERGE:          0
+cpu0-&gt;LLC TRANSLATION  ACCESS:          0 HIT:          0 MISS:          0 MISS_MERGE:          0
+cpu0-&gt;LLC PREFETCH REQUESTED:          0 ISSUED:          0 USEFUL:          0 USELESS:          0
+cpu0-&gt;LLC AVERAGE MISS LATENCY: 154 cycles
+...
+cpu0-&gt;cpu0_L1D TOTAL        ACCESS:   22250312 HIT:   21675146 MISS:     575166 MISS_MERGE:        722
+cpu0-&gt;cpu0_L1D LOAD         ACCESS:    4171931 HIT:    3598565 MISS:     573366 MISS_MERGE:          0
+cpu0-&gt;cpu0_L1D RFO          ACCESS:          0 HIT:          0 MISS:          0 MISS_MERGE:          0
+cpu0-&gt;cpu0_L1D PREFETCH     ACCESS:          0 HIT:          0 MISS:          0 MISS_MERGE:          0
+cpu0-&gt;cpu0_L1D WRITE        ACCESS:   18078381 HIT:   18076581 MISS:       1800 MISS_MERGE:        722
+cpu0-&gt;cpu0_L1D TRANSLATION  ACCESS:          0 HIT:          0 MISS:          0 MISS_MERGE:          0
+cpu0-&gt;cpu0_L1D PREFETCH REQUESTED:          0 ISSUED:          0 USEFUL:          0 USELESS:          0
+cpu0-&gt;cpu0_L1D AVERAGE MISS LATENCY: 13.63 cycles
+...
 </code></pre>
 <p>For the first run, use a short test so that you can distinguish setup problems from a long simulation:</p>
 <pre><code class="language-sh">./bin/champsim-lab1 --warmup-instructions 1000000 \
@@ -321,7 +349,7 @@ CPU 0 L2 TOTAL MISS: XXXXX
                | tee results-part1.txt
 </code></pre>
 <p>The command should finish without an error and print a <code>Region of Interest Statistics</code> section containing lines such as <code>CPU 0 cumulative IPC</code>, branch prediction statistics, and cache <code>ACCESS</code>/<code>MISS</code> counters. The exact values depend on the ChampSim version and configuration.</p>
-<p>The warning <code>physical memory size is smaller than virtual memory size</code> is a non-fatal memory-model warning. The deprecated-option warnings are avoided by using <code>--warmup-instructions</code> and <code>--simulation-instructions</code> above. If the short run completes and prints the statistics section, the warning did not prevent the simulation.</p>
+<p>The warning <code>physical memory size is smaller than virtual memory size</code> is a non-fatal memory-model warning. If the short run completes and prints the statistics section, the warning did not prevent the simulation.</p>
 <div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
 <div class="admonition-title">
 <div id="admonition-deliverables-title">
