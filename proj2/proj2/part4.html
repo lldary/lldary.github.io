@@ -217,7 +217,7 @@ tar -xzf pin-external-4.3-99850-gce5652921-gcc-linux.tar.gz
 <li><strong>Compilation &amp; Tracing</strong>: Write your C/C++ workload and generate the trace using the Pintool tracer provided in ChampSim (or the course-provided tracing script):</li>
 </ol>
 <pre><code class="language-sh"># Example: Generating a trace using ChampSim Pin Tracer
-$PIN_ROOT/pin -t tracer/obj-intel64/champsim_tracer.so -o &lt;student_id&gt;_hard.champsimtrace -s 0 -i 300000000 -- ./your_workload
+$PIN_ROOT/pin -t tracer/pin/obj-intel64/champsim_tracer.so -o &lt;student_id&gt;_hard.champsimtrace -s 0 -t 300000000 -- ./your_workload
 
 # Compress the generated trace
 xz -z -T0 &lt;student_id&gt;_hard.champsimtrace
