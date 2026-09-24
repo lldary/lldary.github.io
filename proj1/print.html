@@ -379,6 +379,24 @@ docker exec -it &lt;container ID/name&gt; &lt;command&gt; # start a new containe
 vcpkg/bootstrap-vcpkg.sh
 vcpkg/vcpkg install
 </code></pre>
+<p>The first run downloads the vcpkg submodule, bootstraps the vcpkg executable, and installs the packages required by ChampSim. A successful run contains output similar to the following:</p>
+<pre><code class="language-text">Submodule 'vcpkg' (https://github.com/Microsoft/vcpkg.git) registered for path 'vcpkg'
+Cloning into '/ChampSim/vcpkg'...
+Submodule path 'vcpkg': checked out '&lt;commit-id&gt;'
+
+vcpkg package management program version &lt;version&gt;
+
+The following packages will be built and installed:
+  catch2:x64-linux@&lt;version&gt;
+  cli11:x64-linux@&lt;version&gt;
+  fmt:x64-linux@&lt;version&gt;
+  nlohmann-json:x64-linux@&lt;version&gt;
+  zlib:x64-linux@&lt;version&gt;
+  ...
+
+All requested installations completed successfully in &lt;time&gt;.
+</code></pre>
+<p>The package list, version numbers, download messages, and elapsed time can differ between runs. In particular, vcpkg may download a suitable CMake version or restore packages from its local cache. Continue only after the final success message is printed; a telemetry notice is informational and does not require any action.</p>
 <p>Before compilation, create a basic configuration for the simulator:</p>
 <pre><code class="language-sh">./config.sh
 </code></pre>
