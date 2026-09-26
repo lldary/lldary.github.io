@@ -565,7 +565,7 @@ make -j $(nproc)
 <h2 id="running-champsim"><a class="header" href="#running-champsim">Running ChampSim</a></h2>
 <p>Once ChampSim has been compiled, run the simulator with the selected trace:</p>
 <pre><code class="language-sh">./bin/champsim-lab1 --warmup-instructions 100000000 \
-               --simulation-instructions 500000000 \
+               --simulation-instructions 200000000 \
                traces/binary_search.champsimtrace.xz
 </code></pre>
 <p>The warmup period allows the cache hierarchy and branch predictor to reach a more representative state before performance statistics are collected.</p>
