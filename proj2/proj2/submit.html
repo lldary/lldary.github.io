@@ -259,22 +259,23 @@
 <li><strong>3 pts</strong>: Reasonable performance statistics (Accuracy/MPKI, IPC) provided for <code>bimodal</code>, <code>gshare</code>, <code>hashed_perceptron</code>, and <code>simple_bp</code> on standard workloads.</li>
 </ul>
 </li>
-<li><strong>Part 3: Perceptron Paper Summary (4 pts)</strong>
+<li><strong>Part 3: Perceptron Paper Summary (5 pts)</strong>
 <ul>
-<li><strong>4 pts</strong>: Comprehensive summary covering motivations, challenges, and architectural designs (Lack of any key section: <strong>-1 pt</strong> each).</li>
+<li><strong>5 pts</strong>: Comprehensive summary covering motivations, challenges, and architectural designs (Lack of any key section: <strong>-1 pt</strong> each).</li>
 </ul>
 </li>
 <li><strong>Part 3: Custom BP Implementation &amp; Performance Ranking (8 pts)</strong>
 <ul>
-<li><strong>3 pts</strong>: Compilable and functionally correct <code>your_perceptron</code> code that passes simulation runs without errors.</li>
+<li><strong>2 pts</strong>: Compilable and functionally correct <code>your_perceptron</code> code that passes simulation runs without errors.</li>
 <li><strong>2 pts</strong>: Performance surpassing <code>simple_bp</code> and comparable to <code>bimodal</code> / <code>gshare</code>.</li>
-<li><strong>3 pts</strong>: Competitive performance matching/exceeding <code>hashed_perceptron</code>, supported by clear technical explanations and high leaderboard ranking.</li>
+<li><strong>2 pts</strong>: Performance surpassing <code>92959</code> when you running local <code>auto-run.py</code>.</li>
+<li><strong>2 pts</strong>: Competitive performance matching/exceeding <code>hashed_perceptron</code>, supported by clear technical explanations and high leaderboard ranking.</li>
 </ul>
 </li>
 <li><strong>Part 4: Hard Trace Benchmark &amp; Stress Test (5 pts)</strong>
 <ul>
 <li><strong>2 pts</strong>: Valid C/C++ source code and properly formatted 10M-instruction trace file (<code>.champsimtrace.xz</code>) that runs without crashing.</li>
-<li><strong>3 pts</strong>: Trace hardness evaluation score based on MPKI on baseline BPs (Harder traces with higher MPKI achieve higher scores; Top 10% hardest traces receive full score + ranking bonus).</li>
+<li><strong>2 pts</strong>: Trace hardness evaluation score based on MPKI on baseline (<code>bimodal</code>).</li>
 </ul>
 </li>
 </ul>
