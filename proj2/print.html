@@ -240,7 +240,7 @@
 </code></pre>
 <p>To test <code>local_bp</code> or <code>tournament</code>, change <code>"branch_predictor": "bimodal"</code> to <code>"branch_predictor": "local_bp"</code> or <code>"branch_predictor": "tournament"</code> in <code>lab2_config.json</code>.</p>
 <p>After updating the JSON file, generate the build files and compile <code>ChampSim</code>. The configuration selects the predictor used by the executable. The course Makefile may still compile other bundled modules:</p>
-<pre><code class="language-sh">./config.sh --no-compile-all-modules ./lab2_config.json
+<pre><code class="language-sh">./config.sh ./lab2_config.json
 make -j $(nproc)
 
 </code></pre>
