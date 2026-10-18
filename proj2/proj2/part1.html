@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Part 1: Add Branch Predictor in the Configuration Script - Archlab gem5 Project 2</title>
+        <title>Part 1: Add Branch Predictor in the Configuration Script - Archlab ChampSim Project 2</title>
 
 
         <!-- Custom HTML head -->
@@ -141,7 +141,7 @@
                         </button>
                     </div>
 
-                    <h1 class="menu-title">Archlab gem5 Project 2</h1>
+                    <h1 class="menu-title">Archlab ChampSim Project 2</h1>
 
                     <div class="right-buttons">
                         <a href="../print.html" title="Print this book" aria-label="Print this book">
@@ -182,8 +182,10 @@
 <h1 id="part-1-add-branch-predictor-in-the-configuration-script"><a class="header" href="#part-1-add-branch-predictor-in-the-configuration-script">Part 1: Add Branch Predictor in the Configuration Script</a></h1>
 <p>In this part, we will configure and build <code>ChampSim</code> with different branch predictors. In <code>ChampSim</code>, branch predictor implementations are located under the <code>branch/</code> directory.</p>
 <p><code>ChampSim</code> is natively a detailed out-of-order (O3) CPU simulator, so you do not need to manually change the CPU model. To select a specific branch predictor, you can configure the <code>"branch_predictor"</code> field in the build JSON script (<code>lab2_config.json</code>).</p>
-<p><code>ChampSim</code> provides several built-in branch predictors in the <code>branch/</code> directory. In this part, we will focus on three of them: <code>bimodal</code>, <code>gshare</code>, and <code>hashed_perceptron</code>. You can specify the desired branch predictor in <code>lab2_config.json</code> as follows:</p>
+<p>Use the course-provided <code>ChampSim</code> package from <a href="https://disk.pku.edu.cn/link/AA03FB514ED846474BBAAA5C4C97092C84">PKU Disk</a> (the same course drive linked in Project 1). In this part, compare the three baseline predictors under <code>branch/</code>: <code>local_bp</code>, <code>bimodal</code>, and <code>tournament</code>. From the <code>ChampSim</code> root directory, create <code>lab2_config.json</code> with the following configuration:</p>
 <pre><code class="language-json">{
+  "executable_name": "champsim",
+
   "ooo_cpu": [
     {
       "frequency": 4000,
@@ -199,20 +201,20 @@
 }
 
 </code></pre>
-<p><em>(To test <code>gshare</code> or <code>hashed_perceptron</code>, simply change <code>"bimodal"</code> to <code>"gshare"</code> or <code>"localbp"</code> in <code>lab2_config.json</code>.)</em></p>
-<p>After updating the JSON file, generate the build files and compile <code>ChampSim</code>:</p>
-<pre><code class="language-sh">./config.sh ./lab2_config.json
+<p>To test <code>local_bp</code> or <code>tournament</code>, change <code>"branch_predictor": "bimodal"</code> to <code>"branch_predictor": "local_bp"</code> or <code>"branch_predictor": "tournament"</code> in <code>lab2_config.json</code>.</p>
+<p>After updating the JSON file, generate the build files and compile <code>ChampSim</code>. The configuration selects the predictor used by the executable. The course Makefile may still compile other bundled modules:</p>
+<pre><code class="language-sh">./config.sh --no-compile-all-modules ./lab2_config.json
 make -j $(nproc)
 
 </code></pre>
-<p>Next, let me run the trace files and examine how these branch predictors impact system performance. <code>ChampSim</code> is trace-driven, and trace files are typically stored in <code>*.champsimtrace.xz</code> format. Among the provided workloads, <code>shell_sort</code> and <code>spfa</code> are sensitive to branch predictor performance, while <code>gemm</code> and <code>binary_search</code> are insensitive. In Project 2, you are only required to run the sensitive workloads (<code>shell_sort</code> and <code>spfa</code>).</p>
+<p>Next, let me run the trace files and examine how these branch predictors impact system performance. <code>ChampSim</code> is trace-driven, and trace files are stored in <code>*.champsimtrace.xz</code> format. The course repository includes <code>shell_sort.champsimtrace.xz</code> and <code>spfa.champsimtrace.xz</code> under <code>traces/</code>; run the commands below from the <code>ChampSim</code> root directory. Among the provided workloads, <code>shell_sort</code> and <code>spfa</code> are sensitive to branch predictor performance, while <code>gemm</code> and <code>binary_search</code> are insensitive. For the manual comparisons in Parts 1 to 3, run <code>shell_sort</code> and <code>spfa</code>. The separate <code>auto-run.py</code> local score in Part 3 uses its own 14-trace suite.</p>
 <p>To test the performance of the <code>bimodal</code> predictor, run the following execution commands:</p>
 <pre><code class="language-sh"># Run with the compiled bimodal executable
-bin/champsim --warmup-instructions 20000000 --simulation-instructions 100000000 ../trace/shell_sort.champsimtrace.xz
-bin/champsim --warmup-instructions 20000000 --simulation-instructions 100000000 ../trace/spfa.champsimtrace.xz
+bin/champsim --warmup-instructions 20000000 --simulation-instructions 100000000 traces/shell_sort.champsimtrace.xz
+bin/champsim --warmup-instructions 20000000 --simulation-instructions 100000000 traces/spfa.champsimtrace.xz
 
 </code></pre>
-<p>The process for testing <code>gshare</code> and <code>local_bp</code> is similar: update <code>"branch_predictor"</code> in <code>lab2_config.json</code>, re-compile with <code>./config.sh</code> and <code>make</code>, and then re-run the trace files using the commands above.</p>
+<p>The process for testing <code>local_bp</code> and <code>tournament</code> is similar: update <code>"branch_predictor"</code> in <code>lab2_config.json</code>, re-compile with <code>./config.sh</code> and <code>make</code>, and then re-run the trace files using the commands above.</p>
 <div id="admonition-tip" class="admonition admonish-tip" role="note" aria-labelledby="admonition-tip-title">
 <div class="admonition-title">
 <div id="admonition-tip-title">
@@ -221,16 +223,13 @@ bin/champsim --warmup-instructions 20000000 --simulation-instructions 100000000 
 <a class="admonition-anchor-link" href="#admonition-tip"></a>
 </div>
 <div>
-<p>In this project (Parts 1 to 3), setting <code>--simulation-instructions</code> to <code>100000000</code> (1e8) or <code>200000000</code> (2e8) is sufficient to clearly observe performance differences among branch predictors while saving simulation time.</p>
+<p>For the manual baseline comparisons in Parts 1 to 3, use <strong>20M warmup + 100M simulation instructions</strong> for every predictor on both workloads, as in the commands above. Keep all other simulator settings identical across predictors. The separate local evaluation script and leaderboard evaluation use their own evaluation settings.</p>
 </div>
 </div>
-<p>After the simulation finishes, <code>ChampSim</code> will output execution statistics directly to the terminal (or stdout log). Pay attention to the following metrics in the summary output:</p>
-<ul>
-<li><strong>CPU 0 cumulative IPC:</strong> Indicates overall processor performance.</li>
-<li><strong>Branch Prediction Accuracy / MPKI:</strong> Reflects conditional branch prediction quality.</li>
-</ul>
-<p>If accuracy is not printed directly, you can calculate it using the printed total branch instructions and misprediction counts:</p>
-<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord text"><span class="mord">Accuracy</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:2.0574em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3714em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">Total Conditional Branches</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">Branch Mispredictions</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p>
+<p>After simulation, use the final <strong>Region of Interest Statistics</strong> (ROI), excluding warmup. Following the <a href="https://github.com/lldary/ChampSim/blob/master/src/plain_printer.cc">course ChampSim statistics implementation</a>, let <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.05017em;">B</span></span></span></span> be the sum of branch counts and <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">M</span></span></span></span> the sum of branch misses across direct jumps, indirect branches, conditional branches, direct calls, indirect calls, and returns. Let <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.07847em;">I</span></span></span></span> and <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.07153em;">C</span></span></span></span> be the instruction and cycle counts for the same ROI.</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord text"><span class="mord">Accuracy (%)</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">100</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:2.4em;vertical-align:-0.95em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">(</span></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3603em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05017em;">B</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10903em;">M</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">)</span></span></span></span></span></span></span></p>
+<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord text"><span class="mord">MPKI</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">1000</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:2.0463em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3603em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07847em;">I</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.10903em;">M</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:2em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord text"><span class="mord">IPC</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.0463em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3603em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07153em;">C</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07847em;">I</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p>
+<p>Use the printed overall <strong>Branch Prediction Accuracy</strong>, <strong>MPKI</strong>, and <strong>CPU 0 cumulative IPC</strong> from this ROI summary. These overall branch metrics include all six branch types; the separately printed <strong>Branch type MPKI</strong> values are per-type breakdowns. Higher Accuracy and IPC are better; lower MPKI is better. Use these definitions throughout Parts 1 to 4.</p>
 <div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
 <div class="admonition-title">
 <div id="admonition-deliverables-title">
@@ -242,7 +241,7 @@ bin/champsim --warmup-instructions 20000000 --simulation-instructions 100000000 
 <p>Please run the two BP-sensitive workloads (<code>shell_sort</code> and <code>spfa</code>) across all three branch predictors. The remaining workloads (<code>gemm</code> and <code>binary_search</code>) are insensitive to BP; you can run them for extra exploration if interested.</p>
 <p>In your <em><strong>report</strong></em>, please include figures or tables showing the <strong>Branch Prediction Accuracy</strong>, <strong>MPKI</strong> and <strong>CPU IPC</strong> for the following combinations:</p>
 <ul>
-<li><strong>Branch Predictors:</strong> <code>bimodal</code>, <code>gshare</code>, <code>local_bp</code></li>
+<li><strong>Branch Predictors:</strong> <code>local_bp</code>, <code>bimodal</code>, <code>tournament</code></li>
 <li><strong>Traces:</strong> <code>shell_sort</code>, <code>spfa</code></li>
 <li><strong>Configuration:</strong> Default 1-core configuration with no prefetchers</li>
 </ul>

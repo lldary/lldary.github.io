@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Part 2: Implement a Simple BP - Archlab gem5 Project 2</title>
+        <title>Part 2: Implement a Simple BP - Archlab ChampSim Project 2</title>
 
 
         <!-- Custom HTML head -->
@@ -141,7 +141,7 @@
                         </button>
                     </div>
 
-                    <h1 class="menu-title">Archlab gem5 Project 2</h1>
+                    <h1 class="menu-title">Archlab ChampSim Project 2</h1>
 
                     <div class="right-buttons">
                         <a href="../print.html" title="Print this book" aria-label="Print this book">
@@ -194,19 +194,19 @@
 </div>
 </div>
 <p>To create our simple branch predictor, let's create a new directory named <code>simple_bp</code> under the <code>branch/</code> directory, and add <code>simple_bp.cc</code> and <code>simple_bp.h</code> inside <code>branch/simple_bp/</code>:</p>
-<pre><code class="language-sh">cd branch
-mkdir simple_bp
+<p>Run the following command from the <code>ChampSim</code> root directory, and keep that directory as your working directory for the remaining commands:</p>
+<pre><code class="language-sh">mkdir -p branch/simple_bp
 </code></pre>
 <pre><code class="language-cpp">// branch/simple_bp/simple_bp.h
 #ifndef BRANCH_SIMPLE_BP_H
 #define BRANCH_SIMPLE_BP_H
 
-#include "modules.h"
-#include "msl/fwcounter.h"
-#include &lt;array&gt;
 #include &lt;cstdint&gt;
+#include "address.h"
+#include "modules.h"
 
 struct simple_bp : champsim::modules::branch_predictor {
+  using champsim::modules::branch_predictor::branch_predictor;
 
   bool predict_branch(champsim::address ip);
   void last_branch_result(champsim::address ip, champsim::address branch_target, bool taken, uint8_t branch_type);
@@ -218,9 +218,9 @@ struct simple_bp : champsim::modules::branch_predictor {
 #include "simple_bp.h"
 
 // Predict whether a branch is taken (1) or not taken (0)
-uint8_t simple_bp::predict_branch(uint64_t ip, uint64_t predicted_target, uint8_t always_taken, uint8_t branch_type) {
+bool simple_bp::predict_branch(champsim::address ip) {
     // Always predict 'taken'
-    return 1;
+    return true;
 }
 
 // Update predictor state after branch execution
@@ -231,11 +231,14 @@ void simple_bp::last_branch_result(champsim::address ip, champsim::address branc
 </code></pre>
 <p>Let's look at the two key interface functions required by <code>ChampSim</code>:</p>
 <ul>
-<li><code>predict_branch()</code>: Called when a conditional branch is fetched. It receives the branch instruction address (<code>ip</code>) and returns <code>1</code> for taken or <code>0</code> for not taken.</li>
-<li><code>last_branch_result()</code>: Called when the branch instruction is executed/committed and its actual outcome (<code>taken</code>) is known. You use this callback to update your prediction tables or history registers.</li>
+<li><code>predict_branch()</code>: Called when a branch prediction is needed. This example uses the single-argument interface, receives the branch instruction address (<code>ip</code>), and returns <code>true</code> for taken or <code>false</code> for not taken.</li>
+<li><code>last_branch_result()</code>: Called when a branch is resolved and its actual outcome (<code>taken</code>) is known. You use this callback to update your prediction tables or history registers.</li>
 </ul>
+<p>The module inherits its constructor from <code>champsim::modules::branch_predictor</code>, allowing ChampSim to construct it with the associated CPU. Keep the module directory, class, and source-file names consistent (<code>simple_bp</code>). The declaration and definition of each callback must also use matching signatures. This example follows the upstream <a href="https://github.com/ChampSim/ChampSim/tree/master/branch/bimodal"><code>bimodal</code> module</a> and <a href="https://champsim.github.io/ChampSim/master/Modules.html">module interface documentation</a>.</p>
 <p>Next, to compile <code>ChampSim</code> with our new <code>simple_bp</code>, set <code>"branch_predictor": "simple_bp"</code> in <code>lab2_config.json</code>:</p>
 <pre><code class="language-json">{
+  "executable_name": "champsim",
+
   "ooo_cpu": [
     {
       "frequency": 4000,
@@ -252,13 +255,13 @@ void simple_bp::last_branch_result(champsim::address ip, champsim::address branc
 
 </code></pre>
 <p>Then, generate the build scripts and compile <code>ChampSim</code>:</p>
-<pre><code class="language-sh">./config.sh ./lab2_config.json
+<pre><code class="language-sh">./config.sh --no-compile-all-modules ./lab2_config.json
 make -j $(nproc)
 
 </code></pre>
 <p>After compilation succeeds, run the compiled binary on the two BP-sensitive workloads (<code>shell_sort</code> and <code>spfa</code>):</p>
-<pre><code class="language-sh">bin/champsim --warmup-instructions 20000000 --simulation-instructions 100000000 ../trace/shell_sort.champsimtrace.xz
-bin/champsim --warmup-instructions 20000000 --simulation-instructions 100000000 ../trace/spfa.champsimtrace.xz
+<pre><code class="language-sh">bin/champsim --warmup-instructions 20000000 --simulation-instructions 100000000 traces/shell_sort.champsimtrace.xz
+bin/champsim --warmup-instructions 20000000 --simulation-instructions 100000000 traces/spfa.champsimtrace.xz
 
 </code></pre>
 <div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
