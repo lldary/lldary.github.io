@@ -183,7 +183,7 @@
 <p>In this part, you will flip your role from a hardware designer to a software/workload developer. You are required to design, compile, and generate a custom <code>ChampSim</code> trace that serves as a <strong>stress test</strong> for branch predictors.</p>
 <h2 id="background--objective"><a class="header" href="#background--objective">Background &amp; Objective</a></h2>
 <p>Standard benchmarks like sorting or matrix multiplication often exhibit regular loops and repetitive control flow patterns. However, real-world software—such as database indexing, cryptosystems, binary parsers, and graph analytics—contains complex, data-dependent, and highly unpredictable branch behavior.</p>
-<p>Your goal is to write a C/C++ program featuring intricate control flow that maximizes branch prediction difficulty, compile it, and collect a trace file using <code>ChampSim</code>'s trace collection tools.</p>
+<p>The workload must be written in <strong>C only</strong>. Your goal is to write a C program featuring intricate control flow that maximizes branch prediction difficulty, compile it, and collect a trace file using <code>ChampSim</code>'s trace collection tools.</p>
 <h2 id="guidelines-for-designing-unpredictable-workloads"><a class="header" href="#guidelines-for-designing-unpredictable-workloads">Guidelines for Designing Unpredictable Workloads</a></h2>
 <p>To create a high-difficulty trace that forces frequent mispredictions across standard predictors, consider incorporating:</p>
 <ul>
@@ -197,7 +197,7 @@
 <pre><code class="language-sh">export PIN_ROOT=/pin-external-4.3-99850-gce5652921-gcc-linux
 </code></pre>
 <p>Set <code>PIN_ROOT</code> again whenever you open a new terminal.</p>
-<p>Use the course-provided Linux x86-64 <code>ChampSim</code> package. The commands below require a C/C++ compiler, GNU Make, <code>wget</code>, <code>tar</code>, and <code>xz</code>.</p>
+<p>Use the course-provided Linux x86-64 <code>ChampSim</code> package. The commands below require GCC (<code>gcc</code> for the C workload and <code>g++</code> for the tracer), GNU Make, <code>wget</code>, <code>tar</code>, and <code>xz</code>.</p>
 <p>Create the installation directory <strong>before downloading</strong> Intel PIN so that the archive and extraction commands use the same directory:</p>
 <pre><code class="language-sh">mkdir -p "$HOME/tools"
 cd "$HOME/tools"
@@ -215,11 +215,11 @@ ls -l tracer/pin/obj-intel64/champsim_tracer.so
 </code></pre>
 <p>The shared library <code>tracer/pin/obj-intel64/champsim_tracer.so</code> is the tool that PIN loads to record ChampSim traces. The build command follows the <a href="https://github.com/ChampSim/ChampSim/blob/master/tracer/pin/README.md">official tracer instructions</a>. Keep the <code>ChampSim</code> root directory as your working directory for all remaining commands.</p>
 <h2 id="compiling-your-workload"><a class="header" href="#compiling-your-workload">Compiling Your Workload</a></h2>
-<p>Save your workload as <code>hard_workload.cpp</code> in the <code>ChampSim</code> root directory, then compile and run it:</p>
-<pre><code class="language-sh">g++ -O2 -std=c++17 hard_workload.cpp -o hard_workload
+<p>Save your workload as <code>hard_workload.c</code> in the <code>ChampSim</code> root directory, then compile and run it:</p>
+<pre><code class="language-sh">gcc -O2 -std=c11 hard_workload.c -o hard_workload
 ./hard_workload
 </code></pre>
-<p>For a C workload, use <code>gcc -O2 -std=c11 hard_workload.c -o hard_workload</code> instead. If your program requires arguments, supply them both in this test run and after <code>./hard_workload</code> in the tracing command below.</p>
+<p>If your program requires arguments, supply them both in this test run and after <code>./hard_workload</code> in the tracing command below.</p>
 <p>Verify that the program performs its intended computation and runs without crashing. It must execute enough instructions to produce a full <strong>200M-instruction trace</strong>. Compiler optimizations may remove unused computations or replace conditional branches, so check that the compiled workload retains the control flow you intend to evaluate. Record your compiler options and program arguments in the report for reproducibility.</p>
 <h2 id="capturing-and-compressing-the-trace"><a class="header" href="#capturing-and-compressing-the-trace">Capturing and Compressing the Trace</a></h2>
 <p>A 200M-instruction trace in the course format occupies <strong>12.8 GB before compression</strong>. Ensure that the trace output location has enough free disk space for the raw trace and compressed output.</p>
@@ -253,7 +253,7 @@ bin/champsim --warmup-instructions 2000000 --simulation-instructions 100000000 "
 <div>
 <p>All submitted traces will be benchmarked against the baseline predictor (<code>bimodal</code>) using <strong>2M warmup + 100M simulation instructions</strong>. Only statistics from the 100M simulation phase are used for grading. Part 4 is worth <strong>4 points</strong> in total:</p>
 <ul>
-<li><strong>Source Code &amp; Trace Validity (2 pts)</strong>: Valid C/C++ source code and a properly formatted 200M-instruction trace file (<code>.champsimtrace.xz</code>) that runs without crashing.</li>
+<li><strong>Source Code &amp; Trace Validity (2 pts)</strong>: Valid C source code and a properly formatted 200M-instruction trace file (<code>.champsimtrace.xz</code>) that runs without crashing.</li>
 <li><strong>Trace Hardness (up to 2 pts)</strong>: Measured by <strong>Branch Mispredictions Per Kilo-Instructions (MPKI)</strong> on <code>bimodal</code>:
 <ul>
 <li><strong>MPKI &gt;= 300</strong>: <strong>2 points</strong>.</li>
@@ -274,7 +274,7 @@ bin/champsim --warmup-instructions 2000000 --simulation-instructions 100000000 "
 <div>
 <p>For Part 4, please submit the following items:</p>
 <ol>
-<li><strong>Workload Source Code</strong>: Your C/C++ source code used to generate the hard trace (e.g., <code>hard_workload.cpp</code>).</li>
+<li><strong>Workload Source Code</strong>: Your C source code used to generate the hard trace (e.g., <code>hard_workload.c</code>).</li>
 <li><strong>Trace File</strong>: Compressed 200M-instruction trace file named strictly as <code>&lt;student_id&gt;_hard.champsimtrace.xz</code>.</li>
 <li><strong>Report Section</strong>: In your lab report, include:
 <ul>

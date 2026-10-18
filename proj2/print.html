@@ -512,6 +512,17 @@ pred-6.champsimtrace.xz
 </ul>
 <p>Leaderboard positions are determined by the <strong>score from this seven-trace evaluation</strong>, independently of the local <code>auto-run.py</code> score. The leaderboard awards up to <strong>2 grading points</strong> according to rank; these points are separate from the up to <strong>2 points</strong> for the local evaluation threshold.</p>
 <p>For <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span> participants and competition rank <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span></span></span></span> (rank 1 is best), the band number is <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">⌈</span><span class="mord">20</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord">/</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">⌉</span></span></span></span>, and the awarded points are <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">2.1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">0.1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">⌈</span><span class="mord">20</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord">/</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">⌉</span></span></span></span>. Tied participants use the same <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span></span></span></span>, even across a band boundary.</p>
+<div id="admonition-online-evaluation" class="admonition admonish-tip" role="note" aria-labelledby="admonition-online-evaluation-title">
+<div class="admonition-title">
+<div id="admonition-online-evaluation-title">
+<p>Online Evaluation</p>
+</div>
+<a class="admonition-anchor-link" href="proj2/part3.html#admonition-online-evaluation"></a>
+</div>
+<div>
+<p>Log in to the <a href="http://10.129.163.38:5000">online evaluation platform</a>, find the branch prediction assignment (分支预测实验), and submit <strong>all files inside <code>branch/my_perceptron/</code>, without submitting the directory itself</strong>. After evaluation completes, you can view your <code>score</code>, including results from the hidden traces, on the platform. Your initial username is your student ID, and your initial password is your name's lowercase pinyin initials repeated twice, followed by <code>1234</code>. For example, Zhang San (张三), whose student ID is <code>2500000001</code>, logs in with username <code>2500000001</code> and initial password <code>zszs1234</code>.</p>
+</div>
+</div>
 <div id="admonition-leaderboard-score-calculation" class="admonition admonish-tip" role="note" aria-labelledby="admonition-leaderboard-score-calculation-title">
 <div class="admonition-title">
 <div id="admonition-leaderboard-score-calculation-title">
@@ -582,7 +593,7 @@ pred-6.champsimtrace.xz
 <p>In this part, you will flip your role from a hardware designer to a software/workload developer. You are required to design, compile, and generate a custom <code>ChampSim</code> trace that serves as a <strong>stress test</strong> for branch predictors.</p>
 <h2 id="background--objective"><a class="header" href="#background--objective">Background &amp; Objective</a></h2>
 <p>Standard benchmarks like sorting or matrix multiplication often exhibit regular loops and repetitive control flow patterns. However, real-world software—such as database indexing, cryptosystems, binary parsers, and graph analytics—contains complex, data-dependent, and highly unpredictable branch behavior.</p>
-<p>Your goal is to write a C/C++ program featuring intricate control flow that maximizes branch prediction difficulty, compile it, and collect a trace file using <code>ChampSim</code>'s trace collection tools.</p>
+<p>The workload must be written in <strong>C only</strong>. Your goal is to write a C program featuring intricate control flow that maximizes branch prediction difficulty, compile it, and collect a trace file using <code>ChampSim</code>'s trace collection tools.</p>
 <h2 id="guidelines-for-designing-unpredictable-workloads"><a class="header" href="#guidelines-for-designing-unpredictable-workloads">Guidelines for Designing Unpredictable Workloads</a></h2>
 <p>To create a high-difficulty trace that forces frequent mispredictions across standard predictors, consider incorporating:</p>
 <ul>
@@ -596,7 +607,7 @@ pred-6.champsimtrace.xz
 <pre><code class="language-sh">export PIN_ROOT=/pin-external-4.3-99850-gce5652921-gcc-linux
 </code></pre>
 <p>Set <code>PIN_ROOT</code> again whenever you open a new terminal.</p>
-<p>Use the course-provided Linux x86-64 <code>ChampSim</code> package. The commands below require a C/C++ compiler, GNU Make, <code>wget</code>, <code>tar</code>, and <code>xz</code>.</p>
+<p>Use the course-provided Linux x86-64 <code>ChampSim</code> package. The commands below require GCC (<code>gcc</code> for the C workload and <code>g++</code> for the tracer), GNU Make, <code>wget</code>, <code>tar</code>, and <code>xz</code>.</p>
 <p>Create the installation directory <strong>before downloading</strong> Intel PIN so that the archive and extraction commands use the same directory:</p>
 <pre><code class="language-sh">mkdir -p "$HOME/tools"
 cd "$HOME/tools"
@@ -614,11 +625,11 @@ ls -l tracer/pin/obj-intel64/champsim_tracer.so
 </code></pre>
 <p>The shared library <code>tracer/pin/obj-intel64/champsim_tracer.so</code> is the tool that PIN loads to record ChampSim traces. The build command follows the <a href="https://github.com/ChampSim/ChampSim/blob/master/tracer/pin/README.md">official tracer instructions</a>. Keep the <code>ChampSim</code> root directory as your working directory for all remaining commands.</p>
 <h2 id="compiling-your-workload"><a class="header" href="#compiling-your-workload">Compiling Your Workload</a></h2>
-<p>Save your workload as <code>hard_workload.cpp</code> in the <code>ChampSim</code> root directory, then compile and run it:</p>
-<pre><code class="language-sh">g++ -O2 -std=c++17 hard_workload.cpp -o hard_workload
+<p>Save your workload as <code>hard_workload.c</code> in the <code>ChampSim</code> root directory, then compile and run it:</p>
+<pre><code class="language-sh">gcc -O2 -std=c11 hard_workload.c -o hard_workload
 ./hard_workload
 </code></pre>
-<p>For a C workload, use <code>gcc -O2 -std=c11 hard_workload.c -o hard_workload</code> instead. If your program requires arguments, supply them both in this test run and after <code>./hard_workload</code> in the tracing command below.</p>
+<p>If your program requires arguments, supply them both in this test run and after <code>./hard_workload</code> in the tracing command below.</p>
 <p>Verify that the program performs its intended computation and runs without crashing. It must execute enough instructions to produce a full <strong>200M-instruction trace</strong>. Compiler optimizations may remove unused computations or replace conditional branches, so check that the compiled workload retains the control flow you intend to evaluate. Record your compiler options and program arguments in the report for reproducibility.</p>
 <h2 id="capturing-and-compressing-the-trace"><a class="header" href="#capturing-and-compressing-the-trace">Capturing and Compressing the Trace</a></h2>
 <p>A 200M-instruction trace in the course format occupies <strong>12.8 GB before compression</strong>. Ensure that the trace output location has enough free disk space for the raw trace and compressed output.</p>
@@ -652,7 +663,7 @@ bin/champsim --warmup-instructions 2000000 --simulation-instructions 100000000 "
 <div>
 <p>All submitted traces will be benchmarked against the baseline predictor (<code>bimodal</code>) using <strong>2M warmup + 100M simulation instructions</strong>. Only statistics from the 100M simulation phase are used for grading. Part 4 is worth <strong>4 points</strong> in total:</p>
 <ul>
-<li><strong>Source Code &amp; Trace Validity (2 pts)</strong>: Valid C/C++ source code and a properly formatted 200M-instruction trace file (<code>.champsimtrace.xz</code>) that runs without crashing.</li>
+<li><strong>Source Code &amp; Trace Validity (2 pts)</strong>: Valid C source code and a properly formatted 200M-instruction trace file (<code>.champsimtrace.xz</code>) that runs without crashing.</li>
 <li><strong>Trace Hardness (up to 2 pts)</strong>: Measured by <strong>Branch Mispredictions Per Kilo-Instructions (MPKI)</strong> on <code>bimodal</code>:
 <ul>
 <li><strong>MPKI &gt;= 300</strong>: <strong>2 points</strong>.</li>
@@ -673,7 +684,7 @@ bin/champsim --warmup-instructions 2000000 --simulation-instructions 100000000 "
 <div>
 <p>For Part 4, please submit the following items:</p>
 <ol>
-<li><strong>Workload Source Code</strong>: Your C/C++ source code used to generate the hard trace (e.g., <code>hard_workload.cpp</code>).</li>
+<li><strong>Workload Source Code</strong>: Your C source code used to generate the hard trace (e.g., <code>hard_workload.c</code>).</li>
 <li><strong>Trace File</strong>: Compressed 200M-instruction trace file named strictly as <code>&lt;student_id&gt;_hard.champsimtrace.xz</code>.</li>
 <li><strong>Report Section</strong>: In your lab report, include:
 <ul>
@@ -731,7 +742,7 @@ bin/champsim --warmup-instructions 2000000 --simulation-instructions 100000000 "
 <ul>
 <li><strong>Part 1 &amp; 2 Evaluation</strong>: Figures or tables showing Branch Prediction Accuracy (%), MPKI, and CPU IPC for built-in predictors (<code>local_bp</code>, <code>bimodal</code>, <code>tournament</code>) and your <code>simple_bp</code> on <code>shell_sort</code> and <code>spfa</code> traces.</li>
 <li><strong>Part 3 Paper Summary</strong>: A 1–2 page summary of the Jiménez &amp; Lin paper covering <strong>motivations</strong>, <strong>key challenges</strong>, and <strong>perceptron mechanisms</strong>.</li>
-<li><strong>Part 3 Technical Documentation</strong>: Detailed explanation of your custom <code>my_perceptron</code> architecture, parameter selection (e.g., history lengths, table sizes, and any training thresholds), and any optimization techniques used. Any predictor architecture is allowed, with no limits on storage capacity, storage bit-width, history length, or evaluation runtime; the perceptron paper summary is still required.</li>
+<li><strong>Part 3 Technical Documentation</strong>: Detailed explanation of your custom <code>my_perceptron</code> architecture, parameter selection (e.g., history lengths, table sizes, and any training thresholds), and any optimization techniques used. Any predictor architecture is allowed, with no limits on storage capacity, storage bit-width, history length, or evaluation runtime.</li>
 <li><strong>Part 3 Performance Comparison</strong>: Bar charts comparing <strong>Accuracy (%)</strong>, <strong>MPKI</strong>, and <strong>CPU IPC</strong> for <code>my_perceptron</code>, <code>simple_bp</code>, <code>local_bp</code>, <code>bimodal</code>, and <code>tournament</code> on each of <code>shell_sort</code> and <code>spfa</code>. Use separate charts or panels for the metrics, <strong>2M warmup + 100M simulation instructions</strong>, identical simulator settings, and the ROI definitions in Part 1. Label axes, units, and predictor names, and discuss IPC and MPKI separately for both workloads.</li>
 <li><strong>Part 3 Local Evaluation Result</strong>: Include the terminal output containing <code>score</code> from <code>auto-run.py</code>, using the default 14-trace suite with <strong>2M warmup + 100M simulation instructions</strong>.</li>
 <li><strong>Part 4 Hard Trace Analysis</strong>: Detailed description of your workload design and control-flow mechanisms, plus a table of MPKI, Prediction Accuracy, and CPU IPC for <code>bimodal</code> using 2M warmup + 100M simulation instructions from your 200M-instruction trace. Report statistics from the simulation phase, excluding warmup.</li>
@@ -741,7 +752,7 @@ bin/champsim --warmup-instructions 2000000 --simulation-instructions 100000000 "
 <ul>
 <li><code>branch/simple_bp/</code>: Code files (<code>simple_bp.h</code> and <code>simple_bp.cc</code>).</li>
 <li><code>branch/my_perceptron/</code>: Code files (<code>my_perceptron.h</code> and <code>my_perceptron.cc</code>).</li>
-<li><code>hard_workload.cpp</code> (or <code>.c</code>): C/C++ source code used to generate your Part 4 hard trace.</li>
+<li><code>hard_workload.c</code>: Source code used to generate your Part 4 hard trace. <strong>Only C is allowed for the Part 4 workload.</strong></li>
 </ul>
 </li>
 <li><strong>Hard Trace File</strong>:
@@ -782,7 +793,7 @@ bin/champsim --warmup-instructions 2000000 --simulation-instructions 100000000 "
 </li>
 <li><strong>Part 4: Hard Trace Benchmark &amp; Stress Test (4 pts)</strong>
 <ul>
-<li><strong>2 pts</strong>: Valid C/C++ source code and properly formatted 200M-instruction trace file (<code>.champsimtrace.xz</code>) that runs without crashing with 2M warmup + 100M simulation instructions.</li>
+<li><strong>2 pts</strong>: Valid C source code and properly formatted 200M-instruction trace file (<code>.champsimtrace.xz</code>) that runs without crashing with 2M warmup + 100M simulation instructions.</li>
 <li><strong>Up to 2 pts</strong>: Trace hardness based on MPKI on the baseline predictor (<code>bimodal</code>) during the 100M simulation phase after 2M warmup instructions. <strong>MPKI &gt;= 300</strong> earns <strong>2 points</strong>; otherwise, the score is <strong>2 × MPKI / 300 points</strong>.</li>
 </ul>
 </li>
