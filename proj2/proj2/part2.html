@@ -223,7 +223,7 @@ bool simple_bp::predict_branch(champsim::address ip) {
     return true;
 }
 
-// Update predictor state after branch execution
+// Update predictor state using the actual branch outcome from the trace
 void simple_bp::last_branch_result(champsim::address ip, champsim::address branch_target, bool taken, uint8_t branch_type) {
     // Static predictor does not update any state.
 }
@@ -232,7 +232,7 @@ void simple_bp::last_branch_result(champsim::address ip, champsim::address branc
 <p>Let's look at the two key interface functions required by <code>ChampSim</code>:</p>
 <ul>
 <li><code>predict_branch()</code>: Called when a branch prediction is needed. This example uses the single-argument interface, receives the branch instruction address (<code>ip</code>), and returns <code>true</code> for taken or <code>false</code> for not taken.</li>
-<li><code>last_branch_result()</code>: Called when a branch is resolved and its actual outcome (<code>taken</code>) is known. You use this callback to update your prediction tables or history registers.</li>
+<li><code>last_branch_result()</code>: Receives the actual branch outcome (<code>taken</code>) from the trace. Use this callback to update your prediction tables or history registers. In the course implementation, it is called while processing the trace instruction, rather than after simulated branch execution completes.</li>
 </ul>
 <p>The module inherits its constructor from <code>champsim::modules::branch_predictor</code>, allowing ChampSim to construct it with the associated CPU. Keep the module directory, class, and source-file names consistent (<code>simple_bp</code>). The declaration and definition of each callback must also use matching signatures. This example follows the upstream <a href="https://github.com/ChampSim/ChampSim/tree/master/branch/"><code>branch_predictor</code> module</a> and <a href="https://champsim.github.io/ChampSim/master/Modules.html">module interface documentation</a>.</p>
 <p>Next, to compile <code>ChampSim</code> with our new <code>simple_bp</code>, set <code>"branch_predictor": "simple_bp"</code> in <code>lab2_config.json</code>:</p>
@@ -272,7 +272,7 @@ bin/champsim --warmup-instructions 2000000 --simulation-instructions 100000000 t
 <a class="admonition-anchor-link" href="#admonition-deliverables"></a>
 </div>
 <div>
-<p>Please run two BP-sensitive workloads (<code>shell_sort</code> and <code>spfa</code>) with your implemented <code>simple_bp</code>. In your <em><strong>report</strong></em>, please include figures or tables showing the prediction accuracy (or MPKI) and CPU IPC for:</p>
+<p>Please run two BP-sensitive workloads (<code>shell_sort</code> and <code>spfa</code>) with your implemented <code>simple_bp</code>. In your <em><strong>report</strong></em>, please include figures or tables showing <strong>Branch Prediction Accuracy (%)</strong>, <strong>MPKI</strong>, and <strong>CPU IPC</strong>, using the ROI definitions in Part 1, for:</p>
 <ul>
 <li><strong>BP:</strong> <code>simple_bp</code></li>
 <li><strong>Traces:</strong> <code>shell_sort</code>, <code>spfa</code></li>

@@ -330,7 +330,7 @@ bool simple_bp::predict_branch(champsim::address ip) {
     return true;
 }
 
-// Update predictor state after branch execution
+// Update predictor state using the actual branch outcome from the trace
 void simple_bp::last_branch_result(champsim::address ip, champsim::address branch_target, bool taken, uint8_t branch_type) {
     // Static predictor does not update any state.
 }
@@ -339,7 +339,7 @@ void simple_bp::last_branch_result(champsim::address ip, champsim::address branc
 <p>Let's look at the two key interface functions required by <code>ChampSim</code>:</p>
 <ul>
 <li><code>predict_branch()</code>: Called when a branch prediction is needed. This example uses the single-argument interface, receives the branch instruction address (<code>ip</code>), and returns <code>true</code> for taken or <code>false</code> for not taken.</li>
-<li><code>last_branch_result()</code>: Called when a branch is resolved and its actual outcome (<code>taken</code>) is known. You use this callback to update your prediction tables or history registers.</li>
+<li><code>last_branch_result()</code>: Receives the actual branch outcome (<code>taken</code>) from the trace. Use this callback to update your prediction tables or history registers. In the course implementation, it is called while processing the trace instruction, rather than after simulated branch execution completes.</li>
 </ul>
 <p>The module inherits its constructor from <code>champsim::modules::branch_predictor</code>, allowing ChampSim to construct it with the associated CPU. Keep the module directory, class, and source-file names consistent (<code>simple_bp</code>). The declaration and definition of each callback must also use matching signatures. This example follows the upstream <a href="https://github.com/ChampSim/ChampSim/tree/master/branch/"><code>branch_predictor</code> module</a> and <a href="https://champsim.github.io/ChampSim/master/Modules.html">module interface documentation</a>.</p>
 <p>Next, to compile <code>ChampSim</code> with our new <code>simple_bp</code>, set <code>"branch_predictor": "simple_bp"</code> in <code>lab2_config.json</code>:</p>
@@ -379,7 +379,7 @@ bin/champsim --warmup-instructions 2000000 --simulation-instructions 100000000 t
 <a class="admonition-anchor-link" href="proj2/part2.html#admonition-deliverables"></a>
 </div>
 <div>
-<p>Please run two BP-sensitive workloads (<code>shell_sort</code> and <code>spfa</code>) with your implemented <code>simple_bp</code>. In your <em><strong>report</strong></em>, please include figures or tables showing the prediction accuracy (or MPKI) and CPU IPC for:</p>
+<p>Please run two BP-sensitive workloads (<code>shell_sort</code> and <code>spfa</code>) with your implemented <code>simple_bp</code>. In your <em><strong>report</strong></em>, please include figures or tables showing <strong>Branch Prediction Accuracy (%)</strong>, <strong>MPKI</strong>, and <strong>CPU IPC</strong>, using the ROI definitions in Part 1, for:</p>
 <ul>
 <li><strong>BP:</strong> <code>simple_bp</code></li>
 <li><strong>Traces:</strong> <code>shell_sort</code>, <code>spfa</code></li>
@@ -463,15 +463,15 @@ bin/champsim --warmup-instructions 2000000 --simulation-instructions 100000000 t
 make -j $(nproc)
 
 # 2. Run test traces
-bin/champsim --warmup-instructions 20000000 --simulation-instructions 100000000 traces/shell_sort.champsimtrace.xz
-bin/champsim --warmup-instructions 20000000 --simulation-instructions 100000000 traces/spfa.champsimtrace.xz
+bin/champsim --warmup-instructions 2000000 --simulation-instructions 100000000 traces/shell_sort.champsimtrace.xz
+bin/champsim --warmup-instructions 2000000 --simulation-instructions 100000000 traces/spfa.champsimtrace.xz
 
 </code></pre>
 <h3 id="local-evaluation-with-auto-runpy"><a class="header" href="#local-evaluation-with-auto-runpy">Local Evaluation with <code>auto-run.py</code></a></h3>
 <p>Download <code>auto-run.py</code> from the <a href="https://disk.pku.edu.cn/link/AA03FB514ED846474BBAAA5C4C97092C84">course-provided PKU Disk</a> and place it in the root directory of your <code>ChampSim</code> checkout. From that directory, run:</p>
 <pre><code class="language-sh">python3 ./auto-run.py
 </code></pre>
-<p>Complete your <code>my_perceptron</code> implementation before running the script. Run it directly inside the prepared ChampSim environment, without starting another container. It reads <code>lab2_config.json</code> first (or <code>branch_config.json</code> if the former is absent); <code>--config</code> selects a different configuration explicitly. The script selects <code>bimodal</code> and <code>my_perceptron</code> itself and does not modify your original JSON file. On the first run, it generates and caches <code>bimodal</code> baseline results under <code>baseline/</code>; subsequent runs reuse valid cached results and evaluate <code>my_perceptron</code>. The candidate predictor is compiled once per invocation. The first full evaluation runs 14 baseline simulations and 14 candidate simulations; subsequent evaluations run only the 14 candidate simulations when the cache is valid. Each uses <strong>20M warmup + 100M simulation instructions</strong>. Changes to evaluation conditions invalidate affected baseline cache entries; changes only to <code>branch/my_perceptron/</code> do not. Use <code>--max-worker</code> to control the number of concurrent trace simulations according to your machine's resources. For example, to use four workers:</p>
+<p>Complete your <code>my_perceptron</code> implementation before running the script. Run it directly inside the prepared ChampSim environment, without starting another container. It reads <code>lab2_config.json</code> first (or <code>branch_config.json</code> if the former is absent); <code>--config</code> selects a different configuration explicitly. The script selects <code>bimodal</code> and <code>my_perceptron</code> itself and does not modify your original JSON file. On the first run, it generates and caches <code>bimodal</code> baseline results under <code>baseline/</code>; subsequent runs reuse valid cached results and evaluate <code>my_perceptron</code>. The candidate predictor is compiled once per invocation. The first full evaluation runs 14 baseline simulations and 14 candidate simulations; subsequent evaluations run only the 14 candidate simulations when the cache is valid. Each uses <strong>2M warmup + 100M simulation instructions</strong>. Changes to evaluation conditions invalidate affected baseline cache entries; changes only to <code>branch/my_perceptron/</code> do not. Use <code>--max-worker</code> to control the number of concurrent trace simulations according to your machine's resources. For example, to use four workers:</p>
 <pre><code class="language-sh">python3 ./auto-run.py --max-worker 4
 </code></pre>
 <p>Ensure that <code>traces/</code> contains all 14 files below (provided in the course repository or PKU Disk):</p>
@@ -551,7 +551,7 @@ pred-6.champsimtrace.xz
 <ol>
 <li><strong>Paper Summary</strong>: A concise summary (1–2 pages) covering the <strong>motivations</strong>, <strong>key challenges</strong>, and <strong>perceptron design/training mechanisms</strong> described in the Jiménez &amp; Lin paper.</li>
 <li><strong>Custom BP Design Details</strong>: Explain your specific implementation, architectural choices, indexing or hashing logic, parameter selections (e.g., history lengths, table sizes, and any training thresholds), and any extra optimizations you added.</li>
-<li><strong>Performance Evaluation &amp; Comparison</strong>: Draw bar charts comparing <strong>Accuracy (%)</strong>, <strong>MPKI</strong>, and <strong>CPU IPC</strong> of <code>my_perceptron</code>, <code>simple_bp</code>, <code>local_bp</code>, <code>bimodal</code>, and <code>tournament</code> on <strong>both <code>shell_sort</code> and <code>spfa</code></strong>. Use separate charts or panels for each metric, show both workloads explicitly, and label axes, units, and predictor names. Use <strong>20M warmup + 100M simulation instructions</strong>, identical simulator settings, and the ROI metric definitions in Part 1. Discuss IPC and MPKI on each workload separately.</li>
+<li><strong>Performance Evaluation &amp; Comparison</strong>: Draw bar charts comparing <strong>Accuracy (%)</strong>, <strong>MPKI</strong>, and <strong>CPU IPC</strong> of <code>my_perceptron</code>, <code>simple_bp</code>, <code>local_bp</code>, <code>bimodal</code>, and <code>tournament</code> on <strong>both <code>shell_sort</code> and <code>spfa</code></strong>. Use separate charts or panels for each metric, show both workloads explicitly, and label axes, units, and predictor names. Use <strong>2M warmup + 100M simulation instructions</strong>, identical simulator settings, and the ROI metric definitions in Part 1. Discuss IPC and MPKI on each workload separately.</li>
 </ol>
 <p><strong>Files to submit</strong>:</p>
 <ul>
@@ -711,7 +711,7 @@ bin/champsim --warmup-instructions 2000000 --simulation-instructions 10000000 "t
 <li><strong>Part 1 &amp; 2 Evaluation</strong>: Figures and tables showing Branch Prediction Accuracy (and MPKI) and CPU IPC for built-in predictors (<code>local_bp</code>, <code>bimodal</code>, <code>tournament</code>) and your <code>simple_bp</code> on <code>shell_sort</code> and <code>spfa</code> traces.</li>
 <li><strong>Part 3 Paper Summary</strong>: A 1–2 page summary of the Jiménez &amp; Lin paper covering <strong>motivations</strong>, <strong>key challenges</strong>, and <strong>perceptron mechanisms</strong>.</li>
 <li><strong>Part 3 Technical Documentation</strong>: Detailed explanation of your custom <code>my_perceptron</code> architecture, parameter selection (e.g., history lengths, table sizes, and any training thresholds), and any optimization techniques used. Any predictor architecture is allowed, with no limits on storage capacity, storage bit-width, history length, or evaluation runtime; the perceptron paper summary is still required.</li>
-<li><strong>Part 3 Performance Comparison</strong>: Bar charts comparing <strong>Accuracy (%)</strong>, <strong>MPKI</strong>, and <strong>CPU IPC</strong> for <code>my_perceptron</code>, <code>simple_bp</code>, <code>local_bp</code>, <code>bimodal</code>, and <code>tournament</code> on each of <code>shell_sort</code> and <code>spfa</code>. Use separate charts or panels for the metrics, <strong>20M warmup + 100M simulation instructions</strong>, identical simulator settings, and the ROI definitions in Part 1. Label axes, units, and predictor names, and discuss IPC and MPKI separately for both workloads.</li>
+<li><strong>Part 3 Performance Comparison</strong>: Bar charts comparing <strong>Accuracy (%)</strong>, <strong>MPKI</strong>, and <strong>CPU IPC</strong> for <code>my_perceptron</code>, <code>simple_bp</code>, <code>local_bp</code>, <code>bimodal</code>, and <code>tournament</code> on each of <code>shell_sort</code> and <code>spfa</code>. Use separate charts or panels for the metrics, <strong>2M warmup + 100M simulation instructions</strong>, identical simulator settings, and the ROI definitions in Part 1. Label axes, units, and predictor names, and discuss IPC and MPKI separately for both workloads.</li>
 <li><strong>Part 4 Hard Trace Analysis</strong>: Detailed description of your workload design and control-flow mechanisms, plus a table of MPKI, Prediction Accuracy, and CPU IPC for <code>bimodal</code> using 2M warmup + 10M simulation instructions from your 200M-instruction trace. Report statistics from the simulation phase, excluding warmup.</li>
 </ul>
 </li>
