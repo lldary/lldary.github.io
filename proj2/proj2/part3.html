@@ -348,9 +348,18 @@ pred-6.champsimtrace.xz
 <p>Please evaluate your implemented <code>my_perceptron</code> predictor against all baselines.</p>
 <p>In your <em><strong>report</strong></em>, please include:</p>
 <ol>
-<li><strong>Paper Summary</strong>: A concise summary (1–2 pages) covering the <strong>motivations</strong>, <strong>key challenges</strong>, and <strong>perceptron design/training mechanisms</strong> described in the Jiménez &amp; Lin paper.</li>
-<li><strong>Custom BP Design Details</strong>: Explain your specific implementation, architectural choices, indexing or hashing logic, parameter selections (e.g., history lengths, table sizes, and any training thresholds), and any extra optimizations you added.</li>
-<li><strong>Performance Evaluation &amp; Comparison</strong>: Draw bar charts comparing <strong>Accuracy (%)</strong>, <strong>MPKI</strong>, and <strong>CPU IPC</strong> of <code>my_perceptron</code>, <code>simple_bp</code>, <code>local_bp</code>, <code>bimodal</code>, and <code>tournament</code> on <strong>both <code>shell_sort</code> and <code>spfa</code></strong>. Use separate charts or panels for each metric, show both workloads explicitly, and label axes, units, and predictor names. Use <strong>2M warmup + 100M simulation instructions</strong>, identical simulator settings, and the ROI metric definitions in Part 1. Discuss IPC and MPKI on each workload separately.</li>
+<li>
+<p><strong>Paper Summary</strong>: A concise summary (1–2 pages) covering the <strong>motivations</strong>, <strong>key challenges</strong>, and <strong>perceptron design/training mechanisms</strong> described in the Jiménez &amp; Lin paper.</p>
+</li>
+<li>
+<p><strong>Custom BP Design Details</strong>: Explain your specific implementation, architectural choices, indexing or hashing logic, parameter selections (e.g., history lengths, table sizes, and any training thresholds), and any extra optimizations you added.</p>
+</li>
+<li>
+<p><strong>Performance Evaluation &amp; Comparison</strong>: Draw bar charts comparing <strong>Accuracy (%)</strong>, <strong>MPKI</strong>, and <strong>CPU IPC</strong> of <code>my_perceptron</code>, <code>simple_bp</code>, <code>local_bp</code>, <code>bimodal</code>, and <code>tournament</code> on <strong>both <code>shell_sort</code> and <code>spfa</code></strong>. Use separate charts or panels for each metric, show both workloads explicitly, and label axes, units, and predictor names. Use <strong>2M warmup + 100M simulation instructions</strong>, identical simulator settings, and the ROI metric definitions in Part 1. Discuss IPC and MPKI on each workload separately.</p>
+</li>
+<li>
+<p><strong>Local Evaluation Result</strong>: Include the terminal output containing <code>score</code> from <code>auto-run.py</code> in your report. Use the default 14-trace suite with <strong>2M warmup + 100M simulation instructions</strong>.</p>
+</li>
 </ol>
 <p><strong>Files to submit</strong>:</p>
 <ul>

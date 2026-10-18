@@ -223,10 +223,11 @@
 <ol>
 <li><strong>Lab Report (<code>Report.pdf</code>)</strong>:
 <ul>
-<li><strong>Part 1 &amp; 2 Evaluation</strong>: Figures and tables showing Branch Prediction Accuracy (and MPKI) and CPU IPC for built-in predictors (<code>local_bp</code>, <code>bimodal</code>, <code>tournament</code>) and your <code>simple_bp</code> on <code>shell_sort</code> and <code>spfa</code> traces.</li>
+<li><strong>Part 1 &amp; 2 Evaluation</strong>: Figures or tables showing Branch Prediction Accuracy (%), MPKI, and CPU IPC for built-in predictors (<code>local_bp</code>, <code>bimodal</code>, <code>tournament</code>) and your <code>simple_bp</code> on <code>shell_sort</code> and <code>spfa</code> traces.</li>
 <li><strong>Part 3 Paper Summary</strong>: A 1–2 page summary of the Jiménez &amp; Lin paper covering <strong>motivations</strong>, <strong>key challenges</strong>, and <strong>perceptron mechanisms</strong>.</li>
 <li><strong>Part 3 Technical Documentation</strong>: Detailed explanation of your custom <code>my_perceptron</code> architecture, parameter selection (e.g., history lengths, table sizes, and any training thresholds), and any optimization techniques used. Any predictor architecture is allowed, with no limits on storage capacity, storage bit-width, history length, or evaluation runtime; the perceptron paper summary is still required.</li>
 <li><strong>Part 3 Performance Comparison</strong>: Bar charts comparing <strong>Accuracy (%)</strong>, <strong>MPKI</strong>, and <strong>CPU IPC</strong> for <code>my_perceptron</code>, <code>simple_bp</code>, <code>local_bp</code>, <code>bimodal</code>, and <code>tournament</code> on each of <code>shell_sort</code> and <code>spfa</code>. Use separate charts or panels for the metrics, <strong>2M warmup + 100M simulation instructions</strong>, identical simulator settings, and the ROI definitions in Part 1. Label axes, units, and predictor names, and discuss IPC and MPKI separately for both workloads.</li>
+<li><strong>Part 3 Local Evaluation Result</strong>: Include the terminal output containing <code>score</code> from <code>auto-run.py</code>, using the default 14-trace suite with <strong>2M warmup + 100M simulation instructions</strong>.</li>
 <li><strong>Part 4 Hard Trace Analysis</strong>: Detailed description of your workload design and control-flow mechanisms, plus a table of MPKI, Prediction Accuracy, and CPU IPC for <code>bimodal</code> using 2M warmup + 100M simulation instructions from your 200M-instruction trace. Report statistics from the simulation phase, excluding warmup.</li>
 </ul>
 </li>
@@ -257,7 +258,7 @@
 <ul>
 <li><strong>Part 1 &amp; 2: Baseline &amp; Simple BP Evaluation (3 pts)</strong>
 <ul>
-<li><strong>3 pts</strong>: Reasonable performance statistics (Accuracy/MPKI, IPC) provided for <code>local_bp</code>, <code>bimodal</code>, <code>tournament</code>, and <code>simple_bp</code> on standard workloads.</li>
+<li><strong>3 pts</strong>: Reasonable performance statistics (Accuracy, MPKI, and IPC) provided for <code>local_bp</code>, <code>bimodal</code>, <code>tournament</code>, and <code>simple_bp</code> on standard workloads.</li>
 </ul>
 </li>
 <li><strong>Part 3: Perceptron Paper Summary (5 pts)</strong>
