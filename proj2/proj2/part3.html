@@ -270,10 +270,10 @@ bin/champsim --warmup-instructions 2000000 --simulation-instructions 100000000 t
 <p>Download <code>auto-run.py</code> from the <a href="https://disk.pku.edu.cn/link/AA03FB514ED846474BBAAA5C4C97092C84">course-provided PKU Disk</a> and place it in the root directory of your <code>ChampSim</code> checkout. From that directory, run:</p>
 <pre><code class="language-sh">python3 ./auto-run.py
 </code></pre>
-<p>Complete your <code>my_perceptron</code> implementation before running the script. Run it directly inside the prepared ChampSim environment, without starting another container. It reads <code>lab2_config.json</code> first (or <code>branch_config.json</code> if the former is absent); <code>--config</code> selects a different configuration explicitly. The script selects <code>bimodal</code> and <code>my_perceptron</code> itself and does not modify your original JSON file. On the first run, it generates and caches <code>bimodal</code> baseline results under <code>baseline/</code>; subsequent runs reuse valid cached results and evaluate <code>my_perceptron</code>. The candidate predictor is compiled once per invocation. The first full evaluation runs 14 baseline simulations and 14 candidate simulations; subsequent evaluations run only the 14 candidate simulations when the cache is valid. Each uses <strong>2M warmup + 100M simulation instructions</strong>. Changes to evaluation conditions invalidate affected baseline cache entries; changes only to <code>branch/my_perceptron/</code> do not. Use <code>--max-worker</code> to control the number of concurrent trace simulations according to your machine's resources. For example, to use four workers:</p>
+<p>Complete your <code>my_perceptron</code> implementation before running the script. Run it directly inside the prepared ChampSim environment. It reads <code>lab2_config.json</code> first (or <code>branch_config.json</code> if the former is absent); <code>--config</code> selects a different configuration explicitly. The script selects <code>bimodal</code> and <code>my_perceptron</code> itself and does not modify your original JSON file. On the first run, it generates and caches <code>bimodal</code> baseline results under <code>baseline/</code>; subsequent runs reuse valid cached results and evaluate <code>my_perceptron</code>. The candidate predictor is compiled once per invocation. The first full evaluation runs 14 baseline simulations and 14 candidate simulations; subsequent evaluations run only the 14 candidate simulations when the cache is valid. Each uses <strong>2M warmup + 100M simulation instructions</strong>. Use <code>--max-worker</code> to control the number of concurrent trace simulations according to your machine's resources. For example, to use four workers:</p>
 <pre><code class="language-sh">python3 ./auto-run.py --max-worker 4
 </code></pre>
-<p>Ensure that <code>traces/</code> contains all 14 files below (provided in the course repository or PKU Disk):</p>
+<p>Ensure that <code>traces/</code> contains all 14 files below (provided in the course repository <code>traces/</code>):</p>
 <pre><code class="language-text">pred-1-1.champsimtrace.xz
 pred-1-2.champsimtrace.xz
 pred-2-1.champsimtrace.xz
@@ -289,7 +289,7 @@ pred-6.champsimtrace.xz
 403.gcc-48B.champsimtrace.xz
 657.xz_s-56B.champsimtrace.xz
 </code></pre>
-<p>These local-score workloads are separate from the <code>shell_sort</code>/<code>spfa</code> bar-chart comparisons. Keep the default trace list and instruction counts when comparing against the <code>92959</code> threshold; reduced runs are only for checking the workflow.</p>
+<p>Keep the default trace list and instruction counts when comparing against the threshold.</p>
 <p>The evaluation result is printed directly to the terminal as JSON containing a <code>score</code> field. For example:</p>
 <pre><code class="language-json">{"score": 93000}
 </code></pre>
