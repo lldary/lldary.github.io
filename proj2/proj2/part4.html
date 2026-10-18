@@ -256,8 +256,8 @@ bin/champsim --warmup-instructions 2000000 --simulation-instructions 100000000 "
 <li><strong>Source Code &amp; Trace Validity (2 pts)</strong>: Valid C source code and a properly formatted 200M-instruction trace file (<code>.champsimtrace.xz</code>) that runs without crashing.</li>
 <li><strong>Trace Hardness (up to 2 pts)</strong>: Measured by <strong>Branch Mispredictions Per Kilo-Instructions (MPKI)</strong> on <code>bimodal</code>:
 <ul>
-<li><strong>MPKI &gt;= 300</strong>: <strong>2 points</strong>.</li>
-<li><strong>MPKI &lt; 300</strong>: <strong>2 × MPKI / 300 points</strong>, proportional to the achieved MPKI.</li>
+<li><strong>MPKI &gt;= 150</strong>: <strong>2 points</strong>.</li>
+<li><strong>MPKI &lt; 150</strong>: <strong>2 × MPKI / 150 points</strong>, proportional to the achieved MPKI.</li>
 </ul>
 </li>
 <li><strong>Fairness &amp; Validity</strong>: Random-number-driven workloads and loops deliberately designed to create hard-to-predict branches are allowed, including synthetic stress tests. Empty loops that perform no meaningful computation, inline assembly traps, and code causing segmentation faults or other crashes during tracing will be disqualified.</li>
