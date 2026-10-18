@@ -227,7 +227,7 @@
 <li><strong>Part 3 Paper Summary</strong>: A 1–2 page summary of the Jiménez &amp; Lin paper covering <strong>motivations</strong>, <strong>key challenges</strong>, and <strong>perceptron mechanisms</strong>.</li>
 <li><strong>Part 3 Technical Documentation</strong>: Detailed explanation of your custom <code>my_perceptron</code> architecture, parameter selection (e.g., history lengths, table sizes, and any training thresholds), and any optimization techniques used. Any predictor architecture is allowed, with no limits on storage capacity, storage bit-width, history length, or evaluation runtime; the perceptron paper summary is still required.</li>
 <li><strong>Part 3 Performance Comparison</strong>: Bar charts comparing <strong>Accuracy (%)</strong>, <strong>MPKI</strong>, and <strong>CPU IPC</strong> for <code>my_perceptron</code>, <code>simple_bp</code>, <code>local_bp</code>, <code>bimodal</code>, and <code>tournament</code> on each of <code>shell_sort</code> and <code>spfa</code>. Use separate charts or panels for the metrics, <strong>2M warmup + 100M simulation instructions</strong>, identical simulator settings, and the ROI definitions in Part 1. Label axes, units, and predictor names, and discuss IPC and MPKI separately for both workloads.</li>
-<li><strong>Part 4 Hard Trace Analysis</strong>: Detailed description of your workload design and control-flow mechanisms, plus a table of MPKI, Prediction Accuracy, and CPU IPC for <code>bimodal</code> using 2M warmup + 10M simulation instructions from your 200M-instruction trace. Report statistics from the simulation phase, excluding warmup.</li>
+<li><strong>Part 4 Hard Trace Analysis</strong>: Detailed description of your workload design and control-flow mechanisms, plus a table of MPKI, Prediction Accuracy, and CPU IPC for <code>bimodal</code> using 2M warmup + 100M simulation instructions from your 200M-instruction trace. Report statistics from the simulation phase, excluding warmup.</li>
 </ul>
 </li>
 <li><strong>Source Codes</strong>:
@@ -239,7 +239,7 @@
 </li>
 <li><strong>Hard Trace File</strong>:
 <ul>
-<li><code>&lt;student_id&gt;_hard.champsimtrace.xz</code>: Your compressed <strong>200M-instruction</strong> trace file for Part 4. Evaluation uses <strong>2M warmup + 10M simulation instructions</strong> from this trace.</li>
+<li><code>&lt;student_id&gt;_hard.champsimtrace.xz</code>: Your compressed <strong>200M-instruction</strong> trace file for Part 4. Evaluation uses <strong>2M warmup + 100M simulation instructions</strong> from this trace.</li>
 </ul>
 </li>
 </ol>
@@ -269,14 +269,14 @@
 <ul>
 <li><strong>2 pts</strong>: Compilable and functionally correct <code>my_perceptron</code> code that passes simulation runs without errors.</li>
 <li><strong>2 pts</strong>: Performance surpassing <code>simple_bp</code>, with neither significantly lower IPC nor significantly higher MPKI than any of <code>local_bp</code>, <code>bimodal</code>, and <code>tournament</code> on <strong>each</strong> of <code>shell_sort</code> and <code>spfa</code>. Judge IPC and MPKI separately for each workload; a good result on one workload does not compensate for a significantly worse result on the other. Teaching assistants will assess whether a performance difference is significant by considering IPC and MPKI together on each workload; no fixed percentage cutoff is prescribed. This grading item does not use <code>score</code>.</li>
-<li><strong>Up to 2 pts</strong>: A <code>score</code> strictly greater than <code>92959</code> from the local <code>auto-run.py</code> earns <strong>2 points</strong>. For scores at or below <code>92959</code>, teaching assistants will determine partial credit by assessing the gap from this threshold; a larger gap results in fewer points. See <a href="./part3.html#local-evaluation-with-auto-runpy">Part 3</a> for download and execution instructions.</li>
+<li><strong>Up to 2 pts</strong>: A <code>score</code> strictly greater than <code>110000</code> from the local <code>auto-run.py</code> earns <strong>2 points</strong>. For scores at or below <code>110000</code>, teaching assistants will determine partial credit by assessing the gap from this threshold; a larger gap results in fewer points. See <a href="./part3.html#local-evaluation-with-auto-runpy">Part 3</a> for download and execution instructions.</li>
 <li><strong>Up to 2 pts</strong>: Leaderboard ranking based on the score from <code>403.gcc-48B.champsimtrace.xz</code>, <code>657.xz_s-56B.champsimtrace.xz</code>, and five hidden traces. This evaluation is independent of the local <code>auto-run.py</code> score. Sort by evaluation score from highest to lowest and divide rank positions into <strong>20 approximately equal-sized bands</strong>. The highest band earns <strong>2.0 points</strong>, and each subsequent band earns <strong>0.1 points</strong> less, down to <strong>0.1 points</strong> for the lowest band. Tied scores share the same rank and points, using competition ranking (e.g., <strong>1, 2, 2, 4</strong>). See <a href="./part3.html#leaderboard-evaluation">Part 3</a> for the exact band formula.</li>
 </ul>
 </li>
 <li><strong>Part 4: Hard Trace Benchmark &amp; Stress Test (4 pts)</strong>
 <ul>
-<li><strong>2 pts</strong>: Valid C/C++ source code and properly formatted 200M-instruction trace file (<code>.champsimtrace.xz</code>) that runs without crashing with 2M warmup + 10M simulation instructions.</li>
-<li><strong>Up to 2 pts</strong>: Trace hardness based on MPKI on the baseline predictor (<code>bimodal</code>) during the 10M simulation phase after 2M warmup instructions. <strong>MPKI &gt;= 300</strong> earns <strong>2 points</strong>; otherwise, the score is <strong>2 × MPKI / 300 points</strong>.</li>
+<li><strong>2 pts</strong>: Valid C/C++ source code and properly formatted 200M-instruction trace file (<code>.champsimtrace.xz</code>) that runs without crashing with 2M warmup + 100M simulation instructions.</li>
+<li><strong>Up to 2 pts</strong>: Trace hardness based on MPKI on the baseline predictor (<code>bimodal</code>) during the 100M simulation phase after 2M warmup instructions. <strong>MPKI &gt;= 300</strong> earns <strong>2 points</strong>; otherwise, the score is <strong>2 × MPKI / 300 points</strong>.</li>
 </ul>
 </li>
 </ul>

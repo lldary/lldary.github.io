@@ -500,10 +500,10 @@ pred-6.champsimtrace.xz
 </code></pre>
 <p>Keep the default trace list and instruction counts when comparing against the threshold.</p>
 <p>The evaluation result is printed directly to the terminal as JSON containing a <code>score</code> field. For example:</p>
-<pre><code class="language-json">{"score": 93000}
+<pre><code class="language-json">{"score": 111000}
 </code></pre>
 <p>Progress is printed to stderr. Configuration, build logs, per-trace outputs, and detailed results are saved under <code>.auto-run/run-*/</code>; inspect these logs if a run fails. <code>--output-file ./local-result.json</code> also saves detailed results to a named JSON file. The script prints a score only when all requested traces complete successfully. Its uniquely named binaries are separate from the manually built <code>bin/champsim</code>.</p>
-<p>The value of <code>score</code> is used for the <strong>Local Evaluation</strong> grading item below. A score <strong>strictly greater than 92959</strong> earns <strong>2 points</strong>. For scores at or below <code>92959</code>, teaching assistants will determine partial credit by assessing the gap from this threshold; a larger gap results in fewer points.</p>
+<p>The value of <code>score</code> is used for the <strong>Local Evaluation</strong> grading item below. A score <strong>strictly greater than 110000</strong> earns <strong>2 points</strong>. For scores at or below <code>110000</code>, teaching assistants will determine partial credit by assessing the gap from this threshold; a larger gap results in fewer points.</p>
 <h3 id="leaderboard-evaluation"><a class="header" href="#leaderboard-evaluation">Leaderboard Evaluation</a></h3>
 <p>The leaderboard is a separate evaluation from the local <code>auto-run.py</code> grading item. It evaluates your predictor on <strong>seven traces</strong>:</p>
 <ul>
@@ -539,7 +539,7 @@ pred-6.champsimtrace.xz
 <ul>
 <li><strong>Functionality &amp; Correctness (2 pts)</strong>: Compilable and functionally correct predictor code that completes simulation runs without errors.</li>
 <li><strong>Baseline Performance (2 pts)</strong>: Performance surpassing <code>simple_bp</code>, with neither significantly lower IPC nor significantly higher MPKI than any of <code>local_bp</code>, <code>bimodal</code>, and <code>tournament</code> on <strong>each</strong> of <code>shell_sort</code> and <code>spfa</code>. Judge IPC and MPKI separately for each workload; a good result on one workload does not compensate for a significantly worse result on the other. Teaching assistants will assess whether a performance difference is significant by considering IPC and MPKI together on each workload; no fixed percentage cutoff is prescribed. This grading item does not use <code>score</code>.</li>
-<li><strong>Local Evaluation (up to 2 pts)</strong>: A <code>score</code> strictly greater than <code>92959</code> from <code>auto-run.py</code> earns <strong>2 points</strong>. For scores at or below <code>92959</code>, teaching assistants will determine partial credit based on the gap from this threshold, as described above.</li>
+<li><strong>Local Evaluation (up to 2 pts)</strong>: A <code>score</code> strictly greater than <code>110000</code> from <code>auto-run.py</code> earns <strong>2 points</strong>. For scores at or below <code>110000</code>, teaching assistants will determine partial credit based on the gap from this threshold, as described above.</li>
 <li><strong>Leaderboard Ranking (up to 2 pts)</strong>: Rank is determined by the score on the two public leaderboard traces and five hidden traces listed above. Sort by evaluation score from highest to lowest and divide rank positions into <strong>20 approximately equal-sized bands</strong>. The highest band earns <strong>2.0 points</strong>, and each subsequent band earns <strong>0.1 points</strong> less, down to <strong>0.1 points</strong> for the lowest band. Tied scores share the same rank and points, using competition ranking (e.g., <strong>1, 2, 2, 4</strong>).</li>
 </ul>
 </li>
@@ -583,6 +583,10 @@ pred-6.champsimtrace.xz
 <li><strong>High-Entropy Conditional Statements</strong>: Interleaved conditional logic that induces heavy aliasing (collisions) in branch target/predictor tables.</li>
 </ul>
 <h2 id="installing-intel-pin"><a class="header" href="#installing-intel-pin">Installing Intel PIN</a></h2>
+<p>If you are using the course-provided Docker image, Intel PIN is already installed at <code>/pin-external-4.3-99850-gce5652921-gcc-linux</code>. Set <code>PIN_ROOT</code> as follows and skip the remaining installation steps in this section:</p>
+<pre><code class="language-sh">export PIN_ROOT=/pin-external-4.3-99850-gce5652921-gcc-linux
+</code></pre>
+<p>Set <code>PIN_ROOT</code> again whenever you open a new terminal.</p>
 <p>Use the course-provided Linux x86-64 <code>ChampSim</code> package. The commands below require a C/C++ compiler, GNU Make, <code>wget</code>, <code>tar</code>, and <code>xz</code>.</p>
 <p>Create the installation directory <strong>before downloading</strong> Intel PIN so that the archive and extraction commands use the same directory:</p>
 <pre><code class="language-sh">mkdir -p "$HOME/tools"
@@ -609,7 +613,7 @@ ls -l tracer/pin/obj-intel64/champsim_tracer.so
 <p>Verify that the program performs its intended computation and runs without crashing. It must execute enough instructions to produce a full <strong>200M-instruction trace</strong>. Compiler optimizations may remove unused computations or replace conditional branches, so check that the compiled workload retains the control flow you intend to evaluate. Record your compiler options and program arguments in the report for reproducibility.</p>
 <h2 id="capturing-and-compressing-the-trace"><a class="header" href="#capturing-and-compressing-the-trace">Capturing and Compressing the Trace</a></h2>
 <p>A 200M-instruction trace in the course format occupies <strong>12.8 GB before compression</strong>. Ensure that the trace output location has enough free disk space for the raw trace and compressed output.</p>
-<p>Capture and submit <strong>200 million instructions</strong> (<code>200,000,000</code> / <strong>200M</strong>). Evaluation uses <strong>2M warmup instructions followed by 10M simulation instructions</strong> from this trace; grading metrics exclude warmup.</p>
+<p>Capture and submit <strong>200 million instructions</strong> (<code>200,000,000</code> / <strong>200M</strong>). Evaluation uses <strong>2M warmup instructions followed by 100M simulation instructions</strong> from this trace; grading metrics exclude warmup.</p>
 <p>Set <code>STUDENT_ID</code> to your actual student ID. The following example writes the trace directly into <code>traces/</code>:</p>
 <pre><code class="language-sh">STUDENT_ID=123456789
 mkdir -p traces
@@ -624,11 +628,11 @@ ls -lh "traces/${STUDENT_ID}_hard.champsimtrace.xz"
 <p><code>xz -z</code> replaces the uncompressed trace with its compressed <code>.xz</code> file. <code>xz -t</code> checks compression integrity; it does not check the instruction count or whether ChampSim can simulate the trace. The final filename must be <code>&lt;student_id&gt;_hard.champsimtrace.xz</code>, with <code>&lt;student_id&gt;</code> replaced by your actual student ID.</p>
 <h2 id="validating-with-champsim"><a class="header" href="#validating-with-champsim">Validating with ChampSim</a></h2>
 <p>In <code>lab2_config.json</code>, set <code>"branch_predictor": "bimodal"</code>, then configure and build the simulator from the <code>ChampSim</code> root directory:</p>
-<pre><code class="language-sh">./config.sh --no-compile-all-modules ./lab2_config.json
+<pre><code class="language-sh">./config.sh ./lab2_config.json
 make -j $(nproc)
-bin/champsim --warmup-instructions 2000000 --simulation-instructions 10000000 "traces/${STUDENT_ID}_hard.champsimtrace.xz"
+bin/champsim --warmup-instructions 2000000 --simulation-instructions 100000000 "traces/${STUDENT_ID}_hard.champsimtrace.xz"
 </code></pre>
-<p>Ensure that the simulation completes without crashing. Record <strong>MPKI</strong>, <strong>Prediction Accuracy</strong>, and <strong>CPU IPC</strong> from the <strong>10M simulation phase after 2M warmup instructions</strong>. This validation uses the same predictor and instruction lengths as the Part 4 hardness evaluation. Submit the full compressed <strong>200M-instruction</strong> trace, even though grading uses only 10M simulation instructions.</p>
+<p>Ensure that the simulation completes without crashing. Record <strong>MPKI</strong>, <strong>Prediction Accuracy</strong>, and <strong>CPU IPC</strong> from the <strong>100M simulation phase after 2M warmup instructions</strong>. This validation uses the same predictor and instruction lengths as the Part 4 hardness evaluation. Submit the full compressed <strong>200M-instruction</strong> trace, even though grading uses only 100M simulation instructions.</p>
 <div id="admonition-grading-policy--trace-hardness" class="admonition admonish-info" role="note" aria-labelledby="admonition-grading-policy--trace-hardness-title">
 <div class="admonition-title">
 <div id="admonition-grading-policy--trace-hardness-title">
@@ -637,7 +641,7 @@ bin/champsim --warmup-instructions 2000000 --simulation-instructions 10000000 "t
 <a class="admonition-anchor-link" href="proj2/part4.html#admonition-grading-policy--trace-hardness"></a>
 </div>
 <div>
-<p>All submitted traces will be benchmarked against the baseline predictor (<code>bimodal</code>) using <strong>2M warmup + 10M simulation instructions</strong>. Only statistics from the 10M simulation phase are used for grading. Part 4 is worth <strong>4 points</strong> in total:</p>
+<p>All submitted traces will be benchmarked against the baseline predictor (<code>bimodal</code>) using <strong>2M warmup + 100M simulation instructions</strong>. Only statistics from the 100M simulation phase are used for grading. Part 4 is worth <strong>4 points</strong> in total:</p>
 <ul>
 <li><strong>Source Code &amp; Trace Validity (2 pts)</strong>: Valid C/C++ source code and a properly formatted 200M-instruction trace file (<code>.champsimtrace.xz</code>) that runs without crashing.</li>
 <li><strong>Trace Hardness (up to 2 pts)</strong>: Measured by <strong>Branch Mispredictions Per Kilo-Instructions (MPKI)</strong> on <code>bimodal</code>:
@@ -665,7 +669,7 @@ bin/champsim --warmup-instructions 2000000 --simulation-instructions 10000000 "t
 <li><strong>Report Section</strong>: In your lab report, include:
 <ul>
 <li><strong>Control Flow Design</strong>: Describe the mechanisms and algorithms used in your program to trick branch predictors.</li>
-<li><strong>Benchmark Results</strong>: A table showing the MPKI, Prediction Accuracy, and CPU IPC of <code>bimodal</code> during the 10M simulation phase on your submitted 200M-instruction trace, following 2M warmup instructions.</li>
+<li><strong>Benchmark Results</strong>: A table showing the MPKI, Prediction Accuracy, and CPU IPC of <code>bimodal</code> during the 100M simulation phase on your submitted 200M-instruction trace, following 2M warmup instructions.</li>
 </ul>
 </li>
 </ol>
@@ -720,7 +724,7 @@ bin/champsim --warmup-instructions 2000000 --simulation-instructions 10000000 "t
 <li><strong>Part 3 Paper Summary</strong>: A 1–2 page summary of the Jiménez &amp; Lin paper covering <strong>motivations</strong>, <strong>key challenges</strong>, and <strong>perceptron mechanisms</strong>.</li>
 <li><strong>Part 3 Technical Documentation</strong>: Detailed explanation of your custom <code>my_perceptron</code> architecture, parameter selection (e.g., history lengths, table sizes, and any training thresholds), and any optimization techniques used. Any predictor architecture is allowed, with no limits on storage capacity, storage bit-width, history length, or evaluation runtime; the perceptron paper summary is still required.</li>
 <li><strong>Part 3 Performance Comparison</strong>: Bar charts comparing <strong>Accuracy (%)</strong>, <strong>MPKI</strong>, and <strong>CPU IPC</strong> for <code>my_perceptron</code>, <code>simple_bp</code>, <code>local_bp</code>, <code>bimodal</code>, and <code>tournament</code> on each of <code>shell_sort</code> and <code>spfa</code>. Use separate charts or panels for the metrics, <strong>2M warmup + 100M simulation instructions</strong>, identical simulator settings, and the ROI definitions in Part 1. Label axes, units, and predictor names, and discuss IPC and MPKI separately for both workloads.</li>
-<li><strong>Part 4 Hard Trace Analysis</strong>: Detailed description of your workload design and control-flow mechanisms, plus a table of MPKI, Prediction Accuracy, and CPU IPC for <code>bimodal</code> using 2M warmup + 10M simulation instructions from your 200M-instruction trace. Report statistics from the simulation phase, excluding warmup.</li>
+<li><strong>Part 4 Hard Trace Analysis</strong>: Detailed description of your workload design and control-flow mechanisms, plus a table of MPKI, Prediction Accuracy, and CPU IPC for <code>bimodal</code> using 2M warmup + 100M simulation instructions from your 200M-instruction trace. Report statistics from the simulation phase, excluding warmup.</li>
 </ul>
 </li>
 <li><strong>Source Codes</strong>:
@@ -732,7 +736,7 @@ bin/champsim --warmup-instructions 2000000 --simulation-instructions 10000000 "t
 </li>
 <li><strong>Hard Trace File</strong>:
 <ul>
-<li><code>&lt;student_id&gt;_hard.champsimtrace.xz</code>: Your compressed <strong>200M-instruction</strong> trace file for Part 4. Evaluation uses <strong>2M warmup + 10M simulation instructions</strong> from this trace.</li>
+<li><code>&lt;student_id&gt;_hard.champsimtrace.xz</code>: Your compressed <strong>200M-instruction</strong> trace file for Part 4. Evaluation uses <strong>2M warmup + 100M simulation instructions</strong> from this trace.</li>
 </ul>
 </li>
 </ol>
@@ -762,14 +766,14 @@ bin/champsim --warmup-instructions 2000000 --simulation-instructions 10000000 "t
 <ul>
 <li><strong>2 pts</strong>: Compilable and functionally correct <code>my_perceptron</code> code that passes simulation runs without errors.</li>
 <li><strong>2 pts</strong>: Performance surpassing <code>simple_bp</code>, with neither significantly lower IPC nor significantly higher MPKI than any of <code>local_bp</code>, <code>bimodal</code>, and <code>tournament</code> on <strong>each</strong> of <code>shell_sort</code> and <code>spfa</code>. Judge IPC and MPKI separately for each workload; a good result on one workload does not compensate for a significantly worse result on the other. Teaching assistants will assess whether a performance difference is significant by considering IPC and MPKI together on each workload; no fixed percentage cutoff is prescribed. This grading item does not use <code>score</code>.</li>
-<li><strong>Up to 2 pts</strong>: A <code>score</code> strictly greater than <code>92959</code> from the local <code>auto-run.py</code> earns <strong>2 points</strong>. For scores at or below <code>92959</code>, teaching assistants will determine partial credit by assessing the gap from this threshold; a larger gap results in fewer points. See <a href="proj2/./part3.html#local-evaluation-with-auto-runpy">Part 3</a> for download and execution instructions.</li>
+<li><strong>Up to 2 pts</strong>: A <code>score</code> strictly greater than <code>110000</code> from the local <code>auto-run.py</code> earns <strong>2 points</strong>. For scores at or below <code>110000</code>, teaching assistants will determine partial credit by assessing the gap from this threshold; a larger gap results in fewer points. See <a href="proj2/./part3.html#local-evaluation-with-auto-runpy">Part 3</a> for download and execution instructions.</li>
 <li><strong>Up to 2 pts</strong>: Leaderboard ranking based on the score from <code>403.gcc-48B.champsimtrace.xz</code>, <code>657.xz_s-56B.champsimtrace.xz</code>, and five hidden traces. This evaluation is independent of the local <code>auto-run.py</code> score. Sort by evaluation score from highest to lowest and divide rank positions into <strong>20 approximately equal-sized bands</strong>. The highest band earns <strong>2.0 points</strong>, and each subsequent band earns <strong>0.1 points</strong> less, down to <strong>0.1 points</strong> for the lowest band. Tied scores share the same rank and points, using competition ranking (e.g., <strong>1, 2, 2, 4</strong>). See <a href="proj2/./part3.html#leaderboard-evaluation">Part 3</a> for the exact band formula.</li>
 </ul>
 </li>
 <li><strong>Part 4: Hard Trace Benchmark &amp; Stress Test (4 pts)</strong>
 <ul>
-<li><strong>2 pts</strong>: Valid C/C++ source code and properly formatted 200M-instruction trace file (<code>.champsimtrace.xz</code>) that runs without crashing with 2M warmup + 10M simulation instructions.</li>
-<li><strong>Up to 2 pts</strong>: Trace hardness based on MPKI on the baseline predictor (<code>bimodal</code>) during the 10M simulation phase after 2M warmup instructions. <strong>MPKI &gt;= 300</strong> earns <strong>2 points</strong>; otherwise, the score is <strong>2 × MPKI / 300 points</strong>.</li>
+<li><strong>2 pts</strong>: Valid C/C++ source code and properly formatted 200M-instruction trace file (<code>.champsimtrace.xz</code>) that runs without crashing with 2M warmup + 100M simulation instructions.</li>
+<li><strong>Up to 2 pts</strong>: Trace hardness based on MPKI on the baseline predictor (<code>bimodal</code>) during the 100M simulation phase after 2M warmup instructions. <strong>MPKI &gt;= 300</strong> earns <strong>2 points</strong>; otherwise, the score is <strong>2 × MPKI / 300 points</strong>.</li>
 </ul>
 </li>
 </ul>

@@ -193,6 +193,10 @@
 <li><strong>High-Entropy Conditional Statements</strong>: Interleaved conditional logic that induces heavy aliasing (collisions) in branch target/predictor tables.</li>
 </ul>
 <h2 id="installing-intel-pin"><a class="header" href="#installing-intel-pin">Installing Intel PIN</a></h2>
+<p>If you are using the course-provided Docker image, Intel PIN is already installed at <code>/pin-external-4.3-99850-gce5652921-gcc-linux</code>. Set <code>PIN_ROOT</code> as follows and skip the remaining installation steps in this section:</p>
+<pre><code class="language-sh">export PIN_ROOT=/pin-external-4.3-99850-gce5652921-gcc-linux
+</code></pre>
+<p>Set <code>PIN_ROOT</code> again whenever you open a new terminal.</p>
 <p>Use the course-provided Linux x86-64 <code>ChampSim</code> package. The commands below require a C/C++ compiler, GNU Make, <code>wget</code>, <code>tar</code>, and <code>xz</code>.</p>
 <p>Create the installation directory <strong>before downloading</strong> Intel PIN so that the archive and extraction commands use the same directory:</p>
 <pre><code class="language-sh">mkdir -p "$HOME/tools"
@@ -219,7 +223,7 @@ ls -l tracer/pin/obj-intel64/champsim_tracer.so
 <p>Verify that the program performs its intended computation and runs without crashing. It must execute enough instructions to produce a full <strong>200M-instruction trace</strong>. Compiler optimizations may remove unused computations or replace conditional branches, so check that the compiled workload retains the control flow you intend to evaluate. Record your compiler options and program arguments in the report for reproducibility.</p>
 <h2 id="capturing-and-compressing-the-trace"><a class="header" href="#capturing-and-compressing-the-trace">Capturing and Compressing the Trace</a></h2>
 <p>A 200M-instruction trace in the course format occupies <strong>12.8 GB before compression</strong>. Ensure that the trace output location has enough free disk space for the raw trace and compressed output.</p>
-<p>Capture and submit <strong>200 million instructions</strong> (<code>200,000,000</code> / <strong>200M</strong>). Evaluation uses <strong>2M warmup instructions followed by 10M simulation instructions</strong> from this trace; grading metrics exclude warmup.</p>
+<p>Capture and submit <strong>200 million instructions</strong> (<code>200,000,000</code> / <strong>200M</strong>). Evaluation uses <strong>2M warmup instructions followed by 100M simulation instructions</strong> from this trace; grading metrics exclude warmup.</p>
 <p>Set <code>STUDENT_ID</code> to your actual student ID. The following example writes the trace directly into <code>traces/</code>:</p>
 <pre><code class="language-sh">STUDENT_ID=123456789
 mkdir -p traces
@@ -234,11 +238,11 @@ ls -lh "traces/${STUDENT_ID}_hard.champsimtrace.xz"
 <p><code>xz -z</code> replaces the uncompressed trace with its compressed <code>.xz</code> file. <code>xz -t</code> checks compression integrity; it does not check the instruction count or whether ChampSim can simulate the trace. The final filename must be <code>&lt;student_id&gt;_hard.champsimtrace.xz</code>, with <code>&lt;student_id&gt;</code> replaced by your actual student ID.</p>
 <h2 id="validating-with-champsim"><a class="header" href="#validating-with-champsim">Validating with ChampSim</a></h2>
 <p>In <code>lab2_config.json</code>, set <code>"branch_predictor": "bimodal"</code>, then configure and build the simulator from the <code>ChampSim</code> root directory:</p>
-<pre><code class="language-sh">./config.sh --no-compile-all-modules ./lab2_config.json
+<pre><code class="language-sh">./config.sh ./lab2_config.json
 make -j $(nproc)
-bin/champsim --warmup-instructions 2000000 --simulation-instructions 10000000 "traces/${STUDENT_ID}_hard.champsimtrace.xz"
+bin/champsim --warmup-instructions 2000000 --simulation-instructions 100000000 "traces/${STUDENT_ID}_hard.champsimtrace.xz"
 </code></pre>
-<p>Ensure that the simulation completes without crashing. Record <strong>MPKI</strong>, <strong>Prediction Accuracy</strong>, and <strong>CPU IPC</strong> from the <strong>10M simulation phase after 2M warmup instructions</strong>. This validation uses the same predictor and instruction lengths as the Part 4 hardness evaluation. Submit the full compressed <strong>200M-instruction</strong> trace, even though grading uses only 10M simulation instructions.</p>
+<p>Ensure that the simulation completes without crashing. Record <strong>MPKI</strong>, <strong>Prediction Accuracy</strong>, and <strong>CPU IPC</strong> from the <strong>100M simulation phase after 2M warmup instructions</strong>. This validation uses the same predictor and instruction lengths as the Part 4 hardness evaluation. Submit the full compressed <strong>200M-instruction</strong> trace, even though grading uses only 100M simulation instructions.</p>
 <div id="admonition-grading-policy--trace-hardness" class="admonition admonish-info" role="note" aria-labelledby="admonition-grading-policy--trace-hardness-title">
 <div class="admonition-title">
 <div id="admonition-grading-policy--trace-hardness-title">
@@ -247,7 +251,7 @@ bin/champsim --warmup-instructions 2000000 --simulation-instructions 10000000 "t
 <a class="admonition-anchor-link" href="#admonition-grading-policy--trace-hardness"></a>
 </div>
 <div>
-<p>All submitted traces will be benchmarked against the baseline predictor (<code>bimodal</code>) using <strong>2M warmup + 10M simulation instructions</strong>. Only statistics from the 10M simulation phase are used for grading. Part 4 is worth <strong>4 points</strong> in total:</p>
+<p>All submitted traces will be benchmarked against the baseline predictor (<code>bimodal</code>) using <strong>2M warmup + 100M simulation instructions</strong>. Only statistics from the 100M simulation phase are used for grading. Part 4 is worth <strong>4 points</strong> in total:</p>
 <ul>
 <li><strong>Source Code &amp; Trace Validity (2 pts)</strong>: Valid C/C++ source code and a properly formatted 200M-instruction trace file (<code>.champsimtrace.xz</code>) that runs without crashing.</li>
 <li><strong>Trace Hardness (up to 2 pts)</strong>: Measured by <strong>Branch Mispredictions Per Kilo-Instructions (MPKI)</strong> on <code>bimodal</code>:
@@ -275,7 +279,7 @@ bin/champsim --warmup-instructions 2000000 --simulation-instructions 10000000 "t
 <li><strong>Report Section</strong>: In your lab report, include:
 <ul>
 <li><strong>Control Flow Design</strong>: Describe the mechanisms and algorithms used in your program to trick branch predictors.</li>
-<li><strong>Benchmark Results</strong>: A table showing the MPKI, Prediction Accuracy, and CPU IPC of <code>bimodal</code> during the 10M simulation phase on your submitted 200M-instruction trace, following 2M warmup instructions.</li>
+<li><strong>Benchmark Results</strong>: A table showing the MPKI, Prediction Accuracy, and CPU IPC of <code>bimodal</code> during the 100M simulation phase on your submitted 200M-instruction trace, following 2M warmup instructions.</li>
 </ul>
 </li>
 </ol>

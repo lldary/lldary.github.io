@@ -291,10 +291,10 @@ pred-6.champsimtrace.xz
 </code></pre>
 <p>Keep the default trace list and instruction counts when comparing against the threshold.</p>
 <p>The evaluation result is printed directly to the terminal as JSON containing a <code>score</code> field. For example:</p>
-<pre><code class="language-json">{"score": 93000}
+<pre><code class="language-json">{"score": 111000}
 </code></pre>
 <p>Progress is printed to stderr. Configuration, build logs, per-trace outputs, and detailed results are saved under <code>.auto-run/run-*/</code>; inspect these logs if a run fails. <code>--output-file ./local-result.json</code> also saves detailed results to a named JSON file. The script prints a score only when all requested traces complete successfully. Its uniquely named binaries are separate from the manually built <code>bin/champsim</code>.</p>
-<p>The value of <code>score</code> is used for the <strong>Local Evaluation</strong> grading item below. A score <strong>strictly greater than 92959</strong> earns <strong>2 points</strong>. For scores at or below <code>92959</code>, teaching assistants will determine partial credit by assessing the gap from this threshold; a larger gap results in fewer points.</p>
+<p>The value of <code>score</code> is used for the <strong>Local Evaluation</strong> grading item below. A score <strong>strictly greater than 110000</strong> earns <strong>2 points</strong>. For scores at or below <code>110000</code>, teaching assistants will determine partial credit by assessing the gap from this threshold; a larger gap results in fewer points.</p>
 <h3 id="leaderboard-evaluation"><a class="header" href="#leaderboard-evaluation">Leaderboard Evaluation</a></h3>
 <p>The leaderboard is a separate evaluation from the local <code>auto-run.py</code> grading item. It evaluates your predictor on <strong>seven traces</strong>:</p>
 <ul>
@@ -330,7 +330,7 @@ pred-6.champsimtrace.xz
 <ul>
 <li><strong>Functionality &amp; Correctness (2 pts)</strong>: Compilable and functionally correct predictor code that completes simulation runs without errors.</li>
 <li><strong>Baseline Performance (2 pts)</strong>: Performance surpassing <code>simple_bp</code>, with neither significantly lower IPC nor significantly higher MPKI than any of <code>local_bp</code>, <code>bimodal</code>, and <code>tournament</code> on <strong>each</strong> of <code>shell_sort</code> and <code>spfa</code>. Judge IPC and MPKI separately for each workload; a good result on one workload does not compensate for a significantly worse result on the other. Teaching assistants will assess whether a performance difference is significant by considering IPC and MPKI together on each workload; no fixed percentage cutoff is prescribed. This grading item does not use <code>score</code>.</li>
-<li><strong>Local Evaluation (up to 2 pts)</strong>: A <code>score</code> strictly greater than <code>92959</code> from <code>auto-run.py</code> earns <strong>2 points</strong>. For scores at or below <code>92959</code>, teaching assistants will determine partial credit based on the gap from this threshold, as described above.</li>
+<li><strong>Local Evaluation (up to 2 pts)</strong>: A <code>score</code> strictly greater than <code>110000</code> from <code>auto-run.py</code> earns <strong>2 points</strong>. For scores at or below <code>110000</code>, teaching assistants will determine partial credit based on the gap from this threshold, as described above.</li>
 <li><strong>Leaderboard Ranking (up to 2 pts)</strong>: Rank is determined by the score on the two public leaderboard traces and five hidden traces listed above. Sort by evaluation score from highest to lowest and divide rank positions into <strong>20 approximately equal-sized bands</strong>. The highest band earns <strong>2.0 points</strong>, and each subsequent band earns <strong>0.1 points</strong> less, down to <strong>0.1 points</strong> for the lowest band. Tied scores share the same rank and points, using competition ranking (e.g., <strong>1, 2, 2, 4</strong>).</li>
 </ul>
 </li>
