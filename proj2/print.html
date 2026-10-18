@@ -244,7 +244,7 @@
 make -j $(nproc)
 
 </code></pre>
-<p>Next, let me run the trace files and examine how these branch predictors impact system performance. <code>ChampSim</code> is trace-driven, and trace files are stored in <code>*.champsimtrace.xz</code> format. The course repository includes <code>shell_sort.champsimtrace.xz</code> and <code>spfa.champsimtrace.xz</code> under <code>traces/</code>; run the commands below from the <code>ChampSim</code> root directory. Among the provided workloads, <code>shell_sort</code> and <code>spfa</code> are sensitive to branch predictor performance, while <code>gemm</code> and <code>binary_search</code> are insensitive. For the manual comparisons in Parts 1 to 3, run <code>shell_sort</code> and <code>spfa</code>.</p>
+<p>Next, let me run the trace files and examine how these branch predictors impact system performance. <code>ChampSim</code> is trace-driven, and trace files are stored in <code>*.champsimtrace.xz</code> format. The course repository includes <code>shell_sort.champsimtrace.xz</code> and <code>spfa.champsimtrace.xz</code> under <code>traces/</code>; run the commands below from the <code>ChampSim</code> root directory. Among the provided workloads, <code>shell_sort</code> and <code>spfa</code> are sensitive to branch predictor performance, while <code>gemm</code> and <code>binary_search</code> are insensitive. <strong>For the manual comparisons in Parts 1 to 3, run <code>shell_sort</code> and <code>spfa</code>.</strong></p>
 <p>To test the performance of the <code>bimodal</code> predictor, run the following execution commands:</p>
 <pre><code class="language-sh"># Run with the compiled bimodal executable
 bin/champsim --warmup-instructions 2000000 --simulation-instructions 100000000 traces/shell_sort.champsimtrace.xz
@@ -341,7 +341,7 @@ void simple_bp::last_branch_result(champsim::address ip, champsim::address branc
 <li><code>predict_branch()</code>: Called when a branch prediction is needed. This example uses the single-argument interface, receives the branch instruction address (<code>ip</code>), and returns <code>true</code> for taken or <code>false</code> for not taken.</li>
 <li><code>last_branch_result()</code>: Called when a branch is resolved and its actual outcome (<code>taken</code>) is known. You use this callback to update your prediction tables or history registers.</li>
 </ul>
-<p>The module inherits its constructor from <code>champsim::modules::branch_predictor</code>, allowing ChampSim to construct it with the associated CPU. Keep the module directory, class, and source-file names consistent (<code>simple_bp</code>). The declaration and definition of each callback must also use matching signatures. This example follows the upstream <a href="https://github.com/ChampSim/ChampSim/tree/master/branch/bimodal"><code>bimodal</code> module</a> and <a href="https://champsim.github.io/ChampSim/master/Modules.html">module interface documentation</a>.</p>
+<p>The module inherits its constructor from <code>champsim::modules::branch_predictor</code>, allowing ChampSim to construct it with the associated CPU. Keep the module directory, class, and source-file names consistent (<code>simple_bp</code>). The declaration and definition of each callback must also use matching signatures. This example follows the upstream <a href="https://github.com/ChampSim/ChampSim/tree/master/branch/"><code>branch_predictor</code> module</a> and <a href="https://champsim.github.io/ChampSim/master/Modules.html">module interface documentation</a>.</p>
 <p>Next, to compile <code>ChampSim</code> with our new <code>simple_bp</code>, set <code>"branch_predictor": "simple_bp"</code> in <code>lab2_config.json</code>:</p>
 <pre><code class="language-json">{
   "executable_name": "champsim",
@@ -362,7 +362,7 @@ void simple_bp::last_branch_result(champsim::address ip, champsim::address branc
 
 </code></pre>
 <p>Then, generate the build scripts and compile <code>ChampSim</code>:</p>
-<pre><code class="language-sh">./config.sh --no-compile-all-modules ./lab2_config.json
+<pre><code class="language-sh">./config.sh ./lab2_config.json
 make -j $(nproc)
 
 </code></pre>
