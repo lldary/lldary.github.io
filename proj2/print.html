@@ -503,14 +503,14 @@ pred-6.champsimtrace.xz
 <pre><code class="language-json">{"score": 111000}
 </code></pre>
 <p>Progress is printed to stderr. Configuration, build logs, per-trace outputs, and detailed results are saved under <code>.auto-run/run-*/</code>; inspect these logs if a run fails. <code>--output-file ./local-result.json</code> also saves detailed results to a named JSON file. The script prints a score only when all requested traces complete successfully. Its uniquely named binaries are separate from the manually built <code>bin/champsim</code>.</p>
-<p>The value of <code>score</code> is used for the <strong>Local Evaluation</strong> grading item below. A score <strong>strictly greater than 110000</strong> earns <strong>2 points</strong>. For scores at or below <code>110000</code>, teaching assistants will determine partial credit by assessing the gap from this threshold; a larger gap results in fewer points.</p>
+<p>The value of <code>score</code> is used for the <strong>Local Evaluation</strong> grading item below. A score <strong>strictly greater than 110000</strong> earns <strong>3 points</strong>. For scores at or below <code>110000</code>, teaching assistants will determine partial credit by assessing the gap from this threshold; a larger gap results in fewer points.</p>
 <h3 id="leaderboard-evaluation"><a class="header" href="#leaderboard-evaluation">Leaderboard Evaluation</a></h3>
 <p>The leaderboard is a separate evaluation from the local <code>auto-run.py</code> grading item. It evaluates your predictor on <strong>seven traces</strong>:</p>
 <ul>
 <li><strong>Public</strong>: <code>403.gcc-48B.champsimtrace.xz</code> and <code>657.xz_s-56B.champsimtrace.xz</code>.</li>
 <li><strong>Hidden</strong>: Five additional evaluation traces.</li>
 </ul>
-<p>Leaderboard positions are determined by the <strong>score from this seven-trace evaluation</strong>, independently of the local <code>auto-run.py</code> score. The leaderboard awards up to <strong>2 grading points</strong> according to rank; these points are separate from the up to <strong>2 points</strong> for the local evaluation threshold.</p>
+<p>Leaderboard positions are determined by the <strong>score from this seven-trace evaluation</strong>, independently of the local <code>auto-run.py</code> score. The leaderboard awards up to <strong>2 grading points</strong> according to rank; these points are separate from the up to <strong>3 points</strong> for the local evaluation threshold.</p>
 <p>For <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span></span></span></span> participants and competition rank <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span></span></span></span> (rank 1 is best), the band number is <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">⌈</span><span class="mord">20</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord">/</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">⌉</span></span></span></span>, and the awarded points are <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">2.1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">0.1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">⌈</span><span class="mord">20</span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span><span class="mord">/</span><span class="mord mathnormal" style="margin-right:0.10903em;">N</span><span class="mclose">⌉</span></span></span></span>. Tied participants use the same <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">r</span></span></span></span>, even across a band boundary.</p>
 <div id="admonition-online-evaluation" class="admonition admonish-tip" role="note" aria-labelledby="admonition-online-evaluation-title">
 <div class="admonition-title">
@@ -543,14 +543,14 @@ pred-6.champsimtrace.xz
 <a class="admonition-anchor-link" href="proj2/part3.html#admonition-grading-policy--performance-ranking"></a>
 </div>
 <div>
-<p>Use <code>shell_sort</code> and <code>spfa</code> for the baseline comparisons. The local <code>auto-run.py</code> evaluation and the seven-trace leaderboard evaluation described above are separate grading items. Part 3 is worth <strong>13 points</strong> in total:</p>
+<p>Use <code>shell_sort</code> and <code>spfa</code> for the baseline comparisons. The local <code>auto-run.py</code> evaluation and the seven-trace leaderboard evaluation described above are separate grading items. The implementation and performance items in Part 3 contribute <strong>10 points</strong> to the <strong>18-point Project 2 total</strong>. The paper summary is graded separately out of <strong>5 points</strong> and is not included in that total:</p>
 <ol>
-<li><strong>Paper Summary (5 pts)</strong>: A comprehensive summary covering motivations, challenges, and architectural designs. Each missing key section incurs a <strong>1-point deduction</strong>.</li>
-<li><strong>Custom BP Implementation &amp; Performance (8 pts)</strong>:
+<li><strong>Paper Summary (5 pts, graded separately)</strong>: A comprehensive summary covering motivations, challenges, and architectural designs. Each missing key section incurs a <strong>1-point deduction</strong>.</li>
+<li><strong>Custom BP Implementation &amp; Performance (10 pts)</strong>:
 <ul>
 <li><strong>Functionality &amp; Correctness (2 pts)</strong>: Compilable and functionally correct predictor code that completes simulation runs without errors.</li>
-<li><strong>Baseline Performance (2 pts)</strong>: Performance surpassing <code>simple_bp</code>, with neither significantly lower IPC nor significantly higher MPKI than any of <code>local_bp</code>, <code>bimodal</code>, and <code>tournament</code> on <strong>each</strong> of <code>shell_sort</code> and <code>spfa</code>. Judge IPC and MPKI separately for each workload; a good result on one workload does not compensate for a significantly worse result on the other. Teaching assistants will assess whether a performance difference is significant by considering IPC and MPKI together on each workload; no fixed percentage cutoff is prescribed. This grading item does not use <code>score</code>.</li>
-<li><strong>Local Evaluation (up to 2 pts)</strong>: A <code>score</code> strictly greater than <code>110000</code> from <code>auto-run.py</code> earns <strong>2 points</strong>. For scores at or below <code>110000</code>, teaching assistants will determine partial credit based on the gap from this threshold, as described above.</li>
+<li><strong>Baseline Performance (3 pts)</strong>: Performance surpassing <code>simple_bp</code>, with neither significantly lower IPC nor significantly higher MPKI than any of <code>local_bp</code>, <code>bimodal</code>, and <code>tournament</code> on <strong>each</strong> of <code>shell_sort</code> and <code>spfa</code>. Judge IPC and MPKI separately for each workload; a good result on one workload does not compensate for a significantly worse result on the other. Teaching assistants will assess whether a performance difference is significant by considering IPC and MPKI together on each workload; no fixed percentage cutoff is prescribed. This grading item does not use <code>score</code>.</li>
+<li><strong>Local Evaluation (up to 3 pts)</strong>: A <code>score</code> strictly greater than <code>110000</code> from <code>auto-run.py</code> earns <strong>3 points</strong>. For scores at or below <code>110000</code>, teaching assistants will determine partial credit based on the gap from this threshold, as described above.</li>
 <li><strong>Leaderboard Ranking (up to 2 pts)</strong>: Rank is determined by the score on the two public leaderboard traces and five hidden traces listed above. Sort by evaluation score from highest to lowest and divide rank positions into <strong>20 approximately equal-sized bands</strong>. The highest band earns <strong>2.0 points</strong>, and each subsequent band earns <strong>0.1 points</strong> less, down to <strong>0.1 points</strong> for the lowest band. Tied scores share the same rank and points, using competition ranking (e.g., <strong>1, 2, 2, 4</strong>).</li>
 </ul>
 </li>
@@ -661,13 +661,13 @@ bin/champsim --warmup-instructions 2000000 --simulation-instructions 100000000 "
 <a class="admonition-anchor-link" href="proj2/part4.html#admonition-grading-policy--trace-hardness"></a>
 </div>
 <div>
-<p>All submitted traces will be benchmarked against the baseline predictor (<code>bimodal</code>) using <strong>2M warmup + 100M simulation instructions</strong>. Only statistics from the 100M simulation phase are used for grading. Part 4 is worth <strong>4 points</strong> in total:</p>
+<p>All submitted traces will be benchmarked against the baseline predictor (<code>bimodal</code>) using <strong>2M warmup + 100M simulation instructions</strong>. Only statistics from the 100M simulation phase are used for grading. Part 4 is worth <strong>5 points</strong> in total:</p>
 <ul>
 <li><strong>Source Code &amp; Trace Validity (2 pts)</strong>: Valid C source code and a properly formatted 200M-instruction trace file (<code>.champsimtrace.xz</code>) that runs without crashing.</li>
-<li><strong>Trace Hardness (up to 2 pts)</strong>: Measured by <strong>Branch Mispredictions Per Kilo-Instructions (MPKI)</strong> on <code>bimodal</code>:
+<li><strong>Trace Hardness (up to 3 pts)</strong>: Measured by <strong>Branch Mispredictions Per Kilo-Instructions (MPKI)</strong> on <code>bimodal</code>:
 <ul>
-<li><strong>MPKI &gt;= 150</strong>: <strong>2 points</strong>.</li>
-<li><strong>MPKI &lt; 150</strong>: <strong>2 × MPKI / 150 points</strong>, proportional to the achieved MPKI.</li>
+<li><strong>MPKI &gt;= 150</strong>: <strong>3 points</strong>.</li>
+<li><strong>MPKI &lt; 150</strong>: <strong>3 × MPKI / 150 points</strong>, proportional to the achieved MPKI.</li>
 </ul>
 </li>
 <li><strong>Fairness &amp; Validity</strong>: Random-number-driven workloads and loops deliberately designed to create hard-to-predict branches are allowed, including synthetic stress tests. Empty loops that perform no meaningful computation, inline assembly traps, and code causing segmentation faults or other crashes during tracing will be disqualified.</li>
@@ -771,33 +771,39 @@ bin/champsim --warmup-instructions 2000000 --simulation-instructions 100000000 "
 <a class="admonition-anchor-link" href="proj2/submit.html#admonition-grading-scheme-18-points-total"></a>
 </div>
 <div>
-<p>Your final score for Project 2 will be calculated based on the following breakdown:</p>
+<p>The Project 2 total is <strong>18 points</strong>, excluding the separately graded paper summary. The breakdown is:</p>
 <ul>
 <li><strong>Part 1 &amp; 2: Baseline &amp; Simple BP Evaluation (3 pts)</strong>
 <ul>
 <li><strong>3 pts</strong>: Reasonable performance statistics (Accuracy, MPKI, and IPC) provided for <code>local_bp</code>, <code>bimodal</code>, <code>tournament</code>, and <code>simple_bp</code> on standard workloads.</li>
 </ul>
 </li>
-<li><strong>Part 3: Perceptron Paper Summary (5 pts)</strong>
-<ul>
-<li><strong>5 pts</strong>: Comprehensive summary covering motivations, challenges, and architectural designs (Lack of any key section: <strong>-1 pt</strong> each).</li>
-</ul>
-</li>
-<li><strong>Part 3: Custom BP Implementation &amp; Performance Ranking (8 pts)</strong>
+<li><strong>Part 3: Custom BP Implementation &amp; Performance Ranking (10 pts)</strong>
 <ul>
 <li><strong>2 pts</strong>: Compilable and functionally correct <code>my_perceptron</code> code that passes simulation runs without errors.</li>
 <li><strong>3 pts</strong>: Performance surpassing <code>simple_bp</code>, with neither significantly lower IPC nor significantly higher MPKI than any of <code>local_bp</code>, <code>bimodal</code>, and <code>tournament</code> on <strong>each</strong> of <code>shell_sort</code> and <code>spfa</code>. Judge IPC and MPKI separately for each workload; a good result on one workload does not compensate for a significantly worse result on the other. Teaching assistants will assess whether a performance difference is significant by considering IPC and MPKI together on each workload; no fixed percentage cutoff is prescribed. This grading item does not use <code>score</code>.</li>
-<li><strong>Up to 3 pts</strong>: A <code>score</code> strictly greater than <code>110000</code> from the local <code>auto-run.py</code> earns <strong>2 points</strong>. For scores at or below <code>110000</code>, teaching assistants will determine partial credit by assessing the gap from this threshold; a larger gap results in fewer points. See <a href="proj2/./part3.html#local-evaluation-with-auto-runpy">Part 3</a> for download and execution instructions.</li>
+<li><strong>Up to 3 pts</strong>: A <code>score</code> strictly greater than <code>110000</code> from the local <code>auto-run.py</code> earns <strong>3 points</strong>. For scores at or below <code>110000</code>, teaching assistants will determine partial credit by assessing the gap from this threshold; a larger gap results in fewer points. See <a href="proj2/./part3.html#local-evaluation-with-auto-runpy">Part 3</a> for download and execution instructions.</li>
 <li><strong>Up to 2 pts</strong>: Leaderboard ranking based on the score from <code>403.gcc-48B.champsimtrace.xz</code>, <code>657.xz_s-56B.champsimtrace.xz</code>, and five hidden traces. This evaluation is independent of the local <code>auto-run.py</code> score. Sort by evaluation score from highest to lowest and divide rank positions into <strong>20 approximately equal-sized bands</strong>. The highest band earns <strong>2.0 points</strong>, and each subsequent band earns <strong>0.1 points</strong> less, down to <strong>0.1 points</strong> for the lowest band. Tied scores share the same rank and points, using competition ranking (e.g., <strong>1, 2, 2, 4</strong>). See <a href="proj2/./part3.html#leaderboard-evaluation">Part 3</a> for the exact band formula.</li>
 </ul>
 </li>
-<li><strong>Part 4: Hard Trace Benchmark &amp; Stress Test (4 pts)</strong>
+<li><strong>Part 4: Hard Trace Benchmark &amp; Stress Test (5 pts)</strong>
 <ul>
 <li><strong>2 pts</strong>: Valid C source code and properly formatted 200M-instruction trace file (<code>.champsimtrace.xz</code>) that runs without crashing with 2M warmup + 100M simulation instructions.</li>
-<li><strong>Up to 3 pts</strong>: Trace hardness based on MPKI on the baseline predictor (<code>bimodal</code>) during the 100M simulation phase after 2M warmup instructions. <strong>MPKI &gt;= 150</strong> earns <strong>2 points</strong>; otherwise, the score is <strong>2 × MPKI / 150 points</strong>.</li>
+<li><strong>Up to 3 pts</strong>: Trace hardness based on MPKI on the baseline predictor (<code>bimodal</code>) during the 100M simulation phase after 2M warmup instructions. <strong>MPKI &gt;= 150</strong> earns <strong>3 points</strong>; otherwise, the score is <strong>3 × MPKI / 150 points</strong>.</li>
 </ul>
 </li>
 </ul>
+</div>
+</div>
+<div id="admonition-paper-summary-5-points-graded-separately" class="admonition admonish-info" role="note" aria-labelledby="admonition-paper-summary-5-points-graded-separately-title">
+<div class="admonition-title">
+<div id="admonition-paper-summary-5-points-graded-separately-title">
+<p>Paper Summary (5 Points, Graded Separately)</p>
+</div>
+<a class="admonition-anchor-link" href="proj2/submit.html#admonition-paper-summary-5-points-graded-separately"></a>
+</div>
+<div>
+<p>The Part 3 paper summary is graded separately and is <strong>not included in the 18-point Project 2 total</strong>. A comprehensive summary covering motivations, challenges, and architectural designs earns <strong>5 points</strong>. Each missing key section incurs a <strong>1-point deduction</strong>.</p>
 </div>
 </div>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
