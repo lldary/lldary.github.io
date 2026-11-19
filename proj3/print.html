@@ -225,16 +225,11 @@
 <h2 id="1-prepare-the-workloads"><a class="header" href="#1-prepare-the-workloads">1. Prepare the Workloads</a></h2>
 <p>Part 1 uses two synthetic teaching traces:</p>
 <div class="table-wrapper"><table><thead><tr><th>Trace</th><th>Required experiment</th><th>Purpose</th></tr></thead><tbody>
-<tr><td><a href="proj3/./traces/cache-capacity.champsimtrace.xz">cache-capacity.champsimtrace.xz</a></td><td>Capacity allocation</td><td>Reuse hot data while traversing a larger working set; investigate capacity and latency tradeoffs.</td></tr>
-<tr><td><a href="proj3/./traces/cache-conflict.champsimtrace.xz">cache-conflict.champsimtrace.xz</a></td><td>Sets and associativity</td><td>Repeatedly access blocks with matching page offsets; investigate mapping conflicts at fixed capacity.</td></tr>
+<tr><td><a href="https://disk.pku.edu.cn/link/AA03FB514ED846474BBAAA5C4C97092C84">cache-capacity.champsimtrace.xz</a></td><td>Capacity allocation</td><td>Reuse hot data while traversing a larger working set; investigate capacity and latency tradeoffs.</td></tr>
+<tr><td><a href="https://disk.pku.edu.cn/link/AA03FB514ED846474BBAAA5C4C97092C84">cache-conflict.champsimtrace.xz</a></td><td>Sets and associativity</td><td>Repeatedly access blocks with matching page offsets; investigate mapping conflicts at fixed capacity.</td></tr>
 </tbody></table>
 </div>
-<p>Download both files into the ChampSim <code>traces/</code> directory. Each contains <strong>124M instructions</strong>, enough for the required 20M warmup followed by 100M measurement without replaying the trace. These are directly generated microbenchmark instruction streams with explicit register dependencies and loop branches. The <a href="proj3/./tools/generate_cache_trace.py">generator</a> and metadata (<a href="proj3/./traces/cache-capacity.champsimtrace.xz.json">capacity</a>, <a href="proj3/./traces/cache-conflict.champsimtrace.xz.json">conflict</a>) document their construction and fixed random seed.</p>
-<p>To regenerate them, save the generator as <code>tools/generate_cache_trace.py</code> in the ChampSim directory and run:</p>
-<pre><code class="language-sh">mkdir -p traces tools results
-python3 tools/generate_cache_trace.py capacity traces/cache-capacity.champsimtrace.xz
-python3 tools/generate_cache_trace.py conflict traces/cache-conflict.champsimtrace.xz
-</code></pre>
+<p>Download both course-provided trace files from the PKU Disk into the ChampSim <code>traces/</code> directory. Each contains <strong>124M instructions</strong>, enough for the required 20M warmup followed by 100M measurement without replaying the trace. These are microbenchmark instruction streams with explicit register dependencies and loop branches.</p>
 <p>Keep the provided trace contents and simulation window identical across configurations. Parts 2 and 3 use their separately specified application traces.</p>
 <h2 id="2-single-core-baseline"><a class="header" href="#2-single-core-baseline">2. Single-Core Baseline</a></h2>
 <p>Create <code>lab3_config.json</code> with this complete baseline configuration. Use it as the starting point for each experiment rather than inheriting a personally optimized CPU or cache configuration from Project 2.</p>
