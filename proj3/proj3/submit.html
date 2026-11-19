@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Submission - Archlab gem5 Project 3</title>
+        <title>Submission - Archlab ChampSim Project 3</title>
 
 
         <!-- Custom HTML head -->
@@ -141,7 +141,7 @@
                         </button>
                     </div>
 
-                    <h1 class="menu-title">Archlab gem5 Project 3</h1>
+                    <h1 class="menu-title">Archlab ChampSim Project 3</h1>
 
                     <div class="right-buttons">
                         <a href="../print.html" title="Print this book" aria-label="Print this book">
@@ -190,10 +190,10 @@
 <div>
 <ul>
 <li>Please submit the deliverables for each part in order, formatted clearly in a single lab report (PDF format preferred). Provide brief but insightful discussions for all experimental results.</li>
-<li>You <strong>MUST</strong> submit your source code files, paper summary, and custom trace file along with your report.</li>
+<li>You <strong>MUST</strong> submit your source code files, paper summary, and Part 4 measurement artifacts along with your report.</li>
 <li>Pack all required files into a single zip/tar archive and submit it via <a href="https://course.pku.edu.cn">course.pku.edu.cn</a>. The title of the archive and the report must follow the format: <code>Student-ID_Name_Proj3</code> (e.g., <code>123456789_WangXiaoming_Proj3</code>).</li>
 <li>You can also email your submission to <code>2501112042@stu.pku.edu.cn</code>. The email subject and attachment filename <strong>MUST</strong> both be <code>Student-ID_Name_Proj3</code>.</li>
-<li><strong>ACADEMIC INTEGRITY</strong>: Do not plagiarize code or report contents. We will randomly select students for an oral defense/Q&amp;A session regarding their code implementation and trace design.</li>
+<li><strong>ACADEMIC INTEGRITY</strong>: Do not plagiarize code or report contents. We will randomly select students for an oral defense/Q&amp;A session regarding their prefetcher implementation, program optimizations, and experimental analysis.</li>
 </ul>
 </div>
 </div>
@@ -207,7 +207,7 @@
 <div>
 <ul>
 <li>You are allocated <strong>3 slip days</strong> in total for the entire semester (shared across all projects) to extend project deadlines.</li>
-<li>Projects are due strictly at <strong>23:59:59</strong> on the deadline date. Late submissions without slip days will incur a <strong>20% penalty per day</strong> (1 second late = 1 day late).</li>
+<li>Projects are due strictly at <strong>23:59:00</strong> on the deadline date. Late submissions without slip days will incur a <strong>20% penalty per day</strong> (1 second late = 1 day late).</li>
 </ul>
 </div>
 </div>
@@ -223,10 +223,10 @@
 <ol>
 <li><strong>Lab Report (<code>Report.pdf</code>)</strong>:
 <ul>
-<li><strong>Part 1</strong>: Screenshot of <code>lab3_config.json</code>, build terminal output, and IPC comparison table/figure across cache configurations.</li>
-<li><strong>Part 2</strong>: Evaluation table/figures showing <strong>IPC</strong>, <strong>Accuracy</strong>, <strong>Coverage</strong>, and <strong>Late Prefetches</strong> for baseline prefetchers (<code>no</code>, <code>next_line</code>, <code>ip_stride</code>) on <code>shell_sort</code> and <code>gemm</code>.</li>
-<li><strong>Part 3</strong>: Evaluation metrics for your <code>Hyperion</code> prefetcher, along with performance comparison and discussion.</li>
-<li><strong>Part 4</strong>: Detailed explanation of your custom trace design strategy, hostility analysis, and performance table against baselines.</li>
+<li><strong>Part 1</strong>: Capacity allocation analysis on <code>cache-capacity</code> and fixed-capacity sets/ways analysis on <code>cache-conflict</code>; include IPC, cycles, L1D/L2C LOAD counts, miss rates, MPKI, and configured hit/fill latencies, with build/run evidence.</li>
+<li><strong>Part 2</strong>: Evaluation table/figures showing <strong>IPC</strong>, <strong>Accuracy</strong>, <strong>Coverage estimate</strong>, and <strong>Speedup</strong> for baseline prefetchers (<code>no</code>, <code>next_line</code>, <code>ip_stride</code>) on <code>shell_sort</code> and <code>gemm</code>.</li>
+<li><strong>Part 3</strong>: Custom prefetcher design, evaluation metrics, performance comparison, and discussion. Matching Part 2 baseline results may be reused under the conditions in Part 3; only two additional final runs are needed for that report comparison on the two required workloads. Part 3's local performance qualification separately uses the full 16-trace automatic scoring suite.</li>
+<li><strong>Part 4</strong>: Telemetry-program optimization progression, correctness evidence, baseline and at least two optimization versions, controlled parameter/ablation comparisons, cache/working-set analysis, and complete-task cycles and speedup on the official medium input.</li>
 </ul>
 </li>
 <li><strong>Paper Summary (<code>Paper_Summary.pdf</code> or section in report)</strong>:
@@ -236,53 +236,76 @@
 </li>
 <li><strong>Source Code &amp; Configurations</strong>:
 <ul>
-<li><code>lab3_config.json</code>: Your ChampSim cache hierarchy configuration.</li>
-<li><code>hyperion.cc</code>: Your C++ implementation of the Hyperion prefetcher.</li>
+<li><code>lab3_config.json</code> and all evaluated variant JSON files: Your baseline and experimental ChampSim configurations.</li>
+<li>Part 4 <code>student.cc</code>, any added helpers, and the starter sources/build files with the fixed <code>part4_config.json</code>. Preserve the course arithmetic, reference, driver and compiler flags.</li>
+<li><code>prefetcher/my_prefetcher/my_prefetcher.h</code> and <code>prefetcher/my_prefetcher/my_prefetcher.cc</code> (or the corresponding files for your chosen module name), plus any other required files: Your custom prefetcher implementation.</li>
+</ul>
+</li>
+<li><strong>Raw Results and Metric Calculations</strong>:
+<ul>
+<li>Part 1 stdout logs, JSON statistics, and result tables in CSV form for both teaching traces.</li>
+<li>Original simulation logs, <code>raw_counters.csv</code>, and independently calculated <code>metrics.csv</code> for Parts 2 and 3, using the formulas in Part 2; include one worked calculation for a prefetch-enabled test case in the report.</li>
+<li>Part 4 correctness-check output; reference/final <code>.champsimtrace.xz</code> captures with <code>.xz.json</code> metadata and capture logs; native JSON/stdout logs for reported versions; raw counter and calculated-result CSV files using Part 4's complete-task cycle ratio.</li>
+<li>The ChampSim revision, compiler version/flags, all evaluated configurations, build/capture/simulation commands, and the mapping from source versions and simulation-phase fields to result tables.</li>
 </ul>
 </li>
 </ol>
 </div>
 </div>
-<div id="admonition-grading-breakdown-20-points-total" class="admonition admonish-success" role="note" aria-labelledby="admonition-grading-breakdown-20-points-total-title">
+<div id="admonition-grading-breakdown-23-points-total" class="admonition admonish-success" role="note" aria-labelledby="admonition-grading-breakdown-23-points-total-title">
 <div class="admonition-title">
-<div id="admonition-grading-breakdown-20-points-total-title">
-<p>Grading Breakdown (20 Points Total)</p>
+<div id="admonition-grading-breakdown-23-points-total-title">
+<p>Grading Breakdown (23 Points Total)</p>
 </div>
-<a class="admonition-anchor-link" href="#admonition-grading-breakdown-20-points-total"></a>
+<a class="admonition-anchor-link" href="#admonition-grading-breakdown-23-points-total"></a>
 </div>
 <div>
-<p>Your grade for Project 3 will be evaluated out of <strong>20 points</strong> as follows:</p>
+<p>Project 3 has <strong>18 points for experiments and implementation</strong>, plus <strong>5 points for the paper summary</strong>, for a total of <strong>23 points</strong>:</p>
 <ul>
 <li>
-<p><strong>Part 1: Cache Hierarchy Setup (3 pts)</strong></p>
+<p><strong>Part 1: Data Cache Capacity Allocation and Associativity (3 pts)</strong></p>
 <ul>
-<li>Screenshot of valid <code>lab3_config.json</code> and successful build output: <strong>1.5 pts</strong></li>
-<li>Correct execution and reasonable IPC comparison analysis: <strong>1.5 pts</strong></li>
+<li><strong>Reproducibility and Correct Execution (0.5 pts)</strong>: Valid configurations, successful build/run evidence, the assigned <code>cache-capacity</code> and <code>cache-conflict</code> traces, the exact capacity budget, and fixed L1I and control parameters.</li>
+<li><strong>Experimental Design (1 pt)</strong>: At least three capacity allocations and three sets/ways organizations, with controlled comparisons and a justified choice of configurations.</li>
+<li><strong>Results and Analysis (1.5 pts)</strong>: Compare IPC, cycles, miss statistics, and resulting cache latencies; explain capacity and associativity effects and justify the final configuration using the measurements.</li>
 </ul>
 </li>
 <li>
 <p><strong>Part 2: Baseline Prefetcher Evaluation (3 pts)</strong></p>
 <ul>
-<li>Complete and accurate collection of all 4 metrics (IPC, Accuracy, Coverage, Late count) across <code>no</code>, <code>next_line</code>, and <code>ip_stride</code> on all required workloads: <strong>3 pts</strong></li>
+<li>Complete and accurate collection of all 4 metrics (IPC, Accuracy, Coverage estimate, Speedup) across <code>no</code>, <code>next_line</code>, and <code>ip_stride</code> on all required workloads: <strong>3 pts</strong></li>
 </ul>
 </li>
 <li>
-<p><strong>Part 3: Paper Summary &amp; Hyperion Implementation (9 pts)</strong></p>
+<p><strong>Part 3: Paper Summary &amp; Custom Prefetcher Implementation (11 pts)</strong></p>
 <ul>
-<li><strong>Paper Summary</strong>: Comprehensive summary of background and design mechanisms: <strong>3 pts</strong> <em>(Missing major sections: -1 pt each)</em></li>
-<li><strong>Code Correctness</strong>: Compilable and functional Hyperion C++ implementation: <strong>2 pts</strong></li>
-<li><strong>Absolute Performance</strong>: Outperforming <code>next_line</code> and meeting the baseline IPC speedup threshold: <strong>2 pts</strong></li>
-<li><strong>Relative Leaderboard Ranking</strong>: Based on geometric mean IPC speedup across all test traces: <strong>2 pts</strong> <em>(Top 20%: 2 pts; Top 50%: 1.5 pts; Others: 1 pt)</em></li>
+<li><strong>Paper Summary</strong>: Background and motivation: <strong>1 pt</strong>; core architecture and mechanisms: <strong>3 pts</strong>; design insights: <strong>1 pt</strong> (5 pts total).</li>
+<li><strong>Code Correctness</strong>: Compilable and functional custom prefetcher implementation: <strong>2 pts</strong></li>
+<li><strong>Absolute Performance</strong>: Local <code>auto-run.py</code> score <strong>≥100</strong>, using all 16 default traces on the shared platform with 20M warmup + 100M measurement: <strong>2 pts</strong></li>
+<li><strong>Relative Leaderboard Ranking</strong>: Based on the geometric mean of per-trace IPC ratios relative to <code>next_line</code>, with equal weight per trace: <strong>2 pts</strong> <em>(Top 20%: 2 pts; Top 50%: 1.5 pts; Others: 1 pt)</em>. See Part 3 for the formula; this differs from the Part 2 Speedup column relative to <code>no</code>.</li>
 </ul>
+</li>
+<li>
+<p><strong>Part 4: Cache-Aware Telemetry Program Optimization (6 pts)</strong></p>
+<ul>
+<li><strong>Optimization Effect (2 pts)</strong>: Complete-task speedup <code>reference_cycles / optimized_cycles</code> on the fixed 512×64×16 input (four stages/four points, seed 123, stress pattern), with L1D <code>next_line</code>, zero warmup and each version's complete ROI. Speedup thresholds: <strong>1.25× / 2× / 3× / 4×</strong> earn <strong>0.5 / 1 / 1.5 / 2 pts</strong>, respectively; below 1.25× earns 0 performance points.</li>
+<li><strong>Experimental Design (2 pts)</strong>: Reproducible baseline, at least two motivated optimization versions, controlled parameter or ablation comparisons, and retained raw evidence.</li>
+<li><strong>Analysis (2 pts)</strong>: Correct metric calculations, working-set and access-pattern reasoning, explanations of improvements and regressions, and a justified final implementation.</li>
+<li>Correctness and the required computation structure are prerequisites for performance points. Only verified runs count as evidence. See <a href="./part4.html#grading-criteria">Part 4</a>; its speedup compares full-task cycles and differs from the Part 2/3 prefetcher metrics.</li>
+</ul>
+</li>
+<li>
+<p><strong>Incomplete Submissions</strong>: Missing required components may result in a discretionary deduction of up to <strong>5 points</strong>.</p>
 </li>
 </ul>
 </div>
 </div>
+
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../proj3/part3.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../proj3/part4.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
@@ -296,7 +319,7 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../proj3/part3.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../proj3/part4.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
@@ -324,6 +347,7 @@
         <script src="../book.js"></script>
 
         <!-- Custom JS scripts -->
+        <script src="../pdf-print-guard.js"></script>
 
 
 

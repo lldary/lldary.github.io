@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Appendix A: Introduction to Cache Prefetchers - Archlab gem5 Project 3</title>
+        <title>Appendix A: Introduction to Cache Prefetchers - Archlab ChampSim Project 3</title>
 
 
         <!-- Custom HTML head -->
@@ -141,7 +141,7 @@
                         </button>
                     </div>
 
-                    <h1 class="menu-title">Archlab gem5 Project 3</h1>
+                    <h1 class="menu-title">Archlab ChampSim Project 3</h1>
 
                     <div class="right-buttons">
                         <a href="../print.html" title="Print this book" aria-label="Print this book">
@@ -186,16 +186,8 @@
 <p>However, next-line prefetcher cannot perform well on some workloads. As a simple example, some workloads access the memory in a strided pattern, such as <code>A, A+2, A+4,...</code> (here we have <code>stride = 2</code>). In such scenarios, next-line prefetcher will never prefetch the being-used data. To serve these workloads, "stride prefetcher", as shown in Fig (b), is proposed, which can <em>learn</em> the actual stride from the memory access history, and perform useful prefetches.</p>
 <p>The "degree" denotes the depth of prefetching. For example, the next-line prefetcher has <code>degree = 1</code>, for it prefetches one line per issue. If it has larger degree, it can be named as "next-N-line prefetcher".</p>
 <h2 id="metrics-to-evaluate-prefetchers"><a class="header" href="#metrics-to-evaluate-prefetchers">Metrics to evaluate prefetchers</a></h2>
-<p>In the text above, we claim that stride prefetcher can perform better than next-line prefetcher. As a question, how can we determine the "performance" of a prefetcher? Basically, we have several values or metrics to evaluate prefetchers. Here we list them with their name in <code>stats.txt</code> of <code>gem5</code> output:</p>
-<ul>
-<li><code>pfIssued</code>: The number of prefetches issued by prefetcher.</li>
-<li><code>pfUseful</code>: The number of prefetches that are useful (i.e., the prefetched data are accessed in the cache before being evicted).</li>
-<li><code>pfUnused</code>: The number of prefetches that actually fill data into cache, but the data are not accessed before being evicted.</li>
-<li><code>pfLate</code>: The number of prefetches that are issued lately (the prefetched data are in cache, MSHRs or write buffer).</li>
-<li><code>demandMshrMisses</code>: The number of cache misses, no prefetch were issued to cover them.</li>
-<li><code>accuracy</code>: The accuracy of the prefetcher, equivalent to <code>pfUseful / pfIssued</code>.</li>
-<li><code>coverage</code>: The coverage of the prefetcher, equivalent to <code>pfUseful / potentialMisses</code>, where <code>potentialMisses = pfUseful + demandMshrMisses</code>. Here, "potential misses" refers to the accesses that would miss if there were no prefetcher. Therefore, the number of potential misses is the number of useful prefetches plus actual misses.</li>
-</ul>
+<p>Use the ChampSim metric definitions in <a href="./part2.html#analyzing-statistics">Part 2</a>: IPC, Accuracy, Coverage estimate, and Speedup relative to <code>no</code>. Collect only measurement-phase counters, retain raw logs and counters, and calculate the metrics yourself using the specified formulas. Accuracy and Coverage are <code>N/A</code> for the no-prefetch baseline and whenever their denominator is zero.</p>
+<p>Coverage estimates how useful prefetches compare with useful prefetches plus remaining demand misses. It does not directly measure the fraction of baseline misses eliminated. Speedup measures the resulting execution-performance benefit.</p>
 <p>The most important metrics are <code>accuracy</code> and <code>coverage</code>. There is a trade-off between them. More aggressive prefetching will fetch more addresses, whether useful of not. Many of the actual accesses can be covered by prefetches, but many useless data are also prefetched, thus, increasing the <code>coverage</code> but decreasing <code>accuracy</code>. More conservative prefetching may increase <code>accuracy</code> but decrease <code>coverage</code>.</p>
 <p>With these metrics, we can compare between next-line prefetcher and stride prefetcher: stride prefetcher can have higher <code>accuracy</code> and <code>coverage</code> than next-line prefetcher under strided accesses, since next-line prefetcher cannot prefetch any useful data.</p>
 
@@ -245,6 +237,7 @@
         <script src="../book.js"></script>
 
         <!-- Custom JS scripts -->
+        <script src="../pdf-print-guard.js"></script>
 
 
 

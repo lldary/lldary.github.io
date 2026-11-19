@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Archlab gem5 Project 3</title>
+        <title>Archlab ChampSim Project 3</title>
         <meta name="robots" content="noindex">
 
 
@@ -59,7 +59,7 @@
                 }
             });
         </script>
-    <div style="display: none"><a href="#proj3">proj3</a><a href="#proj3-part1">proj3-part1</a><a href="#proj3-part2">proj3-part2</a><a href="#proj3-part3">proj3-part3</a><a href="#proj3-submit">proj3-submit</a><a href="#proj3-appendix1">proj3-appendix1</a><a href="#proj3-appendix2">proj3-appendix2</a></div>
+    <div style="display: none"><a href="#proj3">proj3</a><a href="#proj3-part1">proj3-part1</a><a href="#proj3-part2">proj3-part2</a><a href="#proj3-part3">proj3-part3</a><a href="#proj3-part4">proj3-part4</a><a href="#proj3-submit">proj3-submit</a><a href="#proj3-appendix1">proj3-appendix1</a><a href="#proj3-appendix2">proj3-appendix2</a></div>
 
         <!-- Provide site root and default themes to javascript -->
         <script>
@@ -168,7 +168,7 @@
                         </button>
                     </div>
 
-                    <h1 class="menu-title">Archlab gem5 Project 3</h1>
+                    <h1 class="menu-title">Archlab ChampSim Project 3</h1>
 
                     <div class="right-buttons">
                         <a href="print.html" title="Print this book" aria-label="Print this book">
@@ -210,37 +210,61 @@
 <div id="admonition-default" class="admonition admonish-success" role="note">
 <div>
 <p><em>By Prof. Jie Zhang</em></p>
-<p><strong>Due:</strong> 11:59:59 pm, December 17, 2025</p>
+<p><strong>Due:</strong> 23:59:00, December 17, 2026</p>
 </div>
 </div>
 <p>In this project, we will explore the design and evaluation of hardware cache prefetchers in a modern computer system using the ChampSim simulator. First, you will learn how to configure ChampSim's cache hierarchy and integrate prefetchers into specific cache levels (e.g., L1D, L2C, or LLC). You will evaluate how cache parameters and prefetching techniques significantly impact overall system performance.</p>
-<p>you are required to read a recent computer architecture paper introducing the Hyperion prefetcher to understand the core principles, architecture, and tradeoffs involved in prefetcher design. You will write a summary of the paper and, based on these insights, design and implement your own prefetcher in ChampSim (either a reproduction of Hyperion or a custom variant). Finally, you will evaluate your prefetcher’s performance and compare it against baseline prefetchers across the provided workload traces.</p>
+<p>Part 1 uses two provided synthetic traces to study data cache capacity allocation and mapping conflicts while keeping L1I fixed. Parts 2 and 3 use application traces to evaluate prefetchers on the shared baseline platform.</p>
+<p>You are required to read a recent computer architecture paper introducing the Hyperion prefetcher to understand the core principles, architecture, and tradeoffs involved in prefetcher design. You will write a summary of the paper and, based on these insights, design and implement your own prefetcher in ChampSim using Hyperion or other prediction techniques as inspiration; reproducing Hyperion is not required. In Part 3, you will evaluate your prefetcher’s performance and compare it against baseline prefetchers across the provided workload traces.</p>
+<p>Part 4 applies cache knowledge to software: optimize a provided telemetry analysis program while preserving its four-stage calculation and complete output. Use the shared hardware with L1D <code>next_line</code> fixed, and compare complete-task simulation cycles. Experimental design and analysis account for most Part 4 points.</p>
 <p>Whenever you encounter issues or have questions regarding this project, please feel free to contact the TAs via WeChat or email. All instructions and scripts have been verified on Ubuntu 20.04.1 LTS (Linux Kernel 5.15.0) and Ubuntu 22.04.2 LTS (Linux Kernel 5.19.0).</p>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<h1 id="part-1-custom-cache-hierarchy--cache-optimization"><a class="header" href="#part-1-custom-cache-hierarchy--cache-optimization">Part 1: Custom Cache Hierarchy &amp; Cache Optimization</a></h1>
-<p>In this part, you will extend ChampSim with a custom cache hierarchy and explore cache allocation and associativity strategies for performance optimization.</p>
-<p>The goal is to investigate how the <strong>same total cache capacity</strong> can be organized in different ways, and to determine how the capacity should be distributed between <strong>L1I, L1D, and L2C</strong>, as well as how the number of <strong>sets and ways</strong> affects performance.</p>
-<p>You will run a given workload and experimentally design a cache hierarchy that achieves the <strong>highest possible performance under a fixed total cache capacity budget</strong>.</p>
-<p>Copy the template configuration file to create your working configuration:</p>
-<pre><code class="language-sh">cp lab2_config.json lab3_config.json
+<h1 id="part-1-data-cache-capacity-allocation-and-associativity"><a class="header" href="#part-1-data-cache-capacity-allocation-and-associativity">Part 1: Data Cache Capacity Allocation and Associativity</a></h1>
+<p>Explore how data cache capacity, set mapping, associativity, and access latency affect performance in ChampSim. Keep the instruction cache (L1I) unchanged and organize L1D and L2C under an exact capacity budget. Your goal is to find the best configuration <strong>among those you test</strong>, and explain its performance using cache statistics and configured latencies.</p>
+<p>Use the course ChampSim environment from Project 1. The workloads and configurations below were verified with course revision <code>6a89a745f9a45acf9321ed4ea2769847423eb15d</code>.</p>
+<h2 id="1-prepare-the-workloads"><a class="header" href="#1-prepare-the-workloads">1. Prepare the Workloads</a></h2>
+<p>Part 1 uses two synthetic teaching traces:</p>
+<div class="table-wrapper"><table><thead><tr><th>Trace</th><th>Required experiment</th><th>Purpose</th></tr></thead><tbody>
+<tr><td><a href="proj3/./traces/cache-capacity.champsimtrace.xz">cache-capacity.champsimtrace.xz</a></td><td>Capacity allocation</td><td>Reuse hot data while traversing a larger working set; investigate capacity and latency tradeoffs.</td></tr>
+<tr><td><a href="proj3/./traces/cache-conflict.champsimtrace.xz">cache-conflict.champsimtrace.xz</a></td><td>Sets and associativity</td><td>Repeatedly access blocks with matching page offsets; investigate mapping conflicts at fixed capacity.</td></tr>
+</tbody></table>
+</div>
+<p>Download both files into the ChampSim <code>traces/</code> directory. Each contains <strong>124M instructions</strong>, enough for the required 20M warmup followed by 100M measurement without replaying the trace. These are directly generated microbenchmark instruction streams with explicit register dependencies and loop branches. The <a href="proj3/./tools/generate_cache_trace.py">generator</a> and metadata (<a href="proj3/./traces/cache-capacity.champsimtrace.xz.json">capacity</a>, <a href="proj3/./traces/cache-conflict.champsimtrace.xz.json">conflict</a>) document their construction and fixed random seed.</p>
+<p>To regenerate them, save the generator as <code>tools/generate_cache_trace.py</code> in the ChampSim directory and run:</p>
+<pre><code class="language-sh">mkdir -p traces tools results
+python3 tools/generate_cache_trace.py capacity traces/cache-capacity.champsimtrace.xz
+python3 tools/generate_cache_trace.py conflict traces/cache-conflict.champsimtrace.xz
 </code></pre>
-<p>ChampSim parses a JSON configuration file to set up the memory geometry and auto-generate the underlying C++ source files during the build phase.</p>
-<hr />
-<h2 id="1-single-core-baseline-setup"><a class="header" href="#1-single-core-baseline-setup">1. Single-Core Baseline Setup</a></h2>
-<p>Configure <code>lab3_config.json</code> with the following parameters:</p>
+<p>Keep the provided trace contents and simulation window identical across configurations. Parts 2 and 3 use their separately specified application traces.</p>
+<h2 id="2-single-core-baseline"><a class="header" href="#2-single-core-baseline">2. Single-Core Baseline</a></h2>
+<p>Create <code>lab3_config.json</code> with this complete baseline configuration. Use it as the starting point for each experiment rather than inheriting a personally optimized CPU or cache configuration from Project 2.</p>
 <pre><code class="language-json">{
-  "executable_name": "champsim_proj3",
+  "executable_name": "champsim_proj3_baseline",
+  "num_cores": 1,
+  "ooo_cpu": [
+    {
+      "frequency": 4000,
+      "rob_size": 352,
+      "branch_predictor": "bimodal",
+      "btb": "basic_btb",
+      "mispredict_penalty": 15
+    }
+  ],
   "L1I": {
     "sets": 64,
     "ways": 8,
     "mshr_size": 16,
+    "max_tag_check": 1,
+    "max_fill": 1,
     "prefetcher": "no",
     "replacement": "lru"
   },
   "L1D": {
-    "sets": 96,
-    "ways": 8,
+    "sets": 64,
+    "ways": 12,
     "mshr_size": 16,
+    "max_tag_check": 1,
+    "max_fill": 1,
     "prefetcher": "no",
     "replacement": "lru"
   },
@@ -248,116 +272,88 @@
     "sets": 2048,
     "ways": 16,
     "mshr_size": 20,
+    "max_tag_check": 4,
+    "max_fill": 4,
     "prefetcher": "no",
-    "replacement": "lru"
+    "replacement": "lru",
+    "lower_level": "DRAM"
+  },
+  "physical_memory": {
+    "name": "DRAM"
   }
 }
 </code></pre>
-<blockquote>
-<p><strong>Calculation Check</strong>:</p>
+<p>The data path is <strong>L1I/L1D → L2C → DRAM</strong>. Keep the default L1-to-L2 connections; the explicit L2C-to-DRAM connection removes the default LLC from the path. Other unspecified parameters use the course version's defaults.</p>
+<h3 id="exact-capacity-budget"><a class="header" href="#exact-capacity-budget">Exact Capacity Budget</a></h3>
+<p>With 64 B cache lines:</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">level</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6984em;vertical-align:-0.0833em;"></span><span class="mord text"><span class="mord">sets</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7778em;vertical-align:-0.1944em;"></span><span class="mord text"><span class="mord">ways</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">64</span><span class="mord text"><span class="mord"> B</span></span><span class="mord">.</span></span></span></span></span></p>
 <ul>
-<li><strong>L1I Size</strong>: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">64</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">8</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">64</span><span class="mord text"><span class="mord"> B</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">32</span><span class="mord text"><span class="mord"> KB</span></span></span></span></span></li>
-<li><strong>L1D Size</strong>: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">64</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">12</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">64</span><span class="mord text"><span class="mord"> B</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">48</span><span class="mord text"><span class="mord"> KB</span></span></span></span></span></li>
-<li><strong>L2C Size</strong>: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">2048</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">16</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">64</span><span class="mord text"><span class="mord"> B</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">2</span><span class="mord text"><span class="mord"> MB</span></span></span></span></span></li>
-<li><strong>Total Baseline Capacity</strong>: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">2.08</span><span class="mord text"><span class="mord"> MB</span></span></span></span></span></li>
+<li><strong>L1I</strong>: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">64</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">8</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">64</span><span class="mord text"><span class="mord"> B</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">32</span><span class="mord text"><span class="mord"> KiB</span></span></span></span></span>, fixed throughout.</li>
+<li><strong>L1D</strong>: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">64</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">12</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">64</span><span class="mord text"><span class="mord"> B</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">48</span><span class="mord text"><span class="mord"> KiB</span></span></span></span></span>.</li>
+<li><strong>L2C</strong>: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">2048</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">16</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">64</span><span class="mord text"><span class="mord"> B</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">2048</span><span class="mord text"><span class="mord"> KiB</span></span></span></span></span>.</li>
+<li><strong>Total</strong>: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">2128</span><span class="mord text"><span class="mord"> KiB</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord">2</span><span class="mord"><span class="mpunct">,</span></span><span class="mord">179</span><span class="mord"><span class="mpunct">,</span></span><span class="mord">072</span><span class="mord text"><span class="mord"> B</span></span></span></span></span>.</li>
 </ul>
-</blockquote>
-<h3 id="building-and-running-the-simulation"><a class="header" href="#building-and-running-the-simulation">Building and Running the Simulation</a></h3>
-<p>Generate the C++ modules using <code>config.sh</code> and build the binary:</p>
+<p>Here, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">1</span><span class="mord text"><span class="mord"> KiB</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">1024</span><span class="mord text"><span class="mord"> B</span></span></span></span></span>. The budget counts data capacity, excluding tags and metadata. Every tested configuration must satisfy:</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">L1D</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">L2C</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">2096</span><span class="mord text"><span class="mord"> KiB</span></span><span class="mord">.</span></span></span></span></span></p>
+<p>Use <strong>positive powers of two for sets</strong>. This course version rounds other set counts upward, which changes the actual capacity. Ways must be positive integers and may be non-powers of two. For example, the 48 KiB baseline is <strong>64 sets × 12 ways</strong>.</p>
+<h3 id="controlled-parameters-and-latencies"><a class="header" href="#controlled-parameters-and-latencies">Controlled Parameters and Latencies</a></h3>
+<p>Only change L1D/L2C sets and ways as allowed by each experiment. Keep all L1I settings, the CPU, block size, MSHRs, queue sizes, tag/fill bandwidths, replacement policies, prefetchers, address translation, and DRAM settings unchanged. The explicit <code>max_tag_check</code> and <code>max_fill</code> values prevent bandwidth from changing automatically when sets change. You may change <code>executable_name</code> to distinguish binaries.</p>
+<p>Do not override cache <code>latency</code>, <code>hit_latency</code>, or <code>fill_latency</code>. Let the course version compute them from the cache organization, and record the resulting hit/fill latencies for every configuration. The default calculation is in <code>inc/cache_builder.h</code>; for the baseline it gives L1D hit/fill <strong>2/3 cycles</strong> and L2C <strong>8/9 cycles</strong>. Configured hit/fill latency is different from the measured average miss latency printed in the results.</p>
+<h3 id="build-and-run"><a class="header" href="#build-and-run">Build and Run</a></h3>
 <pre><code class="language-sh">./config.sh lab3_config.json
 make -j $(nproc)
+mkdir -p results
 </code></pre>
-<p>Run the generated executable (<code>./bin/champsim_proj3</code>) on <code>cache-example.champsimtrace.xz</code>:</p>
-<pre><code class="language-sh">./bin/champsim_proj3 --warmup_instructions 20000000 --simulation_instructions 100000000 traces/cache-example.champsimtrace.xz
+<p>Run the baseline on both traces from the ChampSim root:</p>
+<pre><code class="language-sh">./bin/champsim_proj3_baseline --json results/baseline_capacity.json --warmup-instructions 20000000 --simulation-instructions 100000000 traces/cache-capacity.champsimtrace.xz &gt; results/baseline_capacity.txt
+./bin/champsim_proj3_baseline --json results/baseline_conflict.json --warmup-instructions 20000000 --simulation-instructions 100000000 traces/cache-conflict.champsimtrace.xz &gt; results/baseline_conflict.txt
 </code></pre>
-<p>Record the baseline performance, including <strong>IPC, total cycles, and cache miss statistics</strong>.</p>
-<hr />
-<h2 id="2-cache-capacity-allocation--organization-optimization-task"><a class="header" href="#2-cache-capacity-allocation--organization-optimization-task">2. Cache Capacity Allocation &amp; Organization Optimization Task</a></h2>
-<h3 id="problem-statement-fixed-total-cache-capacity"><a class="header" href="#problem-statement-fixed-total-cache-capacity">Problem Statement: Fixed Total Cache Capacity</a></h3>
-<p>Suppose you are given a <strong>fixed total cache capacity budget</strong> <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">total</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>.</p>
-<p>For this experiment, use:</p>
-<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">total</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">2.08</span><span class="mord text"><span class="mord"> MB</span></span></span></span></span></span></p>
-<p>The total capacity is calculated as:</p>
-<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.07153em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">total</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">L1I</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">L1D</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">L2C</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span></p>
-<p>where:</p>
-<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">level</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6984em;vertical-align:-0.0833em;"></span><span class="mord text"><span class="mord">sets</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7778em;vertical-align:-0.1944em;"></span><span class="mord text"><span class="mord">ways</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">64</span><span class="mord text"><span class="mord"> B</span></span><span class="mord">.</span></span></span></span></span></p>
-<p>You will run the given workload (<code>cache-example.champsimtrace.xz</code>) and design different cache organizations under the <strong>same total cache capacity</strong>.</p>
-<p>Your goal is to determine:</p>
-<blockquote>
-<p><strong>How should the fixed cache capacity be allocated and organized to maximize the performance of the given workload?</strong></p>
-</blockquote>
-<p>You may change:</p>
-<ul>
-<li>L1D capacity</li>
-<li>L2C capacity</li>
-<li>Number of sets</li>
-<li>Number of ways</li>
-</ul>
-<p>The following parameters should remain unchanged:</p>
-<ul>
-<li>Cache block size</li>
-<li>MSHR size</li>
-<li>Hit latency</li>
-<li>Fill latency</li>
-<li>Replacement policy</li>
-<li>Prefetcher</li>
-</ul>
-<hr />
-<h3 id="21-l1l2-capacity-allocation"><a class="header" href="#21-l1l2-capacity-allocation">2.1 L1/L2 Capacity Allocation</a></h3>
-<p>First, investigate how the total cache capacity should be divided between L1 and L2.</p>
-<p>For example, compare configurations such as:</p>
-<ol>
-<li><strong>Strategy A (Small L1, Large L2):</strong> Keep L1D relatively small and allocate most of the capacity to L2C.</li>
-<li><strong>Strategy B (Balanced L1/L2):</strong> Increase L1D while reducing L2C by the same amount.</li>
-<li><strong>Strategy C (Large L1, Small L2):</strong> Allocate substantially more capacity to L1D and reduce L2C accordingly.</li>
-</ol>
-<p>The total capacity must always satisfy:</p>
-<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">L1I</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">L1D</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">L2C</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">==============</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">2.08</span><span class="mord text"><span class="mord"> MB</span></span><span class="mord">.</span></span></span></span></span></p>
-<p>Analyze whether giving more capacity to the faster L1 caches or to the larger L2 cache provides better performance.</p>
-<hr />
-<h3 id="22-cache-sets-and-associativity-optimization"><a class="header" href="#22-cache-sets-and-associativity-optimization">2.2 Cache Sets and Associativity Optimization</a></h3>
-<p>Cache capacity alone does not determine cache performance.</p>
-<p>For the same cache capacity, compare different combinations of <strong>sets and ways</strong>.</p>
-<p>For example, a cache with a fixed capacity can be organized using:</p>
-<ul>
-<li>More sets + fewer ways</li>
-<li>Fewer sets + more ways</li>
-<li>Balanced sets and ways</li>
-</ul>
-<p>The cache capacity must remain unchanged:</p>
-<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6984em;vertical-align:-0.0833em;"></span><span class="mord text"><span class="mord">sets</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord text"><span class="mord">ways</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">==============================</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6151em;"></span><span class="mord text"><span class="mord">constant</span></span><span class="mord">.</span></span></span></span></span></p>
-<p>For example, for a 256 KB cache:</p>
-<div class="table-wrapper"><table><thead><tr><th style="text-align: right">Sets</th><th style="text-align: right">Ways</th><th style="text-align: right">Capacity</th></tr></thead><tbody>
-<tr><td style="text-align: right">1024</td><td style="text-align: right">4</td><td style="text-align: right">256 KB</td></tr>
-<tr><td style="text-align: right">512</td><td style="text-align: right">8</td><td style="text-align: right">256 KB</td></tr>
-<tr><td style="text-align: right">256</td><td style="text-align: right">16</td><td style="text-align: right">256 KB</td></tr>
-<tr><td style="text-align: right">128</td><td style="text-align: right">32</td><td style="text-align: right">256 KB</td></tr>
+<p>Shorter runs are allowed for debugging. All final comparisons must use <strong>20M warmup + 100M measurement</strong>. Check that the run completes and the final CPU statistics include at least 100M measured instructions.</p>
+<p>For each modified configuration, save a separate JSON and use a distinct executable name. Re-run <code>config.sh</code> and <code>make</code>, then run the corresponding binary and save its stdout and JSON statistics under distinct result names.</p>
+<h2 id="3-capacity-allocation-experiment"><a class="header" href="#3-capacity-allocation-experiment">3. Capacity Allocation Experiment</a></h2>
+<p>Use <strong><code>cache-capacity.champsimtrace.xz</code></strong>. Compare at least <strong>three L1D/L2C capacity allocations</strong> under the exact budget. Keep L1I fixed. The following configurations are valid starting points:</p>
+<div class="table-wrapper"><table><thead><tr><th>Configuration</th><th style="text-align: right">L1D sets</th><th style="text-align: right">L1D ways</th><th style="text-align: right">L1D KiB</th><th style="text-align: right">L2C sets</th><th style="text-align: right">L2C ways</th><th style="text-align: right">L2C KiB</th><th style="text-align: right">L1D + L2C KiB</th></tr></thead><tbody>
+<tr><td>A: Baseline</td><td style="text-align: right">64</td><td style="text-align: right">12</td><td style="text-align: right">48</td><td style="text-align: right">2048</td><td style="text-align: right">16</td><td style="text-align: right">2048</td><td style="text-align: right">2096</td></tr>
+<tr><td>B</td><td style="text-align: right">256</td><td style="text-align: right">11</td><td style="text-align: right">176</td><td style="text-align: right">2048</td><td style="text-align: right">15</td><td style="text-align: right">1920</td><td style="text-align: right">2096</td></tr>
+<tr><td>C</td><td style="text-align: right">256</td><td style="text-align: right">27</td><td style="text-align: right">432</td><td style="text-align: right">2048</td><td style="text-align: right">13</td><td style="text-align: right">1664</td><td style="text-align: right">2096</td></tr>
 </tbody></table>
 </div>
-<p>Compare these organizations and analyze how associativity affects:</p>
+<p>You may test additional valid configurations and refine your choices based on measurements. Under this exact budget and power-of-two set constraint, ways may need to change along with capacity. Explain these coupled changes; do not describe such a comparison as varying capacity alone.</p>
+<p>Address the following questions:</p>
 <ul>
-<li>Cache hit rate</li>
-<li>Cache miss rate</li>
-<li>Conflict misses</li>
-<li>L1/L2 MPKI</li>
-<li>IPC</li>
-<li>Total execution cycles</li>
+<li>Which tested allocation achieves the highest IPC, and what supports that conclusion?</li>
+<li>How do the hot working set and reuse pattern explain L1D misses and L2C accesses?</li>
+<li>Does a lower miss rate always produce higher IPC? Account for the configured latencies.</li>
+<li>Is there evidence that L2C capacity is insufficient? Use L2C misses rather than assuming that reducing L2C must hurt performance.</li>
 </ul>
-<p>Determine whether the workload benefits more from <strong>higher associativity</strong> or from <strong>a larger number of sets</strong>.</p>
-<hr />
-<p>Students should use experimental results to iteratively refine their cache design rather than simply trying random configurations.</p>
-<blockquote>
-<p><strong>Optimization Questions to Answer</strong>:</p>
+<h2 id="4-sets-and-associativity-experiment"><a class="header" href="#4-sets-and-associativity-experiment">4. Sets and Associativity Experiment</a></h2>
+<p>Use <strong><code>cache-conflict.champsimtrace.xz</code></strong>. Keep L1D capacity at <strong>48 KiB</strong>, L2C at the full baseline configuration, and L1I unchanged. Compare at least <strong>three L1D organizations</strong>:</p>
+<div class="table-wrapper"><table><thead><tr><th style="text-align: right">L1D sets</th><th style="text-align: right">L1D ways</th><th style="text-align: right">L1D capacity</th></tr></thead><tbody>
+<tr><td style="text-align: right">128</td><td style="text-align: right">6</td><td style="text-align: right">48 KiB</td></tr>
+<tr><td style="text-align: right">64</td><td style="text-align: right">12</td><td style="text-align: right">48 KiB</td></tr>
+<tr><td style="text-align: right">32</td><td style="text-align: right">24</td><td style="text-align: right">48 KiB</td></tr>
+</tbody></table>
+</div>
+<p>The set/way product must remain constant. Changing sets also changes address mapping; changing ways may change the default latency. Analyze both effects.</p>
+<p>Address the following questions:</p>
 <ul>
-<li>How should the fixed capacity budget be split between L1D, and L2C to maximize IPC?</li>
-<li>For a fixed cache capacity, how does associativity affect performance?</li>
-<li>Is increasing the number of ways always beneficial?</li>
-<li>When is it better to increase the number of sets instead of increasing associativity?</li>
-<li>What cache hierarchy achieves the highest IPC for the given workload?</li>
-<li>Why does your final configuration outperform the baseline and other tested configurations?</li>
+<li>How can a working set smaller than the cache still cause frequent misses?</li>
+<li>Which address bits select a set, and how do the trace's page offsets affect mapping?</li>
+<li>Does increasing ways always improve performance when sets decrease at the same time?</li>
+<li>Which comparison most clearly isolates mapping conflicts from latency changes?</li>
 </ul>
-</blockquote>
-<hr />
+<p>Use workload structure, warmup, and measured counters to support a conflict-miss explanation. Ordinary miss counters do not directly classify misses as compulsory, capacity, or conflict misses.</p>
+<h2 id="5-measurements-analysis-and-deliverables"><a class="header" href="#5-measurements-analysis-and-deliverables">5. Measurements, Analysis, and Deliverables</a></h2>
+<p>Use the final <strong>Region of Interest Statistics</strong>, excluding warmup. For these load-based traces, consistently use the <strong>LOAD</strong> rows of CPU 0's L1D and L2C:</p>
+<div class="table-wrapper"><table><thead><tr><th>Metric</th><th>Definition</th></tr></thead><tbody>
+<tr><td>IPC</td><td>Measured retired instructions / measured CPU cycles</td></tr>
+<tr><td>Total cycles</td><td>CPU cycles from the same measurement window</td></tr>
+<tr><td>Local LOAD miss rate</td><td>Cache LOAD MISS / cache LOAD ACCESS</td></tr>
+<tr><td>LOAD MPKI</td><td>1000 × cache LOAD MISS / measured retired instructions</td></tr>
+</tbody></table>
+</div>
+<p>Also retain LOAD ACCESS, MISS, and MISS_MERGE counts, and record cache sets, ways, capacities, MSHRs, and configured hit/fill latencies. Keep MISS and MISS_MERGE separate. A lower-level local miss rate is conditional on requests reaching that level; interpret it together with its access count and MPKI.</p>
+<p>If a cache has zero LOAD accesses, report its miss rate as <strong>N/A</strong>. The course text printer may omit an inactive cache; use its explicit zero counters in the JSON output to distinguish no accesses from missing or incomplete results.</p>
 <div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
 <div class="admonition-title">
 <div id="admonition-deliverables-title">
@@ -366,46 +362,73 @@ make -j $(nproc)
 <a class="admonition-anchor-link" href="proj3/part1.html#admonition-deliverables"></a>
 </div>
 <div>
-<p>Please run the memory-sensitive workload (<code>gemm.champsimtrace.xz</code>) and include the following in your <strong>report</strong>:</p>
+<p>Submit the following in your report and source archive:</p>
 <ol>
-<li>
-<p><strong>Build Verification</strong>: A screenshot of your single-core <code>lab3_config.json</code> file and the terminal output confirming a successful compilation.</p>
-</li>
-<li>
-<p><strong>Single-Core IPC Comparison</strong>: A figure or table comparing <code>CPU 0 cumulative IPC</code> on <code>cache-example</code> across the baseline and modified cache configurations.</p>
-</li>
-<li>
-<p><strong>Cache Capacity Allocation Analysis</strong>:</p>
-</li>
+<li><strong>Reproducible configurations</strong>: The baseline and every tested variant JSON, course ChampSim revision, build/run commands, and successful build/run evidence.</li>
+<li><strong>Capacity allocation results</strong>: At least three allocations on <code>cache-capacity</code>, with IPC, cycles, L1D/L2C LOAD counts, miss rates, MPKI, and configured hit/fill latencies. Explain the best tested allocation using the measurements.</li>
+<li><strong>Associativity results</strong>: At least three fixed-capacity L1D organizations on <code>cache-conflict</code>, with the same metrics. Explain the observed mapping conflicts and latency effects.</li>
+<li><strong>Raw evidence</strong>: Original stdout and JSON statistics, plus the result tables in CSV form. Discuss unchanged or degraded performance when observed; an improvement is not required for every modification.</li>
 </ol>
-<ul>
-<li>Show at least <strong>3 different L1/L2 capacity allocation schemes</strong> using the same total cache capacity.</li>
-<li>Present a comparative table/chart of IPC, total cycles, and cache miss rates.</li>
-<li>Explain why different L1/L2 capacity distributions result in different performance.</li>
-</ul>
-<ol start="4">
-<li><strong>Associativity Analysis</strong>:</li>
-</ol>
-<ul>
-<li>Compare at least <strong>3 different sets/ways organizations</strong> while keeping cache capacity unchanged.</li>
-<li>Report the corresponding cache miss rates and IPC.</li>
-<li>Explain the impact of associativity and conflict misses on performance.</li>
-</ul>
+<p>At minimum, run <strong>six simulations</strong>: three allocations on <code>cache-capacity</code> and three organizations on <code>cache-conflict</code>. The baseline must be run separately on each trace.</p>
 </div>
 </div>
+<p>Part 1 is worth <strong>3 points</strong>: <strong>0.5 points</strong> for reproducibility and correct execution, <strong>1 point</strong> for experimental design, and <strong>1.5 points</strong> for results and analysis. Explain configuration choices and controlled variables, and support conclusions with measurements. Build screenshots alone do not demonstrate the quality of the experiment.</p>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="part-2-run-simulation-with-prefetchers"><a class="header" href="#part-2-run-simulation-with-prefetchers">Part 2: Run Simulation with Prefetchers</a></h1>
 <p>ChampSim provides multiple classic cache prefetchers out of the box (located in the <code>prefetcher/</code> directory). In ChampSim, prefetchers are assigned to a specific cache level (such as <code>L1D</code>, <code>L2C</code>, or <code>LLC</code>) directly in the JSON configuration file via the <code>"prefetcher"</code> key.</p>
-<p>For example, to attach the <code>ip_stride</code> prefetcher to the CPU's L1 Data Cache (<code>L1D</code>), update your <code>lab3_config.json</code>:</p>
-<pre><code class="language-json">  "L1D": {
-    "sets": 96,
+<h2 id="shared-evaluation-platform-parts-24"><a class="header" href="#shared-evaluation-platform-parts-24">Shared Evaluation Platform (Parts 2–4)</a></h2>
+<p>Prefetcher comparisons in Parts 2 and 3, including leaderboard evaluation, use the platform below. Part 4 uses the same hardware with L1D <code>next_line</code> fixed for program optimization. Use the <strong>baseline capacities from Part 1</strong>, not your optimized Part 1 configuration.</p>
+<div class="table-wrapper"><table><thead><tr><th>Parameter</th><th>Fixed setting</th></tr></thead><tbody>
+<tr><td>Cores</td><td>1; preserve the complete Part 1 baseline CPU configuration</td></tr>
+<tr><td>Cache hierarchy</td><td>Split L1I/L1D → unified L2C → DRAM; no LLC in the access path</td></tr>
+<tr><td>Cache line size</td><td>64 B</td></tr>
+<tr><td>L1I</td><td>64 sets × 8 ways = 32 KiB; 16 MSHRs; LRU; no prefetcher</td></tr>
+<tr><td>L1D</td><td>64 sets × 12 ways = 48 KiB; 16 MSHRs; LRU</td></tr>
+<tr><td>L2C</td><td>2048 sets × 16 ways = 2048 KiB; 20 MSHRs; LRU; no prefetcher</td></tr>
+<tr><td>Cache latencies</td><td>ChampSim's default calculation; no manual overrides</td></tr>
+<tr><td>Tag/fill bandwidths</td><td>Preserve the Part 1 baseline: L1I 1/1, L1D 1/1, L2C 4/4</td></tr>
+<tr><td>Other settings</td><td>Preserve the Part 1 baseline; remaining parameters use course defaults</td></tr>
+</tbody></table>
+</div>
+<p>Use the same course-provided ChampSim version and base configuration for every run. Only the L1D prefetcher module and its internal predictor parameters may differ between prefetcher experiments; <code>executable_name</code> may also change to distinguish binaries. Do not modify the core, cache geometry, cache timing, replacement policies, memory system, or baseline prefetcher implementations for the comparison.</p>
+<p>Starting from the complete baseline JSON in Part 1, update the fields below in <code>lab3_config.json</code>. Preserve its CPU settings and all other baseline fields. Keep the default L1-to-L2 connections; the explicit L2C <code>lower_level</code> bypasses the default LLC.</p>
+<pre><code class="language-json">{
+  "executable_name": "champsim_ip_stride",
+  "num_cores": 1,
+  "L1I": {
+    "sets": 64,
     "ways": 8,
     "mshr_size": 16,
+    "max_tag_check": 1,
+    "max_fill": 1,
+    "prefetcher": "no",
+    "replacement": "lru"
+  },
+  "L1D": {
+    "sets": 64,
+    "ways": 12,
+    "mshr_size": 16,
+    "max_tag_check": 1,
+    "max_fill": 1,
     "prefetcher": "ip_stride",
     "replacement": "lru"
+  },
+  "L2C": {
+    "sets": 2048,
+    "ways": 16,
+    "mshr_size": 20,
+    "max_tag_check": 4,
+    "max_fill": 4,
+    "prefetcher": "no",
+    "replacement": "lru",
+    "lower_level": "DRAM"
+  },
+  "physical_memory": {
+    "name": "DRAM"
   }
-
+}
 </code></pre>
+<p>For <code>no</code>, <code>next_line</code>, or your own prefetcher, change only <code>L1D.prefetcher</code> and <code>executable_name</code>. Submit the configurations used, the ChampSim revision, and the simulation commands so the results can be reproduced.</p>
 <blockquote>
 <p><strong>Note</strong>: Unlike simulators with dynamic Python scripting, changing the prefetcher module in ChampSim requires re-running <code>./config.sh</code> and re-compiling the executable:</p>
 <pre><code class="language-sh">./config.sh lab3_config.json
@@ -420,12 +443,14 @@ make -j $(nproc)
 <li><code>"next_line"</code>: A simple prefetcher that fetches the contiguous next cache block on access.</li>
 <li><code>"ip_stride"</code>: An Instruction Pointer (IP) based stride prefetcher that tracks strided memory access patterns per instruction.</li>
 </ul>
+<p><code>ip_stride</code> is attached to <strong>L1D</strong>. In the course implementation, it may choose to skip filling L1D when MSHR occupancy is high. The Accuracy and Coverage metrics below use <strong>L1D counters only</strong>; they do not measure all benefits of prefetches retained at lower levels. Interpret these local metrics together with IPC and Speedup.</p>
 <h3 id="running-the-simulations"><a class="header" href="#running-the-simulations">Running the Simulations</a></h3>
 <p>Let's evaluate how these prefetchers impact system performance on two prefetch-sensitive workloads: <code>shell_sort</code> and <code>gemm</code>.</p>
 <p>To run a simulation for a specific prefetcher binary, execute:</p>
 <pre><code class="language-sh"># Example: Running ip_stride prefetcher on shell_sort and gemm
-./bin/champsim --warmup_instructions 20000000 --simulation_instructions 100000000 traces/shell_sort.champsimtrace.xz &gt; results/ip_stride_sort.txt
-./bin/champsim --warmup_instructions 20000000 --simulation_instructions 100000000 traces/gemm.champsimtrace.xz &gt; results/ip_stride_gemm.txt
+mkdir -p results
+./bin/champsim_ip_stride --warmup-instructions 20000000 --simulation-instructions 100000000 traces/shell_sort.champsimtrace.xz &gt; results/ip_stride_sort.txt
+./bin/champsim_ip_stride --warmup-instructions 20000000 --simulation-instructions 100000000 traces/gemm.champsimtrace.xz &gt; results/ip_stride_gemm.txt
 
 </code></pre>
 <p>Repeat this process for the binaries compiled with <code>"no"</code> and <code>"next_line"</code>.</p>
@@ -438,32 +463,38 @@ make -j $(nproc)
 </div>
 <div>
 <p>Hardware prefetchers rely on observing memory access patterns over time to train internal state tables. Setting the simulation or warmup instructions too low will result in inaccurate prefetcher accuracy and coverage statistics.</p>
-<p>For this evaluation, <em><strong>the recommended parameters are <code>--warmup_instructions 20000000</code> (20M) and <code>--simulation_instructions 100000000</code> (100M)</strong></em>. You may use smaller instruction counts (e.g., 10M) for rapid debugging, but ensure your final report uses the recommended values.</p>
+<p>For final evaluations in Parts 2 and 3, <strong>use <code>--warmup-instructions 20000000</code> (20M) and <code>--simulation-instructions 100000000</code> (100M)</strong> on the same trace files and starting positions for every prefetcher. Collect statistics from the simulation phase only. You may use smaller instruction counts for debugging. Part 4 measures its complete analysis-function ROI with zero warmup and each implementation's own instruction length on the same hardware; see <a href="proj3/./part4.html#measure-the-complete-task">Part 4</a>.</p>
 </div>
 </div>
 <h3 id="analyzing-statistics"><a class="header" href="#analyzing-statistics">Analyzing Statistics</a></h3>
-<p>After the simulation completes, ChampSim outputs detailed cache and prefetcher performance statistics to stdout (or your redirected output text file).</p>
-<p>Look for the <code>=== Simulation ===</code> section and the corresponding <code>L1D PREFETCHER</code> statistics:</p>
-<pre><code class="language-text">=== Simulation ===
-CPU 0 cumulative IPC: 1.652 Instructions per cycle: 1.652
-...
-L1D PREFETCHER REQUESTED:   450210  ISSUED:   410200  USEFUL:   328160  USELESS:    82040
-L1D AVERAGE MISS LATENCY: 24.5 cycles
-
+<p>Use simulation-phase counters only. Warmup trains cache and predictor state, but its instructions, cycles, and events must not be included in the reported counters. Use the course version's measurement-phase statistics reset; do not reset predictor state at this boundary. Prefetches crossing the boundary follow that version's event-counting semantics, so Accuracy and Coverage are finite-window estimates.</p>
+<p>The following names are <strong>normalized CSV fields</strong>, not assumed ChampSim output labels. Extract them from the CPU 0 and L1D statistics of the course-provided version, and retain the original logs:</p>
+<div class="table-wrapper"><table><thead><tr><th>Field</th><th>Definition</th></tr></thead><tbody>
+<tr><td><code>instructions</code></td><td>CPU 0 retired instructions during measurement</td></tr>
+<tr><td><code>cycles</code></td><td>CPU 0 cycles during measurement</td></tr>
+<tr><td><code>issued</code></td><td>L1D prefetch requests accepted by the cache's prefetch interface, using the simulator's issued counter; exclude rejected attempts</td></tr>
+<tr><td><code>useful</code></td><td>The simulator's native L1D USEFUL counter: includes both hits consuming a prefetched line and demand merges into an outstanding prefetch originating from L1D</td></tr>
+<tr><td><code>demand_misses</code></td><td>Sum of L1D LOAD and RFO miss counters; exclude PREFETCH, WRITE/WRITEBACK, and TRANSLATION</td></tr>
+</tbody></table>
+</div>
+<p>For <code>demand_misses</code>, use cache-access miss counts, not newly allocated MSHRs or lower-level transactions. A demand access counted as a miss by the simulator remains a miss even when it merges with an outstanding request; do not deduplicate these counts by address. Use the same access-type scope and counter mapping for all runs. The course framework must provide and document counters matching these definitions; if a field is unavailable, resolve the framework mapping rather than substituting zero or an unrelated statistic.</p>
+<p>In this course version, USEFUL is not restricted to timely LOAD hits. It increases when an eligible access consumes a line marked as prefetched, and when a non-prefetch request merges into an outstanding prefetch originating from L1D. Such a merge can increment both USEFUL and the demand miss counter. The native USEFUL counter can also include consumption by writes, whereas <code>demand_misses</code> here includes only LOAD and RFO. Use the native counter as reported; do not replace it with an independently estimated count of timely hits.</p>
+<p>Report four metrics:</p>
+<ul>
+<li><strong>IPC</strong>: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord text"><span class="mord">instructions</span></span><span class="mord">/</span><span class="mord text"><span class="mord">cycles</span></span></span></span></span>.</li>
+<li><strong>Accuracy</strong>: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord text"><span class="mord">useful</span></span><span class="mord">/</span><span class="mord text"><span class="mord">issued</span></span></span></span></span>.</li>
+<li><strong>Coverage estimate</strong>: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord text"><span class="mord">useful</span></span><span class="mord">/</span><span class="mopen">(</span><span class="mord text"><span class="mord">useful</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.06em;vertical-align:-0.31em;"></span><span class="mord text"><span class="mord">demand_misses</span></span><span class="mclose">)</span></span></span></span>.</li>
+<li><strong>Speedup</strong>: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0361em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord text"><span class="mord">IPC</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">pf</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mord">/</span><span class="mord"><span class="mord text"><span class="mord">IPC</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">no</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, using the same workload, platform, and instruction window. The <code>no</code> baseline has Speedup 1.</li>
+</ul>
+<p>Accuracy and Coverage use the native L1D USEFUL event count. Coverage is a proxy based on that count and remaining LOAD/RFO misses; the numerator and miss count can overlap and have different access-type scopes. It is neither a timely-prefetch coverage fraction nor the fraction of baseline misses actually eliminated. Prefetching can also change cache pollution and execution timing. Interpret Accuracy and Coverage together with IPC and Speedup.</p>
+<p>If an Accuracy or Coverage denominator is zero, report <code>N/A</code>. For <code>no</code>, always report Accuracy and Coverage as <code>N/A</code>; retain its zero <code>issued</code> and <code>useful</code> counters. Do not collect or submit a late-prefetch metric.</p>
+<h3 id="reproducible-metric-calculation"><a class="header" href="#reproducible-metric-calculation">Reproducible Metric Calculation</a></h3>
+<p>Students are responsible for extracting and checking their own simulation counters and calculating the metrics. Record normalized counters in a CSV with the following header, one row per workload/prefetcher pair:</p>
+<pre><code class="language-csv">workload,prefetcher,instructions,cycles,issued,useful,demand_misses
 </code></pre>
-<p>In this project, you will evaluate four critical performance metrics:</p>
-<ul>
-<li><strong><code>cpu.ipc</code></strong>: The overall instructions per cycle (<code>CPU 0 cumulative IPC</code>).</li>
-<li><strong><code>prefetcher.accuracy</code></strong>: The fraction of useful prefetches out of total issued prefetches:</li>
-</ul>
-<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord text"><span class="mord">Accuracy</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.0463em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3603em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">ISSUED</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">USEFUL</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p>
-<ul>
-<li><strong><code>prefetcher.coverage</code></strong>: The fraction of potential misses eliminated by useful prefetches:</li>
-</ul>
-<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord text"><span class="mord">Coverage</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.1297em;vertical-align:-0.7693em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3603em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">USEFUL</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord text"><span class="mord">L1D DEMAND MISS</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord text"><span class="mord">USEFUL</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.7693em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p>
-<ul>
-<li><strong><code>prefetcher.pfLate</code></strong>: The number of prefetches issued too late (i.e., demand requests hit an in-flight MSHR allocated by a prefetch before it completed).</li>
-</ul>
+<p>Include a <code>no</code> row for every workload. Keep raw counters as integers and ratios as fractions (or label percentages explicitly in figures). <strong>No metric-calculation script is provided. Students must extract the counters and calculate IPC, Accuracy, Coverage, and Speedup themselves using the formulas above.</strong> Explain the mapping from simulator output fields to your raw counters, and show a worked calculation for one prefetch-enabled test case in your report.</p>
+<p>For the prefetcher comparisons in Parts 2 and 3, check that each run completes, has valid counters, and includes at least 100M measurement instructions. Use the same platform and instruction window, include the matching <code>no</code> baseline, and apply the zero-denominator rules above. Never treat an incomplete simulation as a final result. Submit <code>raw_counters.csv</code>, your calculated results in <code>metrics.csv</code>, the configurations, and the original logs.</p>
+<p>Part 4 uses its separate <a href="proj3/./part4.html#measure-the-complete-task">complete-task cycle comparison</a>, with L1D <code>next_line</code> fixed and each implementation's own ROI length.</p>
 <div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
 <div class="admonition-title">
 <div id="admonition-deliverables-title">
@@ -473,15 +504,16 @@ L1D AVERAGE MISS LATENCY: 24.5 cycles
 </div>
 <div>
 <p>Please run two prefetch-sensitive workloads (<code>shell_sort.champsimtrace.xz</code> and <code>gemm.champsimtrace.xz</code>) across the three prefetcher configurations. The remaining workloads (<code>spfa</code> and <code>binary_search</code>) are prefetch-insensitive and optional.</p>
-<p>Include figures or tables in your <em><strong>report</strong></em> presenting the four critical metrics (<strong>IPC</strong>, <strong>Accuracy</strong>, <strong>Coverage</strong>, and <strong>Late Prefetch Count</strong>) across all six test cases:</p>
+<p>Include figures or tables in your <em><strong>report</strong></em> presenting the four critical metrics (<strong>IPC</strong>, <strong>Accuracy</strong>, <strong>Coverage estimate</strong>, and <strong>Speedup</strong>) across all six test cases:</p>
 <ul>
 <li><strong>Prefetchers</strong>: <code>no</code> (No prefetcher), <code>next_line</code>, <code>ip_stride</code>.</li>
 <li><strong>Workloads</strong>: <code>shell_sort.champsimtrace.xz</code>, <code>gemm.champsimtrace.xz</code>.</li>
-<li><strong>Cache Hierarchy</strong>: Use the 2-level cache hierarchy configured in Part 1, attaching prefetchers to <code>L1D</code>.</li>
+<li><strong>Cache Hierarchy</strong>: Use the fixed shared evaluation platform above, attaching prefetchers to <code>L1D</code>.</li>
 </ul>
 <p>In total, you will run <strong>6 simulation runs</strong> (3 prefetcher configurations <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6667em;vertical-align:-0.0833em;"></span><span class="mord">×</span></span></span></span> 2 workloads).</p>
 </div>
-</div><div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+</div>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="part-3-paper-reading-prefetcher-design-implementation-and-evaluation"><a class="header" href="#part-3-paper-reading-prefetcher-design-implementation-and-evaluation">Part 3: Paper Reading, Prefetcher Design, Implementation, and Evaluation</a></h1>
 <p>In this part, you will first read a state-of-the-art research paper on hardware prefetching and analyze its design principles. Based on the paper and your understanding of memory access prediction, you will then <strong>design and implement your own hardware prefetcher</strong> in <strong>ChampSim</strong>. Finally, you will evaluate your prefetcher performance and participate in a competitive benchmark ranking.</p>
 <hr />
@@ -511,10 +543,10 @@ L1D AVERAGE MISS LATENCY: 24.5 cycles
 <p><strong>Design Insights</strong>: Identify the key ideas from Hyperion that can be applied to designing a new prefetcher. Discuss possible improvements, extensions, or alternative designs.</p>
 </li>
 </ol>
-<p><em>(Note: You are not required to reproduce Hyperion exactly. The purpose of this task is to understand the paper and derive your own prefetcher design.)</em></p>
+<p><em>(Note: This is a custom prefetcher design task; reproducing Hyperion is not required. The purpose of this task is to understand the paper and derive your own prefetcher design.)</em></p>
 <hr />
 <h2 id="task-2-designing-and-implementing-your-own-prefetcher-in-champsim"><a class="header" href="#task-2-designing-and-implementing-your-own-prefetcher-in-champsim">Task 2: Designing and Implementing Your Own Prefetcher in ChampSim</a></h2>
-<p>ChampSim provides a clean, function-based C++ interface for implementing hardware prefetchers.</p>
+<p>ChampSim exposes cache events through C++ prefetcher module callbacks.</p>
 <p>In this task, you will design and implement your <strong>own prefetcher</strong> based on the ideas learned from the reference paper. Your design should include a prediction mechanism, metadata tracking structures, and a prefetch generation strategy.</p>
 <p>Your prefetcher may be inspired by Hyperion or other existing prefetching techniques, such as:</p>
 <ul>
@@ -525,154 +557,197 @@ L1D AVERAGE MISS LATENCY: 24.5 cycles
 <li>Hybrid prefetching combining multiple predictors</li>
 <li>Any novel prefetching strategy designed by yourself</li>
 </ul>
-<p>A standard ChampSim prefetcher resides in the <code>prefetcher/</code> directory (or a custom subfolder under <code>prefetcher/</code>) and implements the following module callback functions. The module may also implement <code>prefetcher_cycle_operate()</code> for per-cycle work and, for instruction prefetchers, <code>prefetcher_branch_operate()</code>.</p>
-<pre><code class="language-cpp">#include "cache.h"
+<h3 id="use-the-course-module-skeleton"><a class="header" href="#use-the-course-module-skeleton">Use the Course Module Skeleton</a></h3>
+<p>The course repository already provides <strong><code>prefetcher/my_prefetcher/my_prefetcher.h</code></strong> and <strong><code>prefetcher/my_prefetcher/my_prefetcher.cc</code></strong>. Extend these files and complete their TODOs. Keep the declarations and definitions consistent with the course version; both callbacks must return a <code>uint32_t</code> value on every path.</p>
+<p>The following two-file example uses the existing class and callback signatures. It emits a minimal same-page next-line request to demonstrate the interface. Replace its prediction logic with your own design.</p>
+<p><strong><code>prefetcher/my_prefetcher/my_prefetcher.h</code></strong>:</p>
+<pre><code class="language-cpp">#ifndef PREFETCHER_MY_PREFETCHER_H
+#define PREFETCHER_MY_PREFETCHER_H
 
-// 1. Initialization: Called once when the simulation starts
-void my_prefetcher::prefetcher_initialize() {
-    // Initialize your internal tables, tracking structures, and counters here
-}
+#include &lt;cstdint&gt;
+#include "champsim.h"
+#include "modules.h"
 
-// 2. Operate: Called when an L1D cache tag is checked
-uint32_t my_prefetcher::prefetcher_cache_operate(
-   uint64_t addr, uint64_t ip, bool cache_hit, uint8_t type, uint32_t metadata_in) {
-    // Extract block address and page offset
-    uint64_t block_addr = addr &gt;&gt; LOG2_BLOCK_SIZE; // LOG2_BLOCK_SIZE is typically 6
-    uint64_t page_addr  = addr &gt;&gt; LOG2_PAGE_SIZE;  // LOG2_PAGE_SIZE is typically 12
-    uint64_t page_offset = (addr &gt;&gt; LOG2_BLOCK_SIZE) &amp; 0x3F; // 64 blocks per 4KiB page
+class my_prefetcher : public champsim::modules::prefetcher
+{
+public:
+  using prefetcher::prefetcher;
 
-    // Implement your prediction algorithm here:
-    // 1. Update access history
-    // 2. Predict future memory addresses
-    // 3. Generate prefetch requests
+  uint32_t prefetcher_cache_operate(
+      champsim::address addr, champsim::address ip, uint8_t cache_hit,
+      bool useful_prefetch, access_type type, uint32_t metadata_in);
 
-    uint64_t pf_block_addr = block_addr + 1;
-    uint64_t pf_addr = pf_block_addr &lt;&lt; LOG2_BLOCK_SIZE;
+  uint32_t prefetcher_cache_fill(
+      champsim::address addr, long set, long way, uint8_t prefetch,
+      champsim::address evicted_addr, uint32_t metadata_in);
 
-    // Example prefetch request
-    prefetch_line(pf_addr, true, 0);
-
-    // Return metadata to associate with the accessed block.
-    return metadata_in;
-}
-
-// 3. Cache Fill: Called when a line is filled into L1D
-uint32_t my_prefetcher::prefetcher_cache_fill(
-    uint64_t addr, uint32_t set, uint32_t way, bool prefetch,
-    uint64_t evicted_addr, uint32_t metadata_in) {
-    // Update tracking structures upon cache line fill
-    return metadata_in;
-}
-
-// 4. Final Stats: Called at the end of simulation
-void my_prefetcher::prefetcher_final_stats() {
-    // Print custom statistics if needed
-}
-
+  // Optional: declare a callback here before defining it in the .cc file.
+  // void prefetcher_initialize();
+  // void prefetcher_cycle_operate();
+  // void prefetcher_final_stats();
+};
+#endif
 </code></pre>
-<h3 id="key-champsim-prefetcher-interfaces--concepts"><a class="header" href="#key-champsim-prefetcher-interfaces--concepts">Key ChampSim Prefetcher Interfaces &amp; Concepts</a></h3>
+<p><strong><code>prefetcher/my_prefetcher/my_prefetcher.cc</code></strong>:</p>
+<pre><code class="language-cpp">#include "my_prefetcher.h"
+#include "cache.h"
+
+uint32_t my_prefetcher::prefetcher_cache_operate(
+    champsim::address addr, champsim::address ip, uint8_t cache_hit,
+    bool useful_prefetch, access_type type, uint32_t metadata_in)
+{
+  if (type == access_type::LOAD) {
+    const champsim::block_number block{addr};
+    const champsim::address pf_addr{block + 1};
+
+    if (champsim::page_number{pf_addr} == champsim::page_number{addr}) {
+      const bool accepted = prefetch_line(pf_addr, true, metadata_in);
+      // If tracking requests, record the timestamp only when accepted.
+      // TODO: replace this example with your predictor and tracking logic.
+      (void)accepted;
+    }
+  }
+  return metadata_in;
+}
+
+uint32_t my_prefetcher::prefetcher_cache_fill(
+    champsim::address addr, long set, long way, uint8_t prefetch,
+    champsim::address evicted_addr, uint32_t metadata_in)
+{
+  if (way == intern_-&gt;NUM_WAY) {
+    // Bypass: no cache way receives this fill.
+    return metadata_in;
+  }
+  // TODO: update your predictor's fill/eviction state if needed.
+  return metadata_in;
+}
+</code></pre>
+<p>Store prediction tables, confidence values, and request history as members of <code>my_prefetcher</code>. Add the corresponding container headers or <code>msl/lru_table.h</code> when your design uses them. If you rename the module, keep its directory, class, header, implementation, and configuration name consistent.</p>
+<h3 id="course-champsim-api"><a class="header" href="#course-champsim-api">Course ChampSim API</a></h3>
 <ul>
-<li>
-<p><strong><code>prefetcher_initialize()</code></strong>: Called when the cache module is initialized. Use it to initialize dynamic structures such as <code>std::vector</code> and <code>std::map</code>.</p>
-</li>
-<li>
-<p><strong><code>prefetcher_cache_operate()</code></strong>: Called whenever the cache checks a tag. It receives the packet address, the initiating PC, the hit result, access type, and incoming metadata; it returns metadata to store with the block. Some ChampSim versions include an additional <code>bool useful_prefetch</code> parameter. Use the exact signature generated for your configured version.</p>
-</li>
-<li>
-<p><code>addr</code>: Address of the packet. At a first-level cache it includes byte-offset bits; at lower levels the offset bits are zero. With virtual prefetching enabled, it is a virtual address; otherwise it is a physical address.</p>
-</li>
-<li>
-<p><code>ip</code>: Instruction pointer of the demand that initiated the access. It is <code>0</code> for a prefetch sent from another cache level.</p>
-</li>
-<li>
-<p><code>cache_hit</code>: <code>true</code> when the tag check hits and <code>false</code> otherwise. When the signature includes <code>useful_prefetch</code>, that parameter is <code>true</code> when the hit consumes a previously prefetched block.</p>
-</li>
-<li>
-<p><code>type</code>: Access type, such as <code>LOAD</code>, <code>RFO</code>, <code>PREFETCH</code>, <code>WRITE</code>, or <code>TRANSLATION</code>.</p>
-</li>
-<li>
-<p><strong><code>prefetcher_cache_fill()</code></strong>: Called when a miss is filled into the cache. It receives the fill address, set and way, whether the fill is a prefetch, evicted address, and incoming metadata; return the metadata to store with the filled block. A bypass is reported with <code>way == this-&gt;NUM_WAY</code> and a default-constructed evicted address.</p>
-</li>
-<li>
-<p><strong><code>prefetcher_cycle_operate()</code></strong>: Optional callback executed after all other work in each simulation cycle. Use it for time-based training or deferred prefetch issuance.</p>
-</li>
-<li>
-<p><strong><code>prefetcher_branch_operate()</code></strong>: Optional callback for instruction prefetchers. It receives the branch PC, branch type, and branch target.</p>
-</li>
-<li>
-<p><strong><code>prefetcher_final_stats()</code></strong>: Called at the end of the simulation; use it to print custom statistics.</p>
-</li>
-<li>
-<p><strong><code>prefetch_line(pf_addr, fill_level, metadata)</code></strong>: The cache-module method used to request a prefetch. <code>pf_addr</code> is the target byte address, <code>fill_level</code> selects the target fill level, and <code>metadata</code> is carried with the request.</p>
-</li>
-<li>
-<p><strong>Address Manipulations</strong>:</p>
-</li>
-<li>
-<p>Block Address: $\text{block_addr} = \text{addr} \gg \text{LOG2_BLOCK_SIZE}$</p>
-</li>
-<li>
-<p>Page Address: $\text{page_addr} = \text{addr} \gg \text{LOG2_PAGE_SIZE}$</p>
-</li>
-<li>
-<p>Page Offset: $\text{page_offset} = (\text{addr} \gg \text{LOG2_BLOCK_SIZE}) \ &amp; \ 0\text{x}3\text{F}$</p>
-</li>
+<li><strong><code>prefetcher_cache_operate()</code></strong> receives typed addresses, the PC, hit status, <code>useful_prefetch</code>, access type, and metadata. In the provided header, <code>cache_hit</code> is <code>uint8_t</code>; zero means miss and nonzero means hit. Return <code>metadata_in</code> when your design does not modify metadata.</li>
+<li><strong>Activation</strong>: the callback is filtered by the cache's <code>prefetch_activate</code> mask and excludes requests generated by that cache's own prefetcher. The shared L1D baseline activates on LOAD and PREFETCH; it does not call the predictor for every WRITE or RFO tag check. Keep these platform settings unchanged.</li>
+<li><strong><code>addr</code> and <code>ip</code></strong> are <code>champsim::address</code>, not integer block indices. In the shared L1D baseline, <code>addr</code> is a physical data address; <code>ip</code> identifies the initiating instruction. Data addresses may contain byte-offset bits, so normalize them consistently for history and fill lookups. A request without an initiating demand PC can have a zero <code>ip</code>.</li>
+<li><strong><code>useful_prefetch</code></strong> indicates a hit consuming a prefetched line. It is not an indication of every event contributing to the native USEFUL counter: merges into outstanding prefetches can also increment that counter, as described in Part 2.</li>
+<li><strong><code>type</code></strong> is the scoped <code>access_type</code> enum. Compare it with values such as <code>access_type::LOAD</code>, <code>access_type::RFO</code>, or <code>access_type::PREFETCH</code>.</li>
+<li><strong><code>prefetcher_cache_fill()</code></strong> reports the fill address, <code>long</code> set/way indices, a <code>uint8_t</code> prefetch flag, evicted address, and metadata. A nonzero prefetch flag identifies a prefetch fill as reported by the simulator. A bypass has <code>way == intern_-&gt;NUM_WAY</code> and a default-constructed evicted address; do not index per-way state for a bypass. Return the metadata to associate with the filled line.</li>
+<li><strong><code>intern_</code></strong> points to the attached cache. Include <code>cache.h</code> in the implementation when accessing fields or methods such as <code>intern_-&gt;NUM_WAY</code> or <code>intern_-&gt;get_mshr_occupancy_ratio()</code>.</li>
+<li><strong><code>prefetch_line(pf_addr, fill_this_level, metadata)</code></strong> accepts a typed byte address and a <strong>boolean</strong> fill choice. <code>true</code> requests filling the attached cache (L1D here); <code>false</code> skips filling that cache while forwarding through the lower hierarchy. This is not an arbitrary numeric cache-level selector. The return value indicates whether the request entered the prefetch interface's queue; acceptance does not guarantee a new memory transaction or a later fill callback. Handle rejection when maintaining request state or implementing retries.</li>
+<li><strong>Optional callbacks</strong>: <code>prefetcher_initialize()</code> runs once during initialization; <code>prefetcher_cycle_operate()</code> runs once per attached-cache operate tick, after its main tag/fill work; <code>prefetcher_final_stats()</code> can print custom statistics. Declare and define any optional callback you use. The branch callback belongs to instruction-prefetcher use and is not needed for this L1D task.</li>
 </ul>
-<div id="admonition-timestamps-and-custom-data-structures" class="admonition admonish-info" role="note" aria-labelledby="admonition-timestamps-and-custom-data-structures-title">
+<p>Use the typed address helpers instead of passing a shifted integer as a byte address:</p>
+<pre><code class="language-cpp">const champsim::block_number block{addr};
+const champsim::page_number page{addr};
+const uint64_t block_key = block.to&lt;uint64_t&gt;();
+const uint64_t page_key = page.to&lt;uint64_t&gt;();
+const uint64_t block_in_page =
+    champsim::page_offset{addr}.to&lt;uint64_t&gt;() / BLOCK_SIZE;
+const champsim::address line_addr{block};
+const champsim::address next_line_addr{block + 1};
+</code></pre>
+<p><code>block_key</code> and <code>page_key</code> are integer indices suitable for table keys; <code>line_addr</code> and <code>next_line_addr</code> are typed byte addresses suitable for <code>prefetch_line()</code>. Apply the same block normalization in operate and fill callbacks.</p>
+<div id="admonition-timestamps-and-predictor-state" class="admonition admonish-info" role="note" aria-labelledby="admonition-timestamps-and-predictor-state-title">
 <div class="admonition-title">
-<div id="admonition-timestamps-and-custom-data-structures-title">
-<p>Timestamps and Custom Data Structures</p>
+<div id="admonition-timestamps-and-predictor-state-title">
+<p>Timestamps and Predictor State</p>
 </div>
-<a class="admonition-anchor-link" href="proj3/part3.html#admonition-timestamps-and-custom-data-structures"></a>
+<a class="admonition-anchor-link" href="proj3/part3.html#admonition-timestamps-and-predictor-state"></a>
 </div>
 <div>
-<p>In ChampSim, you can track logical time or access age using a simple counter incremented inside <code>prefetcher_cache_operate()</code> (for example, <code>uint64_t current_cycle = 0; current_cycle++;</code>). For per-cycle timing work, implement <code>prefetcher_cycle_operate()</code>. You can also use standard C++ STL containers (<code>std::vector</code>, <code>std::unordered_map</code>, fixed-size arrays) as members or static data in your prefetcher module.</p>
-<p>Your implementation should carefully design metadata structures to record memory access history, prediction information, confidence values, or other information required by your prefetching algorithm.</p>
+<p>An access counter measures access order, not simulated cycles. For latency-based prediction, store <code>intern_-&gt;current_time</code> in your per-block request history. Given a timestamp saved from the same cache, convert elapsed time to local cache cycles with:</p>
+<pre><code class="language-cpp">const auto request_time = intern_-&gt;current_time;
+// Store request_time in a module-owned table; retrieve it on the later event.
+const auto elapsed_cycles =
+    (intern_-&gt;current_time - request_time) / intern_-&gt;clock_period;
+</code></pre>
+<p>Alternatively, maintain a persistent counter in <code>prefetcher_cycle_operate()</code> and use that same local-tick counter for all timestamps. Do not mix access counts, local ticks, and simulator time units, or use host wall-clock time. Keep predictor tables and timing state continuous across the warmup/measurement boundary; ChampSim resets its native measurement counters itself. Track rejected requests, repeated accesses, fills, and stale entries consistently.</p>
 </div>
 </div>
-<h3 id="adding-your-prefetcher-to-champsim"><a class="header" href="#adding-your-prefetcher-to-champsim">Adding Your Prefetcher to ChampSim</a></h3>
+<h3 id="build-and-run-your-module"><a class="header" href="#build-and-run-your-module">Build and Run Your Module</a></h3>
 <ol>
-<li>Create a new prefetcher file: <code>prefetcher/my_prefetcher.cc</code> (or <code>prefetcher/my_prefetcher/my_prefetcher.cc</code>).</li>
-<li>Implement your own prefetcher logic based on the reference paper and your design ideas.</li>
-<li>Update <code>lab3_config.json</code> to assign your prefetcher name to the <code>L1D</code> cache module.</li>
-<li>Generate C++ files and compile:</li>
+<li>Complete the existing <code>my_prefetcher.h</code> and <code>my_prefetcher.cc</code> files.</li>
+<li>Start from the Part 2 shared baseline, change only <code>L1D.prefetcher</code> to <code>"my_prefetcher"</code>, and set <code>executable_name</code> to <code>"champsim_my_prefetcher"</code>.</li>
+<li>Generate the build and compile:</li>
 </ol>
 <pre><code class="language-sh">./config.sh lab3_config.json
 make -j $(nproc)
-
 </code></pre>
+<ol start="4">
+<li>Run your module on the two required workloads:</li>
+</ol>
+<pre><code class="language-sh">mkdir -p results
+./bin/champsim_my_prefetcher --warmup-instructions 20000000 --simulation-instructions 100000000 traces/shell_sort.champsimtrace.xz &gt; results/my_prefetcher_sort.txt
+./bin/champsim_my_prefetcher --warmup-instructions 20000000 --simulation-instructions 100000000 traces/gemm.champsimtrace.xz &gt; results/my_prefetcher_gemm.txt
+</code></pre>
+<p>Shorter runs are allowed for debugging. Use the full window above for final results and calculate the metrics yourself using Part 2's formulas.</p>
 <hr />
 <h2 id="evaluation-and-grading-criteria"><a class="header" href="#evaluation-and-grading-criteria">Evaluation and Grading Criteria</a></h2>
 <p>Your prefetcher implementation will be evaluated using a suite of ChampSim trace workloads (including both prefetch-sensitive and undisclosed hidden benchmarks).</p>
+<p>All baseline and custom prefetchers must run on the <a href="proj3/./part2.html#shared-evaluation-platform-parts-24">shared evaluation platform defined in Part 2</a>, with 20M warmup instructions followed by 100M simulation instructions per trace. Attach your prefetcher only to L1D. Do not use your optimized Part 1 cache configuration. The same fixed platform and instruction window apply to hidden benchmarks and leaderboard runs.</p>
+<p>Extract the counters and calculate the metrics yourself using the definitions, formulas, and zero-denominator rules in <a href="proj3/./part2.html#analyzing-statistics">Part 2</a>. Submit raw logs, counter CSV files, and calculated results for baseline and custom prefetchers.</p>
+<h3 id="reuse-part-2-baselines"><a class="header" href="#reuse-part-2-baselines">Reuse Part 2 Baselines</a></h3>
+<p>You may reuse the six Part 2 baseline results (<code>no</code>, <code>next_line</code>, and <code>ip_stride</code> on both workloads) when they use the <strong>same simulator revision, baseline implementations, CPU/cache/memory configuration, trace files and starting positions, and 20M warmup + 100M measurement window</strong>. Identify the reused runs and include their original configurations, logs, counters, and calculated results. If these conditions differ, rerun the affected baselines.</p>
+<p>With matching Part 2 results, Part 3 requires only <strong>two additional final simulations</strong>: your custom prefetcher on <code>shell_sort</code> and on <code>gemm</code>. The final comparison contains <strong>eight cases</strong> (four prefetchers × two workloads), with six cases reused and two newly measured. Additional debugging, tuning, or ablation runs are optional.</p>
+<h3 id="local-performance-evaluation-script"><a class="header" href="#local-performance-evaluation-script">Local Performance Evaluation Script</a></h3>
+<p>Download <a href="proj3/./tools/auto-run.py">auto-run.py</a>, place it in the course ChampSim root directory, and run it after implementing <code>prefetcher/my_prefetcher/my_prefetcher.h</code> and <code>.cc</code>:</p>
+<pre><code class="language-sh">python3 auto-run.py --max-worker 2 --output-file local-result.json
+</code></pre>
+<p>The script follows the Lab 2 runner workflow: build each prefetcher once, run traces in parallel, and cache the baseline. It uses <strong>L1D <code>next_line</code> as the baseline</strong> and <code>my_prefetcher</code> as the candidate, with the shared Part 2 platform and <strong>20M warmup + 100M measurement</strong> on <strong>16 equally weighted traces</strong>: <code>shell_sort</code>, <code>gemm</code>, and the following <code>CACHE_TRACES</code>. The report comparison described above still uses <code>shell_sort</code> and <code>gemm</code>.</p>
+<pre><code class="language-text">cache-10.champsimtrace.xz
+cache-11-1.champsimtrace.xz
+cache-11-2.champsimtrace.xz
+cache-1.champsimtrace.xz
+cache-2.champsimtrace.xz
+cache-3.champsimtrace.xz
+cache-4.champsimtrace.xz
+cache-5.champsimtrace.xz
+cache-6.champsimtrace.xz
+cache-7.champsimtrace.xz
+cache-8.champsimtrace.xz
+cache-9.champsimtrace.xz
+603.bwaves_s-1080B.champsimtrace.xz
+654.roms_s-1021B.champsimtrace.xz
+</code></pre>
+<p>It reads <code>lab3_config.json</code> when present, fills omitted platform fields with the shared baseline, and rejects hardware changes that would make the comparison inconsistent. The input configuration is not modified.</p>
+<p>For the geometric mean speedup <strong>G</strong> defined below, the script reports <strong><code>score = 100 × G</code></strong>. Matching <code>next_line</code> gives 100; a geometric mean speedup of 1.10 gives 110. Successful stdout contains only a JSON score; progress goes to stderr. Detailed results include each trace's IPC, retired instructions, cycles, and speedup, using ChampSim's native JSON ROI counters.</p>
+<p>The first default invocation runs 16 baseline and 16 candidate simulations (32 total). Later invocations reuse valid <code>baseline/next_line/</code> entries and run only the 16 candidate simulations. The cache checks the platform, instruction window, trace contents, and baseline/framework sources; editing your candidate module does not invalidate it. Logs, generated configurations, native statistics, and detailed results are saved under <code>.auto-run-p3/run-*/</code>. Failed or incomplete simulations produce no score.</p>
+<p>Part 2 baseline reuse for the report remains available as described above. The script maintains its own validated cache and does not import manual logs. It computes the IPC performance score only; extract counters and calculate Accuracy and Coverage yourself using Part 2's formulas. A local score of <strong>100 or higher</strong> meets the absolute performance requirement when using the full default 16-trace suite, the shared platform, and the final 20M warmup + 100M measurement window.</p>
+<p>For a short workflow check, use the following command. These results do not replace the final measurement window:</p>
+<pre><code class="language-sh">python3 auto-run.py --warmup-instructions 200000 --simulation-instructions 1000000
+</code></pre>
+<p>Use <code>--candidate NAME</code> to select another prefetcher module and <code>--build-jobs N</code> to limit compilation concurrency. The optional <code>--trace FILENAME</code> flag can be repeated to replace the default automatic scoring suite with a selected subset or a separate suite. Without this flag, all 16 traces above contribute to the score.</p>
 <h3 id="grading-structure"><a class="header" href="#grading-structure">Grading Structure</a></h3>
+<p>Part 3 contributes <strong>11 points</strong>: <strong>5 points for the paper summary</strong> and <strong>6 points for design, implementation, and performance</strong>. The latter counts toward the 18-point experimental component of the project.</p>
 <ol>
 <li>
-<p><strong>Paper Summary (20%)</strong>:
-Clear and accurate summary of the Hyperion paper, including its background, architecture, prediction mechanisms, and key design insights.</p>
+<p><strong>Paper Summary (5 pts)</strong>:
+Background and motivation: <strong>1 pt</strong>; core architecture and prediction mechanisms: <strong>3 pts</strong>; design insights: <strong>1 pt</strong>.</p>
 </li>
 <li>
-<p><strong>Prefetcher Design &amp; Implementation Report (40%)</strong>:
+<p><strong>Prefetcher Design &amp; Implementation (2 pts)</strong>:
 Students should provide:</p>
 <ul>
 <li>Description of their prefetcher design.</li>
 <li>Motivation behind the design choices.</li>
 <li>Explanation of prediction mechanisms and metadata structures.</li>
 <li>Correct implementation in ChampSim.</li>
-<li>Analysis of IPC, accuracy, coverage, and late prefetches.</li>
+<li>Analysis of IPC, accuracy, coverage estimate, and speedup.</li>
 </ul>
 </li>
 <li>
-<p><strong>Performance Evaluation (40%)</strong>:</p>
+<p><strong>Performance Evaluation (4 pts)</strong>:</p>
 </li>
 </ol>
 <ul>
 <li>
-<p><strong>Absolute Performance (25%)</strong>:
-Your prefetcher must outperform the baseline <code>next_line</code> prefetcher and achieve a minimum required IPC speedup threshold on the provided workloads.</p>
+<p><strong>Absolute Performance (2 pts)</strong>:
+Earn the full <strong>2 absolute-performance points</strong> by obtaining <strong><code>score &gt;= 100</code></strong> with the local <code>auto-run.py</code>, using all <strong>16 default traces</strong>, the shared Part 2 platform, and <strong>20M warmup + 100M measurement</strong> per trace. This corresponds to a geometric mean IPC speedup of at least <strong>1.0</strong> relative to <code>next_line</code>; matching the baseline meets this requirement. Scores from shortened windows or selected trace subsets do not establish final qualification.</p>
 </li>
 <li>
-<p><strong>Relative Ranking (15%)</strong>:
-Students will be ranked based on the <strong>geometric mean IPC speedup</strong> across all evaluation traces. Top-performing implementations will receive full ranking points, with a gradual curve applied down the leaderboard.</p>
+<p><strong>Relative Ranking (2 pts)</strong>:
+Students will be ranked based on the <strong>geometric mean IPC speedup relative to <code>next_line</code></strong> across all evaluation traces:</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal">G</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:3.3839em;vertical-align:-1.2777em;"></span><span class="minner"><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size4">(</span></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.8283em;"><span style="top:-1.8723em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">i</span><span class="mrel mtight">=</span><span class="mord mtight">1</span></span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∏</span></span></span><span style="top:-4.3em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.10903em;">N</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.2777em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3603em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord text"><span class="mord">IPC</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">next_line</span></span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight">i</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.367em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord text"><span class="mord">IPC</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">custom</span></span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight">i</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.053em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size4">)</span></span></span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:2.1062em;"><span style="top:-4.2812em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1/</span><span class="mord mathnormal mtight" style="margin-right:0.10903em;">N</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">.</span></span></span></span></span></p>
+<p>Each trace has equal weight. Run <code>next_line</code> and your custom prefetcher on the same platform and instruction window for each trace. This ranking metric uses <code>next_line</code> as its reference; the general-purpose Speedup column defined in Part 2 uses <code>no</code>. Report the per-trace ratios to <code>next_line</code> and their geometric mean separately. Ranking points: top 20% receive <strong>2 pts</strong>; the remaining students in the top 50% receive <strong>1.5 pts</strong>; all other valid implementations receive <strong>1 pt</strong>.</p>
 </li>
 </ul>
 <div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
@@ -687,7 +762,7 @@ Students will be ranked based on the <strong>geometric mean IPC speedup</strong>
 <ol>
 <li>
 <p><strong>Source Code</strong>:
-Submit your C++ prefetcher implementation file (<code>my_prefetcher.cc</code>) and any associated header files.</p>
+Submit both <code>prefetcher/my_prefetcher/my_prefetcher.h</code> and <code>prefetcher/my_prefetcher/my_prefetcher.cc</code>, plus any other files needed by your implementation.</p>
 </li>
 <li>
 <p><strong>Paper Summary</strong>:
@@ -714,7 +789,7 @@ Include tables or figures comparing:</p>
 <li><strong>IPC</strong></li>
 <li><strong>Prefetch Accuracy</strong></li>
 <li><strong>Prefetch Coverage</strong></li>
-<li><strong>Late Prefetches</strong></li>
+<li><strong>Speedup</strong></li>
 </ul>
 <p>Compare your implementation with:</p>
 <ul>
@@ -725,7 +800,7 @@ Include tables or figures comparing:</p>
 </ul>
 <p>Provide a discussion explaining:</p>
 <ul>
-<li>Why your prefetcher improves performance on certain workloads.</li>
+<li>Why your prefetcher improves or regresses on particular workloads.</li>
 <li>Which access patterns are difficult to predict.</li>
 <li>Potential limitations and future improvements.</li>
 </ul>
@@ -733,6 +808,171 @@ Include tables or figures comparing:</p>
 </ol>
 </div>
 </div>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+<h1 id="part-4-cache-aware-optimization-of-a-telemetry-analysis-program"><a class="header" href="#part-4-cache-aware-optimization-of-a-telemetry-analysis-program">Part 4: Cache-Aware Optimization of a Telemetry Analysis Program</a></h1>
+<p>Optimize a working telemetry analysis program while preserving its results. A device gateway stores normalized sensor readings in acquisition order. The offline program filters these readings through four processing stages and produces a health report for each group of devices. Your task is to make this computation faster on the fixed ChampSim platform by improving how it uses the cache hierarchy.</p>
+<p>Part 4 contributes <strong>6 points</strong>. Most points reward experimental design and analysis; performance is measured by the <strong>cycles required to complete the same task</strong>.</p>
+<h2 id="starter-program-and-business-function"><a class="header" href="#starter-program-and-business-function">Starter Program and Business Function</a></h2>
+<p>Download and extract the <a href="proj3/./part4-starter.zip">Part 4 starter package</a>. It contains the original implementation, a student copy to optimize, the fixed arithmetic and checking driver, a ChampSim configuration, and a complete-ROI trace capture utility. Optimized implementations are not included.</p>
+<div class="table-wrapper"><table><thead><tr><th>File</th><th>Purpose</th></tr></thead><tbody>
+<tr><td><a href="proj3/./part4/telemetry.h">telemetry.h</a></td><td>Fixed data types, constants and four-point arithmetic primitive</td></tr>
+<tr><td><a href="proj3/./part4/reference.cc">reference.cc</a></td><td>Original pipeline and provided health-report calculation</td></tr>
+<tr><td><a href="proj3/./part4/student.cc">student.cc</a></td><td>Starting implementation of <code>telemetry::analyze()</code>; optimize this file</td></tr>
+<tr><td><a href="proj3/./part4/driver.cc">driver.cc</a></td><td>Input generation, ROI markers, full-output verification and optional CSV export</td></tr>
+<tr><td><a href="proj3/./part4/Makefile">Makefile</a></td><td>Fixed compiler flags and separate reference/student executables</td></tr>
+<tr><td><a href="proj3/./part4/part4_config.json">part4_config.json</a></td><td>Complete fixed ChampSim configuration</td></tr>
+<tr><td><a href="proj3/./part4/capture_trace.py">capture_trace.py</a></td><td>Capture and compress the complete computation; record its instruction length</td></tr>
+<tr><td><code>tracer/</code></td><td>Course-format Pin tracer source and build files with ROI symbol support</td></tr>
+</tbody></table>
+</div>
+<p>The <strong>one official performance input</strong> is:</p>
+<div class="table-wrapper"><table><thead><tr><th>Parameter</th><th>Value</th></tr></thead><tbody>
+<tr><td>Time samples (<code>T</code>)</td><td>512</td></tr>
+<tr><td>Devices (<code>D</code>)</td><td>64</td></tr>
+<tr><td>Channels per device</td><td>16</td></tr>
+<tr><td>Filter stages / points per stage</td><td>4 / 4</td></tr>
+<tr><td>Input pattern / seed</td><td><code>stress</code> / <code>123</code></td></tr>
+<tr><td>Input readings</td><td>Signed 32-bit integers in <code>[-10000, 10000]</code></td></tr>
+<tr><td>Input footprint</td><td>2 MiB</td></tr>
+</tbody></table>
+</div>
+<p>The sixteen channels represent normalized deviations of measurements such as temperature, vibration, current, voltage, pressure and flow. All channels contribute to the output. The original implementation passes complete intermediate arrays between processing stages. It is functionally correct, but its processing order and intermediate working sets leave room for optimization.</p>
+<p>Only this medium-sized input is used for the reported performance score. Small cases in the checker test correctness. Hidden correctness cases may change the data, seed and medium-sized dimensions, including incomplete device groups and block tails; <strong>the sixteen channels, four stages and four-point calculation remain fixed</strong>.</p>
+<h3 id="exact-computation"><a class="header" href="#exact-computation">Exact Computation</a></h3>
+<p>Input acquisition order is <code>[time][device][channel]</code>:</p>
+<pre><code class="language-text">input.data[(t * D + d) * 16 + c]
+</code></pre>
+<p>Let <code>x[0]</code> be the input. For stage <code>s = 0, 1, 2, 3</code>, compute the following for every device and channel at times <code>t &gt;= 3*(s+1)</code>:</p>
+<pre><code class="language-text">weighted = x[s][t,d,c] + 2*x[s][t-1,d,c]
+         + 3*x[s][t-2,d,c] + 4*x[s][t-3,d,c]
+value = weighted / 10
+limit = 2400 - 100*s + 50*(c % 4)
+x[s+1][t,d,c] = clamp(value, -limit, limit)
+</code></pre>
+<p>Use signed 64-bit accumulation. Division is <strong>integer division toward zero</strong>, followed by clamping <strong>at every stage</strong>. The supplied <code>condition()</code> primitive already implements this short calculation; you do not need to derive a signal-processing algorithm.</p>
+<p>The final valid time range is <code>12 &lt;= t &lt; T</code>. Store <strong>every</strong> final filtered reading in:</p>
+<pre><code class="language-text">output.filtered[((t - 12) * D + d) * 16 + c]
+</code></pre>
+<p>For each valid time, compute a device's risk as the sum of the absolute values of its sixteen final readings. Its alert threshold is:</p>
+<pre><code class="language-text">threshold[d] = 600*16 + (19*d) % (400*16)
+</code></pre>
+<p>A device is in alert when its risk is <strong>strictly greater</strong> than this threshold. For each group of up to sixteen devices, produce the total risk, number of devices in alert, and maximum device risk. The last group uses its actual device count. Report layout is <code>[t-12][group]</code>, with <code>ceil(D/16)</code> groups. <code>summarize()</code> supplies this computation.</p>
+<h2 id="optimization-scope"><a class="header" href="#optimization-scope">Optimization Scope</a></h2>
+<p>Keep the input, all final filtered readings, and every report field unchanged. Preserve the per-stage weighted contributions, integer truncation and clamping, and the main <code>O(stages * T * D * channels * history)</code> computation. You may reorganize loops, change internal layouts, block the work, pack data, fuse compatible work and reuse loaded samples or intermediate values. Explain why your changes preserve the dependency order.</p>
+<p>Keep all data-dependent computation, explicit preprocessing, intermediate initialization, copying and report construction inside <code>analyze()</code>. The input is read-only. Use single-threaded scalar C++ and the supplied compiler flags. Preserve the fixed headers, reference implementation, driver, ROI markers, tracer and hardware configuration. You may add your own helper files; add them only to the student executable's build dependencies and command, keeping the flags unchanged.</p>
+<p>Prefix sums, running updates of window aggregates, FFT-based filtering, collapsing stages, skipping required contributions, changing the input or task size, and precomputed answers are outside this lab's optimization scope. Keeping original history samples for later reuse is allowed when each valid output still evaluates the prescribed contributions. Hidden output checks verify semantics; source review also checks the required computation structure. The grader uses the original course driver and reference files.</p>
+<h3 id="build-and-check"><a class="header" href="#build-and-check">Build and Check</a></h3>
+<p>Use the Linux environment prepared in Lab 1. After extracting the archive:</p>
+<pre><code class="language-sh">cd part4-starter
+make -j2
+make check
+./bin/telemetry_student --pattern demo --csv health-report.csv
+</code></pre>
+<p><code>make check</code> compares every filtered reading and report field on multiple inputs. The demo exports a readable device-group report with quiet periods, transient spikes and sustained faults. It is separate from the official <code>stress</code> performance input.</p>
+<p>The fixed build flags are:</p>
+<pre><code class="language-text">-std=c++17 -O2 -fno-tree-vectorize -fno-tree-slp-vectorize
+-fno-unroll-loops -fno-pie -no-pie -Wall -Wextra -Werror
+</code></pre>
+<p>The reference executable is built independently of <code>student.cc</code>. Each normal run verifies its complete output outside the measured region and prints JSON containing <code>verified: true</code> and a checksum. The checksum is for reproducibility; verification compares the actual arrays and report fields. Do not use native wall-clock time as the ChampSim performance result.</p>
+<h2 id="fixed-hardware-platform"><a class="header" href="#fixed-hardware-platform">Fixed Hardware Platform</a></h2>
+<p>Use <a href="proj3/./part4/part4_config.json">part4_config.json</a>, which preserves the <a href="proj3/./part2.html#shared-evaluation-platform-parts-24">Part 2 shared hardware platform</a> and fixes <strong>L1D <code>next_line</code></strong> for every implementation.</p>
+<div class="table-wrapper"><table><thead><tr><th>Component</th><th>Fixed setting</th></tr></thead><tbody>
+<tr><td>CPU</td><td>One core, 4 GHz, ROB 352, <code>bimodal</code>, <code>basic_btb</code>, mispredict penalty 15</td></tr>
+<tr><td>L1I</td><td>64 sets × 8 ways = 32 KiB; <code>no</code>; 16 MSHRs; tag/fill 1/1</td></tr>
+<tr><td>L1D</td><td>64 sets × 12 ways = 48 KiB; <code>next_line</code>; 16 MSHRs; tag/fill 1/1</td></tr>
+<tr><td>L2C</td><td>2048 sets × 16 ways = 2 MiB; <code>no</code>; 20 MSHRs; tag/fill 4/4</td></tr>
+<tr><td>Hierarchy / replacement</td><td>Split L1I/L1D → L2C → DRAM; no LLC; LRU</td></tr>
+<tr><td>Cache line / page</td><td>64 B / 4 KiB</td></tr>
+<tr><td>Cache delays</td><td>Course ChampSim's default calculation, without manual latency overrides</td></tr>
+</tbody></table>
+</div>
+<p>The program is the optimization target. Keep this hardware configuration fixed, including L1I and the prefetchers.</p>
+<p>Set the paths to your existing installations and build the supplied tracer and simulator:</p>
+<pre><code class="language-sh">export CHAMPSIM_ROOT=/absolute/path/to/ChampSim
+export PIN_ROOT=/absolute/path/to/pin
+export PART4_ROOT="$PWD"
+make -C tracer PIN_ROOT="$PIN_ROOT"
+
+cd "$CHAMPSIM_ROOT"
+./config.sh --no-compile-all-modules "$PART4_ROOT/part4_config.json"
+make -j8 bin/champsim_part4
+cd "$PART4_ROOT"
+</code></pre>
+<h2 id="measure-the-complete-task"><a class="header" href="#measure-the-complete-task">Measure the Complete Task</a></h2>
+<p>Optimizations can change dynamic instruction counts. Capture <strong>the complete call to the analysis function</strong> and compare the cycles needed to finish it. Use <strong>zero warmup</strong> and the original instruction length of <strong>each implementation's own ROI</strong>. The 20M + 100M prefetcher window from Parts 2 and 3 does not apply here.</p>
+<p>The fixed driver places <code>roi_begin</code> and <code>roi_end</code> around the computation. Input generation, driver correctness checks and CSV export are outside this region. All work performed by the analysis function, including temporary allocation, initialization, packing and report construction, is measured.</p>
+<p>Capture the reference and current student implementation:</p>
+<pre><code class="language-sh">python3 capture_trace.py --pin-root "$PIN_ROOT" \
+    --tracer tracer/obj-intel64/champsim_tracer.so \
+    --output traces/reference.champsimtrace.xz -- \
+    ./bin/telemetry_reference --times 512 --devices 64 --seed 123 --pattern stress
+
+python3 capture_trace.py --pin-root "$PIN_ROOT" \
+    --tracer tracer/obj-intel64/champsim_tracer.so \
+    --output traces/student.champsimtrace.xz -- \
+    ./bin/telemetry_student --times 512 --devices 64 --seed 123 --pattern stress
+</code></pre>
+<p>Capture succeeds only after a complete ROI and successful driver verification. It writes the compressed trace, a <code>.xz.json</code> metadata file with <code>roi_instructions</code>, and a <code>.xz.capture.log</code>. The helper streams compression, so it does not require storing the large uncompressed trace. Use a new filename for each experiment; <code>--force</code> explicitly replaces a capture after a successful run.</p>
+<p>The trace contains <strong>8192 additional lookahead records after the original ROI</strong>. They prevent the simulator from ending early at EOF while fetching the last task instructions. <strong>Exclude them from the measurement length</strong>: use <code>roi_instructions</code> from the metadata, not the padded file's record count. Truncated captures or captures reaching the safety limit are rejected.</p>
+<p>Run the two complete tasks, using their separate instruction lengths:</p>
+<pre><code class="language-sh">mkdir -p results
+N_REFERENCE=$(python3 -c 'import json; print(json.load(open("traces/reference.champsimtrace.xz.json"))["roi_instructions"])')
+N_STUDENT=$(python3 -c 'import json; print(json.load(open("traces/student.champsimtrace.xz.json"))["roi_instructions"])')
+
+"$CHAMPSIM_ROOT/bin/champsim_part4" --warmup-instructions 0 \
+    --simulation-instructions "$N_REFERENCE" --json results/reference.stats.json \
+    traces/reference.champsimtrace.xz &gt; results/reference.log
+
+"$CHAMPSIM_ROOT/bin/champsim_part4" --warmup-instructions 0 \
+    --simulation-instructions "$N_STUDENT" --json results/student.stats.json \
+    traces/student.champsimtrace.xz &gt; results/student.log
+</code></pre>
+<p>Confirm successful completion and a measured retired instruction count reaching the requested ROI length. There can be a small retirement-width overshoot. An incomplete run is not a final result. Starting implementations need not have identical instruction counts or IPC, and all compared runs must finish the same input and outputs.</p>
+<p>You may reuse your reference capture and simulation across experiments when the fixed reference sources, compiler/version/flags, input, tracer/format, hardware and complete-ROI measurement method match. Keep its original metadata, binary/source provenance and logs. Regenerate the affected baseline when these conditions change.</p>
+<h3 id="performance-and-cache-statistics"><a class="header" href="#performance-and-cache-statistics">Performance and Cache Statistics</a></h3>
+<p>Use the <strong>Simulation ROI</strong> in the native JSON. For the single core, read <code>roi.cores[0].instructions</code> and <code>roi.cores[0].cycles</code>. The task speedup is:</p>
+<pre><code class="language-text">speedup = reference_cycles / optimized_cycles
+</code></pre>
+<p>The original implementation has speedup 1. Higher is better. This is a full-task cycle ratio; the Part 2 prefetcher IPC-ratio definition is a different comparison.</p>
+<p>For every reported version, extract counters and calculate the following yourself:</p>
+<ul>
+<li>ROI instruction length, measured retired instructions, cycles and task speedup.</li>
+<li>L1D and L2C <strong>LOAD hits, LOAD misses, and LOAD miss rate</strong>. Read <code>cpu0_L1D</code> and <code>cpu0_L2C</code>; sum per-core arrays where present. Miss rate is <code>misses / (hits + misses)</code>; report <code>N/A</code> for a zero denominator. Keep native miss counts, including merged misses.</li>
+<li><strong>DRAM read requests</strong>: sum <code>RQ ROW_BUFFER_HIT + RQ ROW_BUFFER_MISS</code> over the ROI's DRAM channels. These are memory-controller counts, not CPU LOAD counts.</li>
+</ul>
+<p>Store raw counters and derived results in clearly labelled CSV files. Retain the native JSON and stdout logs. Prefetch Accuracy/Coverage are not required for this fixed-prefetcher program-optimization experiment. IPC, branch and TLB counters may support your analysis, but the performance score uses cycles.</p>
+<p>Discuss absolute traffic as well as miss rates: a lower cache level may see fewer requests even when its local miss rate rises. Relate your intermediate working-set estimates to cache capacity, cache-line use and measured changes. Include the cost of packing or other extra work when interpreting a result.</p>
+<h2 id="experiments-and-report"><a class="header" href="#experiments-and-report">Experiments and Report</a></h2>
+<p>Present the original implementation and <strong>at least two optimization versions</strong>, with a clear reason for each change. All final performance comparisons use the official medium input and complete-ROI method above.</p>
+<p>For a parameterized choice, compare at least three settings while controlling the other changes. These settings can overlap your optimization-version runs. For an approach without tunable parameters, provide equivalent controlled comparisons or ablations. Explain both improvements and regressions, estimate the actively reused working set, and justify your final implementation using measurements.</p>
+<p>Your report should make it possible to follow a change from code to access pattern, from access pattern to cache behavior, and from cache behavior to complete-task cycles. Use correctness-only inputs for debugging without treating their performance as the official result.</p>
+<h2 id="grading-criteria"><a class="header" href="#grading-criteria">Grading Criteria</a></h2>
+<p>Part 4 contributes <strong>6 points</strong> to the 18-point experimental component:</p>
+<div class="table-wrapper"><table><thead><tr><th>Component</th><th style="text-align: right">Points</th><th>Evidence</th></tr></thead><tbody>
+<tr><td>Optimization effect</td><td style="text-align: right">2</td><td>Verified final implementation; speedup on the official input using the fixed platform and complete ROI</td></tr>
+<tr><td>Experimental design</td><td style="text-align: right">2</td><td>Reproducible baseline, at least two motivated optimization versions, controlled parameter/ablation comparisons and retained raw evidence</td></tr>
+<tr><td>Analysis</td><td style="text-align: right">2</td><td>Correct counter calculations; working-set and access-pattern reasoning; explanation of gains, costs and regressions; justified final choice</td></tr>
+</tbody></table>
+</div>
+<p>The <strong>2 performance points</strong> use the following absolute task-speedup thresholds, before rounding:</p>
+<div class="table-wrapper"><table><thead><tr><th>Speedup</th><th style="text-align: right">Performance points</th></tr></thead><tbody>
+<tr><td>Below 1.25×</td><td style="text-align: right">0</td></tr>
+<tr><td>At least 1.25× and below 2×</td><td style="text-align: right">0.5</td></tr>
+<tr><td>At least 2× and below 3×</td><td style="text-align: right">1</td></tr>
+<tr><td>At least 3× and below 4×</td><td style="text-align: right">1.5</td></tr>
+<tr><td>At least 4×</td><td style="text-align: right">2</td></tr>
+</tbody></table>
+</div>
+<p>Correctness and the specified computation structure are prerequisites for performance points. Only verified runs count as experimental evidence. Hidden tests use the original course driver/reference to check semantics; source review checks the permitted optimization scope.</p>
+<h2 id="deliverables"><a class="header" href="#deliverables">Deliverables</a></h2>
+<p>Submit:</p>
+<ol>
+<li>Your final <code>student.cc</code>, any added helpers, the complete starter sources/build files and the fixed JSON; identify each intermediate version used in the report.</li>
+<li>Correctness-check output and the reference/final compressed traces with their capture metadata and logs.</li>
+<li>Native ChampSim JSON and stdout logs for the baseline and reported versions; raw counter CSV and independently calculated metric tables.</li>
+<li>The report's design progression, controlled experiments, working-set reasoning and final selection. Record the compiler and ChampSim versions, exact build/capture/simulation commands, and the source-to-result mapping.</li>
+</ol>
+<p>See <a href="proj3/./submit.html">Submission</a> for the combined project archive and grading breakdown.</p>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="submission"><a class="header" href="#submission">Submission</a></h1>
 <div id="admonition-submission-guidelines" class="admonition admonish-note" role="note" aria-labelledby="admonition-submission-guidelines-title">
@@ -745,10 +985,10 @@ Include tables or figures comparing:</p>
 <div>
 <ul>
 <li>Please submit the deliverables for each part in order, formatted clearly in a single lab report (PDF format preferred). Provide brief but insightful discussions for all experimental results.</li>
-<li>You <strong>MUST</strong> submit your source code files, paper summary, and custom trace file along with your report.</li>
+<li>You <strong>MUST</strong> submit your source code files, paper summary, and Part 4 measurement artifacts along with your report.</li>
 <li>Pack all required files into a single zip/tar archive and submit it via <a href="https://course.pku.edu.cn">course.pku.edu.cn</a>. The title of the archive and the report must follow the format: <code>Student-ID_Name_Proj3</code> (e.g., <code>123456789_WangXiaoming_Proj3</code>).</li>
 <li>You can also email your submission to <code>2501112042@stu.pku.edu.cn</code>. The email subject and attachment filename <strong>MUST</strong> both be <code>Student-ID_Name_Proj3</code>.</li>
-<li><strong>ACADEMIC INTEGRITY</strong>: Do not plagiarize code or report contents. We will randomly select students for an oral defense/Q&amp;A session regarding their code implementation and trace design.</li>
+<li><strong>ACADEMIC INTEGRITY</strong>: Do not plagiarize code or report contents. We will randomly select students for an oral defense/Q&amp;A session regarding their prefetcher implementation, program optimizations, and experimental analysis.</li>
 </ul>
 </div>
 </div>
@@ -762,7 +1002,7 @@ Include tables or figures comparing:</p>
 <div>
 <ul>
 <li>You are allocated <strong>3 slip days</strong> in total for the entire semester (shared across all projects) to extend project deadlines.</li>
-<li>Projects are due strictly at <strong>23:59:59</strong> on the deadline date. Late submissions without slip days will incur a <strong>20% penalty per day</strong> (1 second late = 1 day late).</li>
+<li>Projects are due strictly at <strong>23:59:00</strong> on the deadline date. Late submissions without slip days will incur a <strong>20% penalty per day</strong> (1 second late = 1 day late).</li>
 </ul>
 </div>
 </div>
@@ -778,10 +1018,10 @@ Include tables or figures comparing:</p>
 <ol>
 <li><strong>Lab Report (<code>Report.pdf</code>)</strong>:
 <ul>
-<li><strong>Part 1</strong>: Screenshot of <code>lab3_config.json</code>, build terminal output, and IPC comparison table/figure across cache configurations.</li>
-<li><strong>Part 2</strong>: Evaluation table/figures showing <strong>IPC</strong>, <strong>Accuracy</strong>, <strong>Coverage</strong>, and <strong>Late Prefetches</strong> for baseline prefetchers (<code>no</code>, <code>next_line</code>, <code>ip_stride</code>) on <code>shell_sort</code> and <code>gemm</code>.</li>
-<li><strong>Part 3</strong>: Evaluation metrics for your <code>Hyperion</code> prefetcher, along with performance comparison and discussion.</li>
-<li><strong>Part 4</strong>: Detailed explanation of your custom trace design strategy, hostility analysis, and performance table against baselines.</li>
+<li><strong>Part 1</strong>: Capacity allocation analysis on <code>cache-capacity</code> and fixed-capacity sets/ways analysis on <code>cache-conflict</code>; include IPC, cycles, L1D/L2C LOAD counts, miss rates, MPKI, and configured hit/fill latencies, with build/run evidence.</li>
+<li><strong>Part 2</strong>: Evaluation table/figures showing <strong>IPC</strong>, <strong>Accuracy</strong>, <strong>Coverage estimate</strong>, and <strong>Speedup</strong> for baseline prefetchers (<code>no</code>, <code>next_line</code>, <code>ip_stride</code>) on <code>shell_sort</code> and <code>gemm</code>.</li>
+<li><strong>Part 3</strong>: Custom prefetcher design, evaluation metrics, performance comparison, and discussion. Matching Part 2 baseline results may be reused under the conditions in Part 3; only two additional final runs are needed for that report comparison on the two required workloads. Part 3's local performance qualification separately uses the full 16-trace automatic scoring suite.</li>
+<li><strong>Part 4</strong>: Telemetry-program optimization progression, correctness evidence, baseline and at least two optimization versions, controlled parameter/ablation comparisons, cache/working-set analysis, and complete-task cycles and speedup on the official medium input.</li>
 </ul>
 </li>
 <li><strong>Paper Summary (<code>Paper_Summary.pdf</code> or section in report)</strong>:
@@ -791,48 +1031,71 @@ Include tables or figures comparing:</p>
 </li>
 <li><strong>Source Code &amp; Configurations</strong>:
 <ul>
-<li><code>lab3_config.json</code>: Your ChampSim cache hierarchy configuration.</li>
-<li><code>hyperion.cc</code>: Your C++ implementation of the Hyperion prefetcher.</li>
+<li><code>lab3_config.json</code> and all evaluated variant JSON files: Your baseline and experimental ChampSim configurations.</li>
+<li>Part 4 <code>student.cc</code>, any added helpers, and the starter sources/build files with the fixed <code>part4_config.json</code>. Preserve the course arithmetic, reference, driver and compiler flags.</li>
+<li><code>prefetcher/my_prefetcher/my_prefetcher.h</code> and <code>prefetcher/my_prefetcher/my_prefetcher.cc</code> (or the corresponding files for your chosen module name), plus any other required files: Your custom prefetcher implementation.</li>
+</ul>
+</li>
+<li><strong>Raw Results and Metric Calculations</strong>:
+<ul>
+<li>Part 1 stdout logs, JSON statistics, and result tables in CSV form for both teaching traces.</li>
+<li>Original simulation logs, <code>raw_counters.csv</code>, and independently calculated <code>metrics.csv</code> for Parts 2 and 3, using the formulas in Part 2; include one worked calculation for a prefetch-enabled test case in the report.</li>
+<li>Part 4 correctness-check output; reference/final <code>.champsimtrace.xz</code> captures with <code>.xz.json</code> metadata and capture logs; native JSON/stdout logs for reported versions; raw counter and calculated-result CSV files using Part 4's complete-task cycle ratio.</li>
+<li>The ChampSim revision, compiler version/flags, all evaluated configurations, build/capture/simulation commands, and the mapping from source versions and simulation-phase fields to result tables.</li>
 </ul>
 </li>
 </ol>
 </div>
 </div>
-<div id="admonition-grading-breakdown-20-points-total" class="admonition admonish-success" role="note" aria-labelledby="admonition-grading-breakdown-20-points-total-title">
+<div id="admonition-grading-breakdown-23-points-total" class="admonition admonish-success" role="note" aria-labelledby="admonition-grading-breakdown-23-points-total-title">
 <div class="admonition-title">
-<div id="admonition-grading-breakdown-20-points-total-title">
-<p>Grading Breakdown (20 Points Total)</p>
+<div id="admonition-grading-breakdown-23-points-total-title">
+<p>Grading Breakdown (23 Points Total)</p>
 </div>
-<a class="admonition-anchor-link" href="proj3/submit.html#admonition-grading-breakdown-20-points-total"></a>
+<a class="admonition-anchor-link" href="proj3/submit.html#admonition-grading-breakdown-23-points-total"></a>
 </div>
 <div>
-<p>Your grade for Project 3 will be evaluated out of <strong>20 points</strong> as follows:</p>
+<p>Project 3 has <strong>18 points for experiments and implementation</strong>, plus <strong>5 points for the paper summary</strong>, for a total of <strong>23 points</strong>:</p>
 <ul>
 <li>
-<p><strong>Part 1: Cache Hierarchy Setup (3 pts)</strong></p>
+<p><strong>Part 1: Data Cache Capacity Allocation and Associativity (3 pts)</strong></p>
 <ul>
-<li>Screenshot of valid <code>lab3_config.json</code> and successful build output: <strong>1.5 pts</strong></li>
-<li>Correct execution and reasonable IPC comparison analysis: <strong>1.5 pts</strong></li>
+<li><strong>Reproducibility and Correct Execution (0.5 pts)</strong>: Valid configurations, successful build/run evidence, the assigned <code>cache-capacity</code> and <code>cache-conflict</code> traces, the exact capacity budget, and fixed L1I and control parameters.</li>
+<li><strong>Experimental Design (1 pt)</strong>: At least three capacity allocations and three sets/ways organizations, with controlled comparisons and a justified choice of configurations.</li>
+<li><strong>Results and Analysis (1.5 pts)</strong>: Compare IPC, cycles, miss statistics, and resulting cache latencies; explain capacity and associativity effects and justify the final configuration using the measurements.</li>
 </ul>
 </li>
 <li>
 <p><strong>Part 2: Baseline Prefetcher Evaluation (3 pts)</strong></p>
 <ul>
-<li>Complete and accurate collection of all 4 metrics (IPC, Accuracy, Coverage, Late count) across <code>no</code>, <code>next_line</code>, and <code>ip_stride</code> on all required workloads: <strong>3 pts</strong></li>
+<li>Complete and accurate collection of all 4 metrics (IPC, Accuracy, Coverage estimate, Speedup) across <code>no</code>, <code>next_line</code>, and <code>ip_stride</code> on all required workloads: <strong>3 pts</strong></li>
 </ul>
 </li>
 <li>
-<p><strong>Part 3: Paper Summary &amp; Hyperion Implementation (9 pts)</strong></p>
+<p><strong>Part 3: Paper Summary &amp; Custom Prefetcher Implementation (11 pts)</strong></p>
 <ul>
-<li><strong>Paper Summary</strong>: Comprehensive summary of background and design mechanisms: <strong>3 pts</strong> <em>(Missing major sections: -1 pt each)</em></li>
-<li><strong>Code Correctness</strong>: Compilable and functional Hyperion C++ implementation: <strong>2 pts</strong></li>
-<li><strong>Absolute Performance</strong>: Outperforming <code>next_line</code> and meeting the baseline IPC speedup threshold: <strong>2 pts</strong></li>
-<li><strong>Relative Leaderboard Ranking</strong>: Based on geometric mean IPC speedup across all test traces: <strong>2 pts</strong> <em>(Top 20%: 2 pts; Top 50%: 1.5 pts; Others: 1 pt)</em></li>
+<li><strong>Paper Summary</strong>: Background and motivation: <strong>1 pt</strong>; core architecture and mechanisms: <strong>3 pts</strong>; design insights: <strong>1 pt</strong> (5 pts total).</li>
+<li><strong>Code Correctness</strong>: Compilable and functional custom prefetcher implementation: <strong>2 pts</strong></li>
+<li><strong>Absolute Performance</strong>: Local <code>auto-run.py</code> score <strong>≥100</strong>, using all 16 default traces on the shared platform with 20M warmup + 100M measurement: <strong>2 pts</strong></li>
+<li><strong>Relative Leaderboard Ranking</strong>: Based on the geometric mean of per-trace IPC ratios relative to <code>next_line</code>, with equal weight per trace: <strong>2 pts</strong> <em>(Top 20%: 2 pts; Top 50%: 1.5 pts; Others: 1 pt)</em>. See Part 3 for the formula; this differs from the Part 2 Speedup column relative to <code>no</code>.</li>
 </ul>
+</li>
+<li>
+<p><strong>Part 4: Cache-Aware Telemetry Program Optimization (6 pts)</strong></p>
+<ul>
+<li><strong>Optimization Effect (2 pts)</strong>: Complete-task speedup <code>reference_cycles / optimized_cycles</code> on the fixed 512×64×16 input (four stages/four points, seed 123, stress pattern), with L1D <code>next_line</code>, zero warmup and each version's complete ROI. Speedup thresholds: <strong>1.25× / 2× / 3× / 4×</strong> earn <strong>0.5 / 1 / 1.5 / 2 pts</strong>, respectively; below 1.25× earns 0 performance points.</li>
+<li><strong>Experimental Design (2 pts)</strong>: Reproducible baseline, at least two motivated optimization versions, controlled parameter or ablation comparisons, and retained raw evidence.</li>
+<li><strong>Analysis (2 pts)</strong>: Correct metric calculations, working-set and access-pattern reasoning, explanations of improvements and regressions, and a justified final implementation.</li>
+<li>Correctness and the required computation structure are prerequisites for performance points. Only verified runs count as evidence. See <a href="proj3/./part4.html#grading-criteria">Part 4</a>; its speedup compares full-task cycles and differs from the Part 2/3 prefetcher metrics.</li>
+</ul>
+</li>
+<li>
+<p><strong>Incomplete Submissions</strong>: Missing required components may result in a discretionary deduction of up to <strong>5 points</strong>.</p>
 </li>
 </ul>
 </div>
-</div><div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+</div>
+<div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="appendix-a-introduction-to-cache-prefetchers"><a class="header" href="#appendix-a-introduction-to-cache-prefetchers">Appendix A: Introduction to Cache Prefetchers</a></h1>
 <p>In modern memory hierarchy, the penalty of cache misses can be extremely large. This motivates designers to reduce the cache miss rate. Typically, some workloads show predictable memory access patterns, like sequentially accessing an array (address sequence as <code>A, A+1, ...</code>). In such cases, a previous access can inform the CPU about the potential following accesses (e.g., <code>A</code> can lead to <code>A+1</code>). The cache prefetchers are designed for these scenarios, which extract the workloads' access patterns, and load the following data before the CPU explicitly accesses them, eliminating cache misses.</p>
 <p>The simplest implementation of prefetcher is the "next-line prefetcher", as shown in Fig (a) below. When the CPU access a block (cacheline) <code>A</code>, the next-line prefetcher will load the next block <code>A+1</code> to the cache. Note that in cache hierarchy, the access granualrity will always be block (typically 64B), so there is no concept like "next-byte prefetcher".</p>
@@ -840,28 +1103,20 @@ Include tables or figures comparing:</p>
 <p>However, next-line prefetcher cannot perform well on some workloads. As a simple example, some workloads access the memory in a strided pattern, such as <code>A, A+2, A+4,...</code> (here we have <code>stride = 2</code>). In such scenarios, next-line prefetcher will never prefetch the being-used data. To serve these workloads, "stride prefetcher", as shown in Fig (b), is proposed, which can <em>learn</em> the actual stride from the memory access history, and perform useful prefetches.</p>
 <p>The "degree" denotes the depth of prefetching. For example, the next-line prefetcher has <code>degree = 1</code>, for it prefetches one line per issue. If it has larger degree, it can be named as "next-N-line prefetcher".</p>
 <h2 id="metrics-to-evaluate-prefetchers"><a class="header" href="#metrics-to-evaluate-prefetchers">Metrics to evaluate prefetchers</a></h2>
-<p>In the text above, we claim that stride prefetcher can perform better than next-line prefetcher. As a question, how can we determine the "performance" of a prefetcher? Basically, we have several values or metrics to evaluate prefetchers. Here we list them with their name in <code>stats.txt</code> of <code>gem5</code> output:</p>
-<ul>
-<li><code>pfIssued</code>: The number of prefetches issued by prefetcher.</li>
-<li><code>pfUseful</code>: The number of prefetches that are useful (i.e., the prefetched data are accessed in the cache before being evicted).</li>
-<li><code>pfUnused</code>: The number of prefetches that actually fill data into cache, but the data are not accessed before being evicted.</li>
-<li><code>pfLate</code>: The number of prefetches that are issued lately (the prefetched data are in cache, MSHRs or write buffer).</li>
-<li><code>demandMshrMisses</code>: The number of cache misses, no prefetch were issued to cover them.</li>
-<li><code>accuracy</code>: The accuracy of the prefetcher, equivalent to <code>pfUseful / pfIssued</code>.</li>
-<li><code>coverage</code>: The coverage of the prefetcher, equivalent to <code>pfUseful / potentialMisses</code>, where <code>potentialMisses = pfUseful + demandMshrMisses</code>. Here, "potential misses" refers to the accesses that would miss if there were no prefetcher. Therefore, the number of potential misses is the number of useful prefetches plus actual misses.</li>
-</ul>
+<p>Use the ChampSim metric definitions in <a href="proj3/./part2.html#analyzing-statistics">Part 2</a>: IPC, Accuracy, Coverage estimate, and Speedup relative to <code>no</code>. Collect only measurement-phase counters, retain raw logs and counters, and calculate the metrics yourself using the specified formulas. Accuracy and Coverage are <code>N/A</code> for the no-prefetch baseline and whenever their denominator is zero.</p>
+<p>Coverage estimates how useful prefetches compare with useful prefetches plus remaining demand misses. It does not directly measure the fraction of baseline misses eliminated. Speedup measures the resulting execution-performance benefit.</p>
 <p>The most important metrics are <code>accuracy</code> and <code>coverage</code>. There is a trade-off between them. More aggressive prefetching will fetch more addresses, whether useful of not. Many of the actual accesses can be covered by prefetches, but many useless data are also prefetched, thus, increasing the <code>coverage</code> but decreasing <code>accuracy</code>. More conservative prefetching may increase <code>accuracy</code> but decrease <code>coverage</code>.</p>
 <p>With these metrics, we can compare between next-line prefetcher and stride prefetcher: stride prefetcher can have higher <code>accuracy</code> and <code>coverage</code> than next-line prefetcher under strided accesses, since next-line prefetcher cannot prefetch any useful data.</p>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="appendix-b-hyperion-prefetcher-brief-description"><a class="header" href="#appendix-b-hyperion-prefetcher-brief-description">Appendix B: Hyperion Prefetcher Brief Description</a></h1>
-<p>In this appendix, we will briefly describe the concepts of delta prefetching and timely prefetch. Based on these information, we describe the Hyperion prefetcher. Finally, we list the features that are proposed in the paper but you don't need to implement in your codes.</p>
+<p>In this appendix, we will briefly describe the concepts of delta prefetching and timely prefetch. Based on these information, we describe the Hyperion prefetcher. This appendix is reference material for custom prefetcher design, not a required implementation specification. If you choose to adapt Hyperion, the final section describes permitted simplifications.</p>
 <h2 id="delta-prefetching-and-local-delta-prefetching"><a class="header" href="#delta-prefetching-and-local-delta-prefetching">Delta prefetching and local-delta prefetching</a></h2>
 <p>To introduce delta prefetching, let's first consider a workload that performs an "irregular" memory access pattern: <code>A, A+1, A+3, A+4, A+6, ...</code>. The stride sequence of this stream is <code>+1, +2, +1, +2, ...</code>. Patterns that vary their strides like this are called irregular patterns. A normal stride prefetcher (<em>check Appendix A for details</em>) cannot provide any coverage for irregular patterns, since it cannot learn enough confidence for any individual stride value.</p>
 <p><img src="proj3/./delta.svg" alt="fig" /></p>
 <p>Delta prefetching is proposed to handle these irregular patterns. Conceptually, a "delta" is the address difference of current demand access with any previous accesses, as shown in the left figure above. The principle of delta prefetching is to learn among all existing deltas and issue prefetch based on deltas with the highest confidence. As shown in the right figure, with <code>+1, +2, +1, +2, ...</code> pattern, a delta prefetcher can learn that <code>+1</code> and <code>+2</code> has same confidence. It can then prefetch both <code>+1</code> and <code>+2</code>, increasing the coverage (though may decrease accuracy).</p>
 <p>Similar to branch predictors, prefetchers can also learn deltas based on local contexts, such as access history of individual PCs, or history inside individual pages.</p>
 <h2 id="timely-prefetch"><a class="header" href="#timely-prefetch">Timely prefetch</a></h2>
-<p>In Appendix A, we introduced the concept of late prefetches. An example is illustrated in figure below. Late prefetch happens because fetching data from lower levels of memory hierarchy requires time. For example, under the simplest pattern <code>+1, +1, +1, ...</code>, if the access interval is less than the fetch latency, next-line prefetcher can only provide zero coverage because all prefetches will be late. The principle of timely prefetch is to take prefetch latency into consideration. As shown in the right figure, timely prefetches can provide enough coverage.</p>
+<p>A prefetch must arrive before the demand access to provide a cache hit. An example is illustrated in the figure below. Timeliness is a design concept here, not a required measurement or grading metric. Late prefetch happens because fetching data from lower levels of memory hierarchy requires time. For example, under the simplest pattern <code>+1, +1, +1, ...</code>, if the access interval is less than the fetch latency, next-line prefetcher can only provide zero coverage because all prefetches will be late. The principle of timely prefetch is to take prefetch latency into consideration. As shown in the right figure, timely prefetches can provide enough coverage.</p>
 <p><img src="proj3/./timely.svg" alt="fig" /></p>
 <p>To find the best timely delta for prefetch, prefetchers can estimate the fetch latency from accesses and data fills. When a delta prefetcher records previous accesses, it will also record a <strong>timestamp</strong> of the access's arrival. When the data <strong>is filled</strong> into the cache (green part in the figure), the fetch latency can be estimated with <code>current timestamp - arrival timestamp</code>. Based on these information, when an access <code>B</code> arrives, the best delta <code>d</code> should meet the following constraints:</p>
 <ul>
@@ -877,7 +1132,7 @@ Include tables or figures comparing:</p>
 <ol>
 <li>When there is a demand miss, Hyperion first updates the history tables (both PC and Page) with the address and timestamp. If a table is full, it will evict the earliest history (i.e., <strong>FIFO eviction</strong>). Then, Hyperion find both the PC delta table and Page delta table for the delta with highest confidence, and prefetch with this delta. This find-prefetch cycle will perform 12 times.</li>
 <li>When there is a demand fill (i.e., filling the data required by demand miss to cache), Hyperion will find the demand miss on this filled address in the history tables. The latency can be estimated by <code>lat = current - timestamp</code>. Then, it will scan the history tables and learn the best delta. Then, it will update the delta tables with this learnt delta. If the delta is already recorded in the table, the total counter and its local counter are plused by 1. If the delta is not recorded, the old delta with lowest confidence will be evicted, and the counters are updated (new local counter is 1).</li>
-<li>When there is a hit on prefetched data, which indicates a potential miss, Hyperion will also estimate the latency (the timestamp of fetch-beginning can be found in the prefetch queue), learn best delta and update delta tables, like in scenario 2. It will also update history tables and issue prefetches, like in secnario 1.</li>
+<li>When there is a hit on prefetched data, Hyperion can use the recorded fetch latency to learn deltas and update its tables, then update history and issue new prefetches. In ChampSim, keep request and fill timestamps in module-owned tables keyed by cache block; do not assume the prefetch queue retains completed requests. Use the course version's useful-prefetch indication when available, or maintain per-line prefetched state from fill, eviction, and demand-access events.</li>
 </ol>
 <div id="admonition-tip" class="admonition admonish-tip" role="note" aria-labelledby="admonition-tip-title">
 <div class="admonition-title">
@@ -888,21 +1143,22 @@ Include tables or figures comparing:</p>
 </div>
 <div>
 <ul>
-<li><strong>Use block base address</strong>: In cache context, all operations are in block granularity. The most important issue is that <code>notifyFill()</code> will pass block base address to the arguments. If you forget to use block base address, you may miss information in <code>notifyFill()</code>. So it's better to transform any address to block base address firstly (you can use <code>blockAddress()</code> or <code>blockIndex()</code>).</li>
+<li><strong>Use consistent block addresses</strong>: Normalize addresses from both <code>prefetcher_cache_operate()</code> and <code>prefetcher_cache_fill()</code> with <code>champsim::block_number{addr}</code>. Use its <code>.to&lt;uint64_t&gt;()</code> value as an integer table key. Convert a predicted block number to <code>champsim::address</code> before passing it to <code>prefetch_line()</code>; a block index is not a byte address. See the typed-address examples in Part 3.</li>
+<li><strong>Use consistent simulated time</strong>: Follow the timestamp guidance in Part 3. Compute request-to-fill latency using timestamps from the same simulated time source. An access counter is not a cycle counter. Preserve the first outstanding request timestamp when repeated accesses target the same block, and remove stale tracking entries on completion or eviction as appropriate.</li>
 <li><strong>Record more information</strong>: The Hyperion is a hardware prefetcher. To mitigate its usage of hardware resources, it records only neccessary information. However, in your simulator, you can use much more memory. Feel free to record useful information to improve your prefetcher. The approaches Hyperion uses to mitigate hardware overheads are not neccessary in your implementation. We've listed them in next section.</li>
-<li><strong>Use larger degree</strong>: Hyperion is a degree-1 prefetcher, that is, for each selected delta, it prefetches only one block. However, increasing the degree may improve the performance under our specific test executables. You can use larger degree as long as it doesn't severely pollute the cache (leading to low accuracy and high cache miss rate). For example, <code>gem5</code>'s default stride perfetcher uses <code>degree = 4</code>.</li>
+<li><strong>Explore prefetch degree</strong>: You may issue multiple predicted blocks per trigger and evaluate the resulting Accuracy, Coverage, and Speedup. Respect ChampSim's request acceptance and queue limits; increasing degree can increase traffic and cache pollution.</li>
 <li><strong>Use lower threshold</strong>: Hyperion uses 0.8 as the L1D prefetch confidence threshold to avoid L1D cache pollution. However, such high confidence may lead to low coverage. You can use lower confidence during testing.</li>
 </ul>
 </div>
 </div>
 <h2 id="features-that-are-not-required-to-implement"><a class="header" href="#features-that-are-not-required-to-implement">Features that are not required to implement</a></h2>
-<p>As a hardware design, Hyperion takes multiple approaches to reduce the hardware overheads. However, in <code>gem5</code> simulator, hardware overhead is not a critical concern if we primarily focus on the logical performance of a design. Moreover, some designs modify basic cache implementation, which can be challenging in <code>gem5</code>. For your convenience, you don't need to implement the following features:</p>
+<p>For this ChampSim lab, focus on predictor behavior rather than reproducing Hyperion's physical storage layout. The following simplifications are permitted within the shared evaluation platform; they do not permit changing cache timing, queues, or memory-system limits:</p>
 <ul>
 <li><strong>Unified tables</strong>: As described, Hyperion records histories and deltas for both individual PCs and individual pages. However, this can lead to redundant records. To reduce the used hardware, Hyperion merges the actual entries of PC and page tables into unified history/delta tables, and only uses separate indexing tables. In your implementation, you can just use two separate tables.</li>
-<li><strong>Prefetch buffer</strong>: Hyperion issues multiple prefetches each round. However, hardware prefetch queue can be full and some prefetches may not have the chance to be issued. Hyperion introduces a prefetch buffer to temporarily records these prefetches. Our software impelementation can ignore this constraint.</li>
-<li><strong>Timestamp and latency recording</strong>: Hyperion add some bits to cache blocks and MSHR entries to record the timestamps and latencies. This is more hardware-efficient than use new tables. However, it will be difficult to modify the cache and MSHR implementation in <code>gem5</code>. You can just use tables in your prefetcher to record timestamps and latencies.</li>
-<li><strong>Dynamic cache-level selection</strong>: Hyperion will select the level of prefetches according to the delta confidence. Delta with low confidence may be filled into L2 cache. However, implementing this feature may be difficult in <code>gem5</code>, since the framework doesn't provide to prefetchers for a global access of all caches. You are not required to implement this feature.</li>
-<li><strong>Event on fill of prefetched data</strong>: Hyperion will trigger additional events when a prefetched block is filled, due to limited PQ size. In your implementation, you don't need to implement this feature. In <code>notifyFill()</code>, you can use the interface <code>acc.pkt-&gt;cmd.isHWPrefetch()</code> to identify if the fill is from prefetching.</li>
+<li><strong>Prefetch buffer</strong>: A separate Hyperion-style retry buffer is optional. Respect the return value of <code>prefetch_line()</code> in the course version: a rejected request must not be recorded as successfully issued. You may drop rejected predictions or defer them through <code>prefetcher_cycle_operate()</code> without changing the simulator's queue limits.</li>
+<li><strong>Timestamp and latency recording</strong>: Use module-owned tables to record request and fill timestamps rather than adding fields to cache blocks or MSHRs. Use one consistent simulated time source as described in Part 3.</li>
+<li><strong>Dynamic cache-level selection</strong>: Reproducing Hyperion's confidence-based choice of fill level is optional. Use the course version's <code>prefetch_line()</code> interface if your design selects a fill destination, while keeping the prefetcher attached to L1D and preserving the shared cache hierarchy.</li>
+<li><strong>Additional prediction on prefetch fill</strong>: You need not reproduce Hyperion's extra prediction trigger on a prefetch fill. In <code>prefetcher_cache_fill()</code>, the <code>prefetch</code> argument identifies prefetch fills in the interface shown in Part 3; you may still use this callback to maintain timestamps and per-line state.</li>
 </ul>
 
                     </main>
@@ -939,6 +1195,7 @@ Include tables or figures comparing:</p>
         <script src="book.js"></script>
 
         <!-- Custom JS scripts -->
+        <script src="pdf-print-guard.js"></script>
 
         <script>
         window.addEventListener('load', function() {

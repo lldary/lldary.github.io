@@ -1,0 +1,15 @@
+{
+  "kind": "conflict",
+  "seed": 20261025,
+  "instructions": 124000000,
+  "record_bytes": 64,
+  "format": "little-endian course input_instr",
+  "lanes": 2,
+  "instructions_per_body": 9,
+  "loads_per_body": 2,
+  "pattern_instructions": 72,
+  "compressed_sha256": "874867e12cca9fc0f09725e236a79399fe88b906bc05ce823e9d16724082e19e",
+  "conflict_nodes": 16,
+  "address_stride": 4096,
+  "distinct_data_lines": 16
+}

@@ -1,0 +1,16 @@
+{
+  "kind": "capacity",
+  "seed": 20261025,
+  "instructions": 124000000,
+  "record_bytes": 64,
+  "format": "little-endian course input_instr",
+  "lanes": 2,
+  "instructions_per_body": 9,
+  "loads_per_body": 2,
+  "pattern_instructions": 294912,
+  "compressed_sha256": "247da0031bb1f93640519e291efe59aaecd04d688c7e054b734cf990747d09d6",
+  "hot_kib": 96,
+  "warm_kib": 1024,
+  "hot_load_fraction": 0.75,
+  "distinct_data_lines": 17920
+}

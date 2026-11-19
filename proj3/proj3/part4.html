@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Part 4: Optimize a Program Segment Using Cache Optimization Techniques - Archlab gem5 Project 3</title>
+        <title>Part 4: Cache-Aware Optimization of a Telemetry Analysis Program - Archlab ChampSim Project 3</title>
 
 
         <!-- Custom HTML head -->
@@ -141,7 +141,7 @@
                         </button>
                     </div>
 
-                    <h1 class="menu-title">Archlab gem5 Project 3</h1>
+                    <h1 class="menu-title">Archlab ChampSim Project 3</h1>
 
                     <div class="right-buttons">
                         <a href="../print.html" title="Print this book" aria-label="Print this book">
@@ -179,88 +179,171 @@
                 <div id="content" class="content">
                     <main>
                         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<h1 id="part-4-crafting-a-hard-trace-cache--prefetcher-stress-testing"><a class="header" href="#part-4-crafting-a-hard-trace-cache--prefetcher-stress-testing">Part 4: Crafting a Hard Trace (Cache &amp; Prefetcher Stress Testing)</a></h1>
-<p>In this final part, you will flip the perspective from <strong>defender</strong> (building a prefetcher) to <strong>adversary</strong> (constructing a cache-hostile memory trace). Your goal is to design a synthetic workload or memory access trace that stresses the cache hierarchy, maximizes cache misses, and fools standard prefetchers (such as Next-Line or Stride prefetchers).</p>
-<p>Grading for this part will be determined by the <strong>difficulty score</strong> of your trace—specifically, how effectively it degrades baseline system performance and challenges hardware prefetching mechanisms.</p>
-<h2 id="trace-generation-overview"><a class="header" href="#trace-generation-overview">Trace Generation Overview</a></h2>
-<p>ChampSim traces (<code>.champsimtrace.xz</code>) capture dynamic execution streams, including instruction PCs, register usage, branch directions, and memory access addresses.</p>
-<p>You can generate your custom trace in the below way:</p>
-<p><strong>Benchmark C Code + Tracer</strong>: Write a custom C/C++ program (e.g., <code>stress_test.c</code>) that implements cache-unfriendly access patterns (e.g., prime-strided array traversals, pointer chasing through randomized linked lists, or dynamic access stride switching), and use the lab-provided Pin/DynamoRIO tracer script to generate <code>stress_test.champsimtrace.xz</code>:</p>
-<pre><code class="language-sh"># Compile your stress test workload
-gcc -O2 stress_test.c -o stress_test
-# Generate ChampSim trace using the provided tracer script
-./scripts/generate_trace.sh ./stress_test -o traces/custom_stress.champsimtrace.xz
-
+<h1 id="part-4-cache-aware-optimization-of-a-telemetry-analysis-program"><a class="header" href="#part-4-cache-aware-optimization-of-a-telemetry-analysis-program">Part 4: Cache-Aware Optimization of a Telemetry Analysis Program</a></h1>
+<p>Optimize a working telemetry analysis program while preserving its results. A device gateway stores normalized sensor readings in acquisition order. The offline program filters these readings through four processing stages and produces a health report for each group of devices. Your task is to make this computation faster on the fixed ChampSim platform by improving how it uses the cache hierarchy.</p>
+<p>Part 4 contributes <strong>6 points</strong>. Most points reward experimental design and analysis; performance is measured by the <strong>cycles required to complete the same task</strong>.</p>
+<h2 id="starter-program-and-business-function"><a class="header" href="#starter-program-and-business-function">Starter Program and Business Function</a></h2>
+<p>Download and extract the <a href="./part4-starter.zip">Part 4 starter package</a>. It contains the original implementation, a student copy to optimize, the fixed arithmetic and checking driver, a ChampSim configuration, and a complete-ROI trace capture utility. Optimized implementations are not included.</p>
+<div class="table-wrapper"><table><thead><tr><th>File</th><th>Purpose</th></tr></thead><tbody>
+<tr><td><a href="./part4/telemetry.h">telemetry.h</a></td><td>Fixed data types, constants and four-point arithmetic primitive</td></tr>
+<tr><td><a href="./part4/reference.cc">reference.cc</a></td><td>Original pipeline and provided health-report calculation</td></tr>
+<tr><td><a href="./part4/student.cc">student.cc</a></td><td>Starting implementation of <code>telemetry::analyze()</code>; optimize this file</td></tr>
+<tr><td><a href="./part4/driver.cc">driver.cc</a></td><td>Input generation, ROI markers, full-output verification and optional CSV export</td></tr>
+<tr><td><a href="./part4/Makefile">Makefile</a></td><td>Fixed compiler flags and separate reference/student executables</td></tr>
+<tr><td><a href="./part4/part4_config.json">part4_config.json</a></td><td>Complete fixed ChampSim configuration</td></tr>
+<tr><td><a href="./part4/capture_trace.py">capture_trace.py</a></td><td>Capture and compress the complete computation; record its instruction length</td></tr>
+<tr><td><code>tracer/</code></td><td>Course-format Pin tracer source and build files with ROI symbol support</td></tr>
+</tbody></table>
+</div>
+<p>The <strong>one official performance input</strong> is:</p>
+<div class="table-wrapper"><table><thead><tr><th>Parameter</th><th>Value</th></tr></thead><tbody>
+<tr><td>Time samples (<code>T</code>)</td><td>512</td></tr>
+<tr><td>Devices (<code>D</code>)</td><td>64</td></tr>
+<tr><td>Channels per device</td><td>16</td></tr>
+<tr><td>Filter stages / points per stage</td><td>4 / 4</td></tr>
+<tr><td>Input pattern / seed</td><td><code>stress</code> / <code>123</code></td></tr>
+<tr><td>Input readings</td><td>Signed 32-bit integers in <code>[-10000, 10000]</code></td></tr>
+<tr><td>Input footprint</td><td>2 MiB</td></tr>
+</tbody></table>
+</div>
+<p>The sixteen channels represent normalized deviations of measurements such as temperature, vibration, current, voltage, pressure and flow. All channels contribute to the output. The original implementation passes complete intermediate arrays between processing stages. It is functionally correct, but its processing order and intermediate working sets leave room for optimization.</p>
+<p>Only this medium-sized input is used for the reported performance score. Small cases in the checker test correctness. Hidden correctness cases may change the data, seed and medium-sized dimensions, including incomplete device groups and block tails; <strong>the sixteen channels, four stages and four-point calculation remain fixed</strong>.</p>
+<h3 id="exact-computation"><a class="header" href="#exact-computation">Exact Computation</a></h3>
+<p>Input acquisition order is <code>[time][device][channel]</code>:</p>
+<pre><code class="language-text">input.data[(t * D + d) * 16 + c]
 </code></pre>
-<h2 id="trace-validity--difficulty-scoring-metrics"><a class="header" href="#trace-validity--difficulty-scoring-metrics">Trace Validity &amp; Difficulty Scoring Metrics</a></h2>
-<p>To ensure fairness, your submitted trace must satisfy basic <strong>validity constraints</strong> (to prevent trivial attacks like zero-instruction traces or non-memory instruction loops).</p>
-<h3 id="1-validity-constraints-filter-rules"><a class="header" href="#1-validity-constraints-filter-rules">1. Validity Constraints (Filter Rules)</a></h3>
-<p>Your trace must meet the following minimum execution bounds when run in ChampSim:</p>
+<p>Let <code>x[0]</code> be the input. For stage <code>s = 0, 1, 2, 3</code>, compute the following for every device and channel at times <code>t &gt;= 3*(s+1)</code>:</p>
+<pre><code class="language-text">weighted = x[s][t,d,c] + 2*x[s][t-1,d,c]
+         + 3*x[s][t-2,d,c] + 4*x[s][t-3,d,c]
+value = weighted / 10
+limit = 2400 - 100*s + 50*(c % 4)
+x[s+1][t,d,c] = clamp(value, -limit, limit)
+</code></pre>
+<p>Use signed 64-bit accumulation. Division is <strong>integer division toward zero</strong>, followed by clamping <strong>at every stage</strong>. The supplied <code>condition()</code> primitive already implements this short calculation; you do not need to derive a signal-processing algorithm.</p>
+<p>The final valid time range is <code>12 &lt;= t &lt; T</code>. Store <strong>every</strong> final filtered reading in:</p>
+<pre><code class="language-text">output.filtered[((t - 12) * D + d) * 16 + c]
+</code></pre>
+<p>For each valid time, compute a device's risk as the sum of the absolute values of its sixteen final readings. Its alert threshold is:</p>
+<pre><code class="language-text">threshold[d] = 600*16 + (19*d) % (400*16)
+</code></pre>
+<p>A device is in alert when its risk is <strong>strictly greater</strong> than this threshold. For each group of up to sixteen devices, produce the total risk, number of devices in alert, and maximum device risk. The last group uses its actual device count. Report layout is <code>[t-12][group]</code>, with <code>ceil(D/16)</code> groups. <code>summarize()</code> supplies this computation.</p>
+<h2 id="optimization-scope"><a class="header" href="#optimization-scope">Optimization Scope</a></h2>
+<p>Keep the input, all final filtered readings, and every report field unchanged. Preserve the per-stage weighted contributions, integer truncation and clamping, and the main <code>O(stages * T * D * channels * history)</code> computation. You may reorganize loops, change internal layouts, block the work, pack data, fuse compatible work and reuse loaded samples or intermediate values. Explain why your changes preserve the dependency order.</p>
+<p>Keep all data-dependent computation, explicit preprocessing, intermediate initialization, copying and report construction inside <code>analyze()</code>. The input is read-only. Use single-threaded scalar C++ and the supplied compiler flags. Preserve the fixed headers, reference implementation, driver, ROI markers, tracer and hardware configuration. You may add your own helper files; add them only to the student executable's build dependencies and command, keeping the flags unchanged.</p>
+<p>Prefix sums, running updates of window aggregates, FFT-based filtering, collapsing stages, skipping required contributions, changing the input or task size, and precomputed answers are outside this lab's optimization scope. Keeping original history samples for later reuse is allowed when each valid output still evaluates the prescribed contributions. Hidden output checks verify semantics; source review also checks the required computation structure. The grader uses the original course driver and reference files.</p>
+<h3 id="build-and-check"><a class="header" href="#build-and-check">Build and Check</a></h3>
+<p>Use the Linux environment prepared in Lab 1. After extracting the archive:</p>
+<pre><code class="language-sh">cd part4-starter
+make -j2
+make check
+./bin/telemetry_student --pattern demo --csv health-report.csv
+</code></pre>
+<p><code>make check</code> compares every filtered reading and report field on multiple inputs. The demo exports a readable device-group report with quiet periods, transient spikes and sustained faults. It is separate from the official <code>stress</code> performance input.</p>
+<p>The fixed build flags are:</p>
+<pre><code class="language-text">-std=c++17 -O2 -fno-tree-vectorize -fno-tree-slp-vectorize
+-fno-unroll-loops -fno-pie -no-pie -Wall -Wextra -Werror
+</code></pre>
+<p>The reference executable is built independently of <code>student.cc</code>. Each normal run verifies its complete output outside the measured region and prints JSON containing <code>verified: true</code> and a checksum. The checksum is for reproducibility; verification compares the actual arrays and report fields. Do not use native wall-clock time as the ChampSim performance result.</p>
+<h2 id="fixed-hardware-platform"><a class="header" href="#fixed-hardware-platform">Fixed Hardware Platform</a></h2>
+<p>Use <a href="./part4/part4_config.json">part4_config.json</a>, which preserves the <a href="./part2.html#shared-evaluation-platform-parts-24">Part 2 shared hardware platform</a> and fixes <strong>L1D <code>next_line</code></strong> for every implementation.</p>
+<div class="table-wrapper"><table><thead><tr><th>Component</th><th>Fixed setting</th></tr></thead><tbody>
+<tr><td>CPU</td><td>One core, 4 GHz, ROB 352, <code>bimodal</code>, <code>basic_btb</code>, mispredict penalty 15</td></tr>
+<tr><td>L1I</td><td>64 sets × 8 ways = 32 KiB; <code>no</code>; 16 MSHRs; tag/fill 1/1</td></tr>
+<tr><td>L1D</td><td>64 sets × 12 ways = 48 KiB; <code>next_line</code>; 16 MSHRs; tag/fill 1/1</td></tr>
+<tr><td>L2C</td><td>2048 sets × 16 ways = 2 MiB; <code>no</code>; 20 MSHRs; tag/fill 4/4</td></tr>
+<tr><td>Hierarchy / replacement</td><td>Split L1I/L1D → L2C → DRAM; no LLC; LRU</td></tr>
+<tr><td>Cache line / page</td><td>64 B / 4 KiB</td></tr>
+<tr><td>Cache delays</td><td>Course ChampSim's default calculation, without manual latency overrides</td></tr>
+</tbody></table>
+</div>
+<p>The program is the optimization target. Keep this hardware configuration fixed, including L1I and the prefetchers.</p>
+<p>Set the paths to your existing installations and build the supplied tracer and simulator:</p>
+<pre><code class="language-sh">export CHAMPSIM_ROOT=/absolute/path/to/ChampSim
+export PIN_ROOT=/absolute/path/to/pin
+export PART4_ROOT="$PWD"
+make -C tracer PIN_ROOT="$PIN_ROOT"
+
+cd "$CHAMPSIM_ROOT"
+./config.sh --no-compile-all-modules "$PART4_ROOT/part4_config.json"
+make -j8 bin/champsim_part4
+cd "$PART4_ROOT"
+</code></pre>
+<h2 id="measure-the-complete-task"><a class="header" href="#measure-the-complete-task">Measure the Complete Task</a></h2>
+<p>Optimizations can change dynamic instruction counts. Capture <strong>the complete call to the analysis function</strong> and compare the cycles needed to finish it. Use <strong>zero warmup</strong> and the original instruction length of <strong>each implementation's own ROI</strong>. The 20M + 100M prefetcher window from Parts 2 and 3 does not apply here.</p>
+<p>The fixed driver places <code>roi_begin</code> and <code>roi_end</code> around the computation. Input generation, driver correctness checks and CSV export are outside this region. All work performed by the analysis function, including temporary allocation, initialization, packing and report construction, is measured.</p>
+<p>Capture the reference and current student implementation:</p>
+<pre><code class="language-sh">python3 capture_trace.py --pin-root "$PIN_ROOT" \
+    --tracer tracer/obj-intel64/champsim_tracer.so \
+    --output traces/reference.champsimtrace.xz -- \
+    ./bin/telemetry_reference --times 512 --devices 64 --seed 123 --pattern stress
+
+python3 capture_trace.py --pin-root "$PIN_ROOT" \
+    --tracer tracer/obj-intel64/champsim_tracer.so \
+    --output traces/student.champsimtrace.xz -- \
+    ./bin/telemetry_student --times 512 --devices 64 --seed 123 --pattern stress
+</code></pre>
+<p>Capture succeeds only after a complete ROI and successful driver verification. It writes the compressed trace, a <code>.xz.json</code> metadata file with <code>roi_instructions</code>, and a <code>.xz.capture.log</code>. The helper streams compression, so it does not require storing the large uncompressed trace. Use a new filename for each experiment; <code>--force</code> explicitly replaces a capture after a successful run.</p>
+<p>The trace contains <strong>8192 additional lookahead records after the original ROI</strong>. They prevent the simulator from ending early at EOF while fetching the last task instructions. <strong>Exclude them from the measurement length</strong>: use <code>roi_instructions</code> from the metadata, not the padded file's record count. Truncated captures or captures reaching the safety limit are rejected.</p>
+<p>Run the two complete tasks, using their separate instruction lengths:</p>
+<pre><code class="language-sh">mkdir -p results
+N_REFERENCE=$(python3 -c 'import json; print(json.load(open("traces/reference.champsimtrace.xz.json"))["roi_instructions"])')
+N_STUDENT=$(python3 -c 'import json; print(json.load(open("traces/student.champsimtrace.xz.json"))["roi_instructions"])')
+
+"$CHAMPSIM_ROOT/bin/champsim_part4" --warmup-instructions 0 \
+    --simulation-instructions "$N_REFERENCE" --json results/reference.stats.json \
+    traces/reference.champsimtrace.xz &gt; results/reference.log
+
+"$CHAMPSIM_ROOT/bin/champsim_part4" --warmup-instructions 0 \
+    --simulation-instructions "$N_STUDENT" --json results/student.stats.json \
+    traces/student.champsimtrace.xz &gt; results/student.log
+</code></pre>
+<p>Confirm successful completion and a measured retired instruction count reaching the requested ROI length. There can be a small retirement-width overshoot. An incomplete run is not a final result. Starting implementations need not have identical instruction counts or IPC, and all compared runs must finish the same input and outputs.</p>
+<p>You may reuse your reference capture and simulation across experiments when the fixed reference sources, compiler/version/flags, input, tracer/format, hardware and complete-ROI measurement method match. Keep its original metadata, binary/source provenance and logs. Regenerate the affected baseline when these conditions change.</p>
+<h3 id="performance-and-cache-statistics"><a class="header" href="#performance-and-cache-statistics">Performance and Cache Statistics</a></h3>
+<p>Use the <strong>Simulation ROI</strong> in the native JSON. For the single core, read <code>roi.cores[0].instructions</code> and <code>roi.cores[0].cycles</code>. The task speedup is:</p>
+<pre><code class="language-text">speedup = reference_cycles / optimized_cycles
+</code></pre>
+<p>The original implementation has speedup 1. Higher is better. This is a full-task cycle ratio; the Part 2 prefetcher IPC-ratio definition is a different comparison.</p>
+<p>For every reported version, extract counters and calculate the following yourself:</p>
 <ul>
-<li><strong>Minimum Instruction Count</strong>: Must contain at least <strong>20M dynamic instructions</strong> (and run smoothly with <code>--simulation_instructions 20000000</code>).</li>
-<li><strong>Memory Access Density</strong>: At least <strong>20%</strong> of total instructions must be memory-referencing operations (loads/stores).</li>
-<li><strong>Address Space Requirement</strong>: Memory accesses must span across a footprint of at least <strong>8 MB</strong> (exceeding L1D and L2C capacities to force main memory accesses).</li>
+<li>ROI instruction length, measured retired instructions, cycles and task speedup.</li>
+<li>L1D and L2C <strong>LOAD hits, LOAD misses, and LOAD miss rate</strong>. Read <code>cpu0_L1D</code> and <code>cpu0_L2C</code>; sum per-core arrays where present. Miss rate is <code>misses / (hits + misses)</code>; report <code>N/A</code> for a zero denominator. Keep native miss counts, including merged misses.</li>
+<li><strong>DRAM read requests</strong>: sum <code>RQ ROW_BUFFER_HIT + RQ ROW_BUFFER_MISS</code> over the ROI's DRAM channels. These are memory-controller counts, not CPU LOAD counts.</li>
 </ul>
-<h3 id="2-difficulty-score-calculation"><a class="header" href="#2-difficulty-score-calculation">2. Difficulty Score Calculation</a></h3>
-<p>Each valid trace will be evaluated on the baseline 2-level cache hierarchy across two test runs:</p>
-<ul>
-<li><strong>Baseline Run</strong>: With no prefetcher (<code>"prefetcher": "no"</code>).</li>
-<li><strong>Prefetcher Run</strong>: With standard Next-Line or IP-Stride prefetcher (<code>"prefetcher": "ip_stride"</code>).</li>
-</ul>
-<p>The <strong>Trace Difficulty Score (<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">trace</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>)</strong> is computed as a combination of cache hostility and prefetcher resistance:</p>
-<p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">trace</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.5945em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:2.4em;vertical-align:-0.95em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">(</span></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.4403em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord text"><span class="mord">IPC</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">max</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.757em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord text"><span class="mord">IPC</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">no_pf</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.367em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.836em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">)</span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.5945em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.8em;vertical-align:-0.65em;"></span><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size2">(</span></span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord"><span class="mord text"><span class="mord">Coverage</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.242em;"><span style="top:-2.4559em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">ip_stride</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4611em;"><span></span></span></span></span></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size2">)</span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.5945em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.02691em;">w</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0269em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord text"><span class="mord">Miss Rate</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">L2C</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span></p>
-<p>Where:</p>
-<ul>
-<li><strong>Cache Hostility</strong>: Penalizes high baseline IPC and rewards high L1D/L2C miss rates.</li>
-<li><strong>Prefetcher Hostility</strong>: Rewards traces that achieve low prefetcher coverage (<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8778em;vertical-align:-0.1944em;"></span><span class="mord text"><span class="mord">Coverage</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0</span></span></span></span>) or induce high useless/late prefetch overhead.</li>
-</ul>
-<hr />
+<p>Store raw counters and derived results in clearly labelled CSV files. Retain the native JSON and stdout logs. Prefetch Accuracy/Coverage are not required for this fixed-prefetcher program-optimization experiment. IPC, branch and TLB counters may support your analysis, but the performance score uses cycles.</p>
+<p>Discuss absolute traffic as well as miss rates: a lower cache level may see fewer requests even when its local miss rate rises. Relate your intermediate working-set estimates to cache capacity, cache-line use and measured changes. Include the cost of packing or other extra work when interpreting a result.</p>
+<h2 id="experiments-and-report"><a class="header" href="#experiments-and-report">Experiments and Report</a></h2>
+<p>Present the original implementation and <strong>at least two optimization versions</strong>, with a clear reason for each change. All final performance comparisons use the official medium input and complete-ROI method above.</p>
+<p>For a parameterized choice, compare at least three settings while controlling the other changes. These settings can overlap your optimization-version runs. For an approach without tunable parameters, provide equivalent controlled comparisons or ablations. Explain both improvements and regressions, estimate the actively reused working set, and justify your final implementation using measurements.</p>
+<p>Your report should make it possible to follow a change from code to access pattern, from access pattern to cache behavior, and from cache behavior to complete-task cycles. Use correctness-only inputs for debugging without treating their performance as the official result.</p>
 <h2 id="grading-criteria"><a class="header" href="#grading-criteria">Grading Criteria</a></h2>
-<p>Grading for Part 4 is weighted as follows:</p>
+<p>Part 4 contributes <strong>6 points</strong> to the 18-point experimental component:</p>
+<div class="table-wrapper"><table><thead><tr><th>Component</th><th style="text-align: right">Points</th><th>Evidence</th></tr></thead><tbody>
+<tr><td>Optimization effect</td><td style="text-align: right">2</td><td>Verified final implementation; speedup on the official input using the fixed platform and complete ROI</td></tr>
+<tr><td>Experimental design</td><td style="text-align: right">2</td><td>Reproducible baseline, at least two motivated optimization versions, controlled parameter/ablation comparisons and retained raw evidence</td></tr>
+<tr><td>Analysis</td><td style="text-align: right">2</td><td>Correct counter calculations; working-set and access-pattern reasoning; explanation of gains, costs and regressions; justified final choice</td></tr>
+</tbody></table>
+</div>
+<p>The <strong>2 performance points</strong> use the following absolute task-speedup thresholds, before rounding:</p>
+<div class="table-wrapper"><table><thead><tr><th>Speedup</th><th style="text-align: right">Performance points</th></tr></thead><tbody>
+<tr><td>Below 1.25×</td><td style="text-align: right">0</td></tr>
+<tr><td>At least 1.25× and below 2×</td><td style="text-align: right">0.5</td></tr>
+<tr><td>At least 2× and below 3×</td><td style="text-align: right">1</td></tr>
+<tr><td>At least 3× and below 4×</td><td style="text-align: right">1.5</td></tr>
+<tr><td>At least 4×</td><td style="text-align: right">2</td></tr>
+</tbody></table>
+</div>
+<p>Correctness and the specified computation structure are prerequisites for performance points. Only verified runs count as experimental evidence. Hidden tests use the original course driver/reference to check semantics; source review checks the permitted optimization scope.</p>
+<h2 id="deliverables"><a class="header" href="#deliverables">Deliverables</a></h2>
+<p>Submit:</p>
 <ol>
-<li><strong>Validity Check (Pass/Fail)</strong>: The trace must pass all minimum instruction count, memory density, and address footprint requirements.</li>
-<li><strong>Absolute Difficulty Threshold (60%)</strong>: Traces that achieve an L2C miss rate <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mrel">&gt;</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8056em;vertical-align:-0.0556em;"></span><span class="mord">40%</span></span></span></span> or reduce baseline IPC below a designated threshold receive full baseline points.</li>
-<li><strong>Relative Leaderboard Ranking (40%)</strong>: Traces will be ranked by their calculated Difficulty Score (<span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">trace</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>). The top 15% hardest traces receive top leaderboard marks, with a smooth grading curve applied across the rest of the class.</li>
+<li>Your final <code>student.cc</code>, any added helpers, the complete starter sources/build files and the fixed JSON; identify each intermediate version used in the report.</li>
+<li>Correctness-check output and the reference/final compressed traces with their capture metadata and logs.</li>
+<li>Native ChampSim JSON and stdout logs for the baseline and reported versions; raw counter CSV and independently calculated metric tables.</li>
+<li>The report's design progression, controlled experiments, working-set reasoning and final selection. Record the compiler and ChampSim versions, exact build/capture/simulation commands, and the source-to-result mapping.</li>
 </ol>
-<div id="admonition-design-hints-for-hostile-access-patterns" class="admonition admonish-tip" role="note" aria-labelledby="admonition-design-hints-for-hostile-access-patterns-title">
-<div class="admonition-title">
-<div id="admonition-design-hints-for-hostile-access-patterns-title">
-<p>Design Hints for Hostile Access Patterns</p>
-</div>
-<a class="admonition-anchor-link" href="#admonition-design-hints-for-hostile-access-patterns"></a>
-</div>
-<div>
-<p>To maximize cache misses and evade prefetching, consider:</p>
-<ul>
-<li><strong>Pointer Chasing</strong>: Random array indexing or non-contiguous node traversal, breaking linear address patterns.</li>
-<li><strong>Conflict Miss Induction</strong>: Accessing addresses that map to the exact same cache set (modulo index alignment) to cause cache thrashing.</li>
-<li><strong>Stride Deception</strong>: Alternating between short predictable strides and sudden large random jumps to trick stride tables into issuing useless prefetches.</li>
-<li><strong>Thrashing the MSHR</strong>: Issuing multiple outstanding misses to unique cache blocks within short instruction windows.</li>
-</ul>
-</div>
-</div>
-<div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
-<div class="admonition-title">
-<div id="admonition-deliverables-title">
-<p>Deliverables</p>
-</div>
-<a class="admonition-anchor-link" href="#admonition-deliverables"></a>
-</div>
-<div>
-<p>Please submit your custom trace and source files. Include the following in your <em><strong>report</strong></em>:</p>
-<ol>
-<li><strong>Trace Source / Generator Code</strong>: Submit your C benchmark (<code>stress_test.c</code>) or Python/C++ trace generator script.</li>
-<li><strong>Trace File</strong>: Submit your compressed trace file (<code>&lt;student_id&gt;_stress.champsimtrace.xz</code>).</li>
-<li><strong>Design Explanation &amp; Analysis</strong>:
-<ul>
-<li>Explain the access pattern strategy implemented in your trace.</li>
-<li>Present a table showing <strong>L1D Miss Rate</strong>, <strong>L2C Miss Rate</strong>, <strong>IPC</strong>, and <strong>Prefetcher Accuracy/Coverage</strong> when tested against <code>no</code>, <code>next_line</code>, and <code>ip_stride</code> prefetchers.</li>
-<li>Explain <em>why</em> your memory access pattern successfully degrades cache reuse and neutralizes prefetchers.</li>
-</ul>
-</li>
-</ol>
-</div>
-</div>
+<p>See <a href="./submit.html">Submission</a> for the combined project archive and grading breakdown.</p>
+
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
@@ -307,6 +390,7 @@ gcc -O2 stress_test.c -o stress_test
         <script src="../book.js"></script>
 
         <!-- Custom JS scripts -->
+        <script src="../pdf-print-guard.js"></script>
 
 
 
