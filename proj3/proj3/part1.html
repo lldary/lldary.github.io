@@ -181,7 +181,7 @@
                         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="part-1-data-cache-capacity-allocation-and-associativity"><a class="header" href="#part-1-data-cache-capacity-allocation-and-associativity">Part 1: Data Cache Capacity Allocation and Associativity</a></h1>
 <p>Explore how data cache capacity, set mapping, associativity, and access latency affect performance in ChampSim. Keep the instruction cache (L1I) unchanged and organize L1D and L2C under an exact capacity budget. Your goal is to find the best configuration <strong>among those you test</strong>, and explain its performance using cache statistics and configured latencies.</p>
-<p>Use the course ChampSim environment from Project 1. The workloads and configurations below were verified with course revision <code>6a89a745f9a45acf9321ed4ea2769847423eb15d</code>.</p>
+<p>Use the course ChampSim environment from Project 1.</p>
 <h2 id="1-prepare-the-workloads"><a class="header" href="#1-prepare-the-workloads">1. Prepare the Workloads</a></h2>
 <p>Part 1 uses two synthetic teaching traces:</p>
 <div class="table-wrapper"><table><thead><tr><th>Trace</th><th>Required experiment</th><th>Purpose</th></tr></thead><tbody>
@@ -189,10 +189,10 @@
 <tr><td><a href="https://disk.pku.edu.cn/link/AA03FB514ED846474BBAAA5C4C97092C84">cache-conflict.champsimtrace.xz</a></td><td>Sets and associativity</td><td>Repeatedly access blocks with matching page offsets; investigate mapping conflicts at fixed capacity.</td></tr>
 </tbody></table>
 </div>
-<p>Download both course-provided trace files from the PKU Disk into the ChampSim <code>traces/</code> directory. Each contains <strong>124M instructions</strong>, enough for the required 20M warmup followed by 100M measurement without replaying the trace. These are microbenchmark instruction streams with explicit register dependencies and loop branches.</p>
-<p>Keep the provided trace contents and simulation window identical across configurations. Parts 2 and 3 use their separately specified application traces.</p>
+<p>Download both course-provided trace files from the PKU Disk into the ChampSim <code>traces/</code> directory. Each contains <strong>124M instructions</strong>, enough for the required 20M warmup followed by 100M measurement.</p>
+<p>Keep the provided trace contents and simulation window identical across configurations.</p>
 <h2 id="2-single-core-baseline"><a class="header" href="#2-single-core-baseline">2. Single-Core Baseline</a></h2>
-<p>Create <code>lab3_config.json</code> with this complete baseline configuration. Use it as the starting point for each experiment rather than inheriting a personally optimized CPU or cache configuration from Project 2.</p>
+<p>Create <code>lab3_config.json</code> with this complete baseline configuration. Use it as the starting point for each experiment.</p>
 <pre><code class="language-json">{
   "executable_name": "champsim_proj3_baseline",
   "num_cores": 1,
@@ -238,7 +238,7 @@
   }
 }
 </code></pre>
-<p>The data path is <strong>L1I/L1D → L2C → DRAM</strong>. Keep the default L1-to-L2 connections; the explicit L2C-to-DRAM connection removes the default LLC from the path. Other unspecified parameters use the course version's defaults.</p>
+<p>The data path is <strong>L1I/L1D → L2C → DRAM</strong>. Other unspecified parameters use the course version's defaults.</p>
 <h3 id="exact-capacity-budget"><a class="header" href="#exact-capacity-budget">Exact Capacity Budget</a></h3>
 <p>With 64 B cache lines:</p>
 <p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">level</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6984em;vertical-align:-0.0833em;"></span><span class="mord text"><span class="mord">sets</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.7778em;vertical-align:-0.1944em;"></span><span class="mord text"><span class="mord">ways</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">64</span><span class="mord text"><span class="mord"> B</span></span><span class="mord">.</span></span></span></span></span></p>
@@ -250,7 +250,6 @@
 </ul>
 <p>Here, <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">1</span><span class="mord text"><span class="mord"> KiB</span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">1024</span><span class="mord text"><span class="mord"> B</span></span></span></span></span>. The budget counts data capacity, excluding tags and metadata. Every tested configuration must satisfy:</p>
 <p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">L1D</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.05764em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">L2C</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">2096</span><span class="mord text"><span class="mord"> KiB</span></span><span class="mord">.</span></span></span></span></span></p>
-<p>Use <strong>positive powers of two for sets</strong>. This course version rounds other set counts upward, which changes the actual capacity. Ways must be positive integers and may be non-powers of two. For example, the 48 KiB baseline is <strong>64 sets × 12 ways</strong>.</p>
 <h3 id="controlled-parameters-and-latencies"><a class="header" href="#controlled-parameters-and-latencies">Controlled Parameters and Latencies</a></h3>
 <p>Only change L1D/L2C sets and ways as allowed by each experiment. Keep all L1I settings, the CPU, block size, MSHRs, queue sizes, tag/fill bandwidths, replacement policies, prefetchers, address translation, and DRAM settings unchanged. The explicit <code>max_tag_check</code> and <code>max_fill</code> values prevent bandwidth from changing automatically when sets change. You may change <code>executable_name</code> to distinguish binaries.</p>
 <p>Do not override cache <code>latency</code>, <code>hit_latency</code>, or <code>fill_latency</code>. Let the course version compute them from the cache organization, and record the resulting hit/fill latencies for every configuration. The default calculation is in <code>inc/cache_builder.h</code>; for the baseline it gives L1D hit/fill <strong>2/3 cycles</strong> and L2C <strong>8/9 cycles</strong>. Configured hit/fill latency is different from the measured average miss latency printed in the results.</p>
@@ -263,8 +262,8 @@ mkdir -p results
 <pre><code class="language-sh">./bin/champsim_proj3_baseline --json results/baseline_capacity.json --warmup-instructions 20000000 --simulation-instructions 100000000 traces/cache-capacity.champsimtrace.xz &gt; results/baseline_capacity.txt
 ./bin/champsim_proj3_baseline --json results/baseline_conflict.json --warmup-instructions 20000000 --simulation-instructions 100000000 traces/cache-conflict.champsimtrace.xz &gt; results/baseline_conflict.txt
 </code></pre>
-<p>Shorter runs are allowed for debugging. All final comparisons must use <strong>20M warmup + 100M measurement</strong>. Check that the run completes and the final CPU statistics include at least 100M measured instructions.</p>
-<p>For each modified configuration, save a separate JSON and use a distinct executable name. Re-run <code>config.sh</code> and <code>make</code>, then run the corresponding binary and save its stdout and JSON statistics under distinct result names.</p>
+<p>All final comparisons must use <strong>20M warmup + 100M measurement</strong>. Check that the run completes and the final CPU statistics include at least 100M measured instructions.</p>
+<p>For each modified configuration, you can save a separate JSON and use a distinct executable name. You can then re-run <code>config.sh</code> and <code>make</code>, run the corresponding binary, and save its stdout and JSON statistics under distinct result names.</p>
 <h2 id="3-capacity-allocation-experiment"><a class="header" href="#3-capacity-allocation-experiment">3. Capacity Allocation Experiment</a></h2>
 <p>Use <strong><code>cache-capacity.champsimtrace.xz</code></strong>. Compare at least <strong>three L1D/L2C capacity allocations</strong> under the exact budget. Keep L1I fixed. The following configurations are valid starting points:</p>
 <div class="table-wrapper"><table><thead><tr><th>Configuration</th><th style="text-align: right">L1D sets</th><th style="text-align: right">L1D ways</th><th style="text-align: right">L1D KiB</th><th style="text-align: right">L2C sets</th><th style="text-align: right">L2C ways</th><th style="text-align: right">L2C KiB</th><th style="text-align: right">L1D + L2C KiB</th></tr></thead><tbody>
@@ -273,13 +272,13 @@ mkdir -p results
 <tr><td>C</td><td style="text-align: right">256</td><td style="text-align: right">27</td><td style="text-align: right">432</td><td style="text-align: right">2048</td><td style="text-align: right">13</td><td style="text-align: right">1664</td><td style="text-align: right">2096</td></tr>
 </tbody></table>
 </div>
-<p>You may test additional valid configurations and refine your choices based on measurements. Under this exact budget and power-of-two set constraint, ways may need to change along with capacity. Explain these coupled changes; do not describe such a comparison as varying capacity alone.</p>
+<p>You may test additional valid configurations and refine your choices based on measurements. Under this exact budget and power-of-two set constraint, ways may need to change along with capacity. Explain these coupled changes.</p>
 <p>Address the following questions:</p>
 <ul>
 <li>Which tested allocation achieves the highest IPC, and what supports that conclusion?</li>
 <li>How do the hot working set and reuse pattern explain L1D misses and L2C accesses?</li>
 <li>Does a lower miss rate always produce higher IPC? Account for the configured latencies.</li>
-<li>Is there evidence that L2C capacity is insufficient? Use L2C misses rather than assuming that reducing L2C must hurt performance.</li>
+<li>Is there evidence that L2C capacity is insufficient?</li>
 </ul>
 <h2 id="4-sets-and-associativity-experiment"><a class="header" href="#4-sets-and-associativity-experiment">4. Sets and Associativity Experiment</a></h2>
 <p>Use <strong><code>cache-conflict.champsimtrace.xz</code></strong>. Keep L1D capacity at <strong>48 KiB</strong>, L2C at the full baseline configuration, and L1I unchanged. Compare at least <strong>three L1D organizations</strong>:</p>
@@ -327,7 +326,6 @@ mkdir -p results
 <p>At minimum, run <strong>six simulations</strong>: three allocations on <code>cache-capacity</code> and three organizations on <code>cache-conflict</code>. The baseline must be run separately on each trace.</p>
 </div>
 </div>
-<p>Part 1 is worth <strong>3 points</strong>: <strong>0.5 points</strong> for reproducibility and correct execution, <strong>1 point</strong> for experimental design, and <strong>1.5 points</strong> for results and analysis. Explain configuration choices and controlled variables, and support conclusions with measurements. Build screenshots alone do not demonstrate the quality of the experiment.</p>
 
                     </main>
 
