@@ -732,7 +732,7 @@ Students should provide:</p>
 <ul>
 <li>
 <p><strong>Absolute Performance (2 pts)</strong>:
-Earn the full <strong>2 absolute-performance points</strong> by obtaining <strong><code>score &gt;= 100</code></strong> with the local <code>lab3-auto-run.py</code>, using all <strong>16 default traces</strong>, the shared Part 2 platform, and <strong>20M warmup + 100M measurement</strong> per trace. This corresponds to a geometric mean IPC speedup of at least <strong>1.0</strong> relative to <code>next_line</code>; matching the baseline meets this requirement.</p>
+Obtain <strong><code>score &gt;= 100</code></strong> with the local <code>lab3-auto-run.py</code> to earn the full <strong>2 points</strong>.</p>
 </li>
 <li>
 <p><strong>Relative Ranking (up to 2 pts)</strong>:
@@ -1069,7 +1069,7 @@ N_STUDENT=$(python3 -c 'import json; print(json.load(open("traces/student.champs
 <ul>
 <li><strong>Paper Summary</strong>: Background and motivation: <strong>1 pt</strong>; core architecture and mechanisms: <strong>3 pts</strong>; design insights: <strong>1 pt</strong> (5 pts total).</li>
 <li><strong>Code Correctness</strong>: Compilable and functional custom prefetcher implementation: <strong>2 pts</strong></li>
-<li><strong>Absolute Performance</strong>: Local <code>lab3-auto-run.py</code> score <strong>≥100</strong>, using all 16 default traces on the shared platform with 20M warmup + 100M measurement: <strong>2 pts</strong></li>
+<li><strong>Absolute Performance</strong>: Local <code>lab3-auto-run.py</code> score <strong>≥100</strong>: <strong>2 pts</strong></li>
 <li><strong>Relative Ranking (up to 2 pts)</strong>: Based on the geometric mean of per-trace IPC ratios relative to <code>next_line</code>, with equal weight per trace. Sort by evaluation score from highest to lowest and divide rank positions into <strong>20 approximately equal-sized bands</strong>. The highest band earns <strong>2.0 points</strong>, and each subsequent band earns <strong>0.1 points</strong> less, down to <strong>0.1 points</strong> for the lowest band. Tied scores share the same rank and points, using competition ranking (e.g., <strong>1, 2, 2, 4</strong>). See Part 3 for the formula; this differs from the Part 2 Speedup column relative to <code>no</code>.</li>
 </ul>
 </li>
