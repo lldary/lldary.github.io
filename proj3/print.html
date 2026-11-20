@@ -460,8 +460,7 @@ mkdir -p results
 </div>
 </div>
 <h3 id="analyzing-statistics"><a class="header" href="#analyzing-statistics">Analyzing Statistics</a></h3>
-<p>Use simulation-phase counters only. Warmup trains cache and predictor state, but its instructions, cycles, and events must not be included in the reported counters. Use the course version's measurement-phase statistics reset; do not reset predictor state at this boundary. Prefetches crossing the boundary follow that version's event-counting semantics, so Accuracy and Coverage are finite-window estimates.</p>
-<p>The following names are <strong>normalized CSV fields</strong>, not assumed ChampSim output labels. Extract them from the CPU 0 and L1D statistics of the course-provided version, and retain the original logs:</p>
+<p>Extract these fields from the CPU 0 and L1D statistics of the course-provided version, and retain the original logs:</p>
 <div class="table-wrapper"><table><thead><tr><th>Field</th><th>Definition</th></tr></thead><tbody>
 <tr><td><code>instructions</code></td><td>CPU 0 retired instructions during measurement</td></tr>
 <tr><td><code>cycles</code></td><td>CPU 0 cycles during measurement</td></tr>
