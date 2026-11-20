@@ -460,26 +460,26 @@ mkdir -p results
 </div>
 </div>
 <h3 id="analyzing-statistics"><a class="header" href="#analyzing-statistics">Analyzing Statistics</a></h3>
-<p>Extract these fields from the CPU 0 and L1D statistics of the course-provided version, and retain the original logs:</p>
-<div class="table-wrapper"><table><thead><tr><th>Field</th><th>Definition</th></tr></thead><tbody>
-<tr><td><code>instructions</code></td><td>CPU 0 retired instructions during measurement</td></tr>
-<tr><td><code>cycles</code></td><td>CPU 0 cycles during measurement</td></tr>
-<tr><td><code>issued</code></td><td>L1D prefetch requests accepted by the cache's prefetch interface, using the simulator's issued counter; exclude rejected attempts</td></tr>
-<tr><td><code>useful</code></td><td>The simulator's native L1D USEFUL counter: includes both hits consuming a prefetched line and demand merges into an outstanding prefetch originating from L1D</td></tr>
-<tr><td><code>demand_misses</code></td><td>Sum of L1D LOAD and RFO miss counters; exclude PREFETCH, WRITE/WRITEBACK, and TRANSLATION</td></tr>
+<p>Extract these counters from CPU 0 and L1D in the course version's statistics output, and keep the original logs:</p>
+<div class="table-wrapper"><table><thead><tr><th>Field</th><th>Meaning</th></tr></thead><tbody>
+<tr><td><code>instructions</code></td><td>Instructions retired by CPU 0 during measurement</td></tr>
+<tr><td><code>cycles</code></td><td>Cycles used by CPU 0 during measurement</td></tr>
+<tr><td><code>issued</code></td><td>L1D prefetch requests that the cache accepted and sent out</td></tr>
+<tr><td><code>useful</code></td><td>Prefetch requests that actually helped (see below)</td></tr>
+<tr><td><code>demand_misses</code></td><td>Real LOAD and RFO accesses that missed in L1D</td></tr>
 </tbody></table>
 </div>
-<p>For <code>demand_misses</code>, use cache-access miss counts, not newly allocated MSHRs or lower-level transactions. A demand access counted as a miss by the simulator remains a miss even when it merges with an outstanding request; do not deduplicate these counts by address. Use the same access-type scope and counter mapping for all runs. The course framework must provide and document counters matching these definitions; if a field is unavailable, resolve the framework mapping rather than substituting zero or an unrelated statistic.</p>
-<p>In this course version, USEFUL is not restricted to timely LOAD hits. It increases when an eligible access consumes a line marked as prefetched, and when a non-prefetch request merges into an outstanding prefetch originating from L1D. Such a merge can increment both USEFUL and the demand miss counter. The native USEFUL counter can also include consumption by writes, whereas <code>demand_misses</code> here includes only LOAD and RFO. Use the native counter as reported; do not replace it with an independently estimated count of timely hits.</p>
+<p><strong>What <code>useful</code> counts.</strong> A prefetch is useful when its data is consumed before it is thrown away. The simulator's L1D counter adds one in two cases: an access hits a line that is still marked as prefetched, or a demand request arrives while the prefetch is still in flight and merges with it. In the second case, both <code>useful</code> and <code>demand_misses</code> can increase for the same access.</p>
+<p><strong>What <code>demand_misses</code> counts.</strong> Count miss events on real LOAD and RFO accesses only. Do not include prefetch requests, writes/writebacks or translations. A demand access that merges with an outstanding prefetch still counts as a miss in the simulator, so keep it: do not remove duplicates by address. Use the same counting rule for every run. If a counter is missing, find the correct mapping in the course framework; do not substitute zero or an unrelated counter.</p>
 <p>Report four metrics:</p>
 <ul>
 <li><strong>IPC</strong>: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord text"><span class="mord">instructions</span></span><span class="mord">/</span><span class="mord text"><span class="mord">cycles</span></span></span></span></span>.</li>
 <li><strong>Accuracy</strong>: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord text"><span class="mord">useful</span></span><span class="mord">/</span><span class="mord text"><span class="mord">issued</span></span></span></span></span>.</li>
 <li><strong>Coverage estimate</strong>: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord text"><span class="mord">useful</span></span><span class="mord">/</span><span class="mopen">(</span><span class="mord text"><span class="mord">useful</span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.06em;vertical-align:-0.31em;"></span><span class="mord text"><span class="mord">demand_misses</span></span><span class="mclose">)</span></span></span></span>.</li>
-<li><strong>Speedup</strong>: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0361em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord text"><span class="mord">IPC</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">pf</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mord">/</span><span class="mord"><span class="mord text"><span class="mord">IPC</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">no</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, using the same workload, platform, and instruction window. The <code>no</code> baseline has Speedup 1.</li>
+<li><strong>Speedup</strong>: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0361em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord text"><span class="mord">IPC</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">pf</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mord">/</span><span class="mord"><span class="mord text"><span class="mord">IPC</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">no</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, using the same workload, platform and instruction window. The <code>no</code> baseline has Speedup 1.</li>
 </ul>
-<p>Accuracy and Coverage use the native L1D USEFUL event count. Coverage is a proxy based on that count and remaining LOAD/RFO misses; the numerator and miss count can overlap and have different access-type scopes. It is neither a timely-prefetch coverage fraction nor the fraction of baseline misses actually eliminated. Prefetching can also change cache pollution and execution timing. Interpret Accuracy and Coverage together with IPC and Speedup.</p>
-<p>If an Accuracy or Coverage denominator is zero, report <code>N/A</code>. For <code>no</code>, always report Accuracy and Coverage as <code>N/A</code>; retain its zero <code>issued</code> and <code>useful</code> counters. Do not collect or submit a late-prefetch metric.</p>
+<p><strong>What Accuracy and Coverage tell you.</strong> Accuracy answers one question: of the prefetches the cache sent out, how many paid off? Coverage estimate answers another: compared with the demand misses that remain, how much traffic did prefetching cover? The second number is only an estimate. The simulator's <code>useful</code> count can also include consumption by writes, while <code>demand_misses</code> counts only LOAD and RFO, and a merged access can appear in both. So it is not an exact fraction of the misses that prefetching removed. Prefetching also changes cache pollution and execution timing. Read Accuracy and Coverage together with IPC and Speedup, never on their own.</p>
+<p>If a denominator is zero, report <code>N/A</code>. For the <code>no</code> run, always report Accuracy and Coverage as <code>N/A</code>, but keep its zero <code>issued</code> and <code>useful</code> counters. Do not measure or submit a late-prefetch count.</p>
 <h3 id="reproducible-metric-calculation"><a class="header" href="#reproducible-metric-calculation">Reproducible Metric Calculation</a></h3>
 <p>Students are responsible for extracting and checking their own simulation counters and calculating the metrics. Record normalized counters in a CSV with the following header, one row per workload/prefetcher pair:</p>
 <pre><code class="language-csv">workload,prefetcher,instructions,cycles,issued,useful,demand_misses
@@ -738,7 +738,7 @@ Earn the full <strong>2 absolute-performance points</strong> by obtaining <stron
 <p><strong>Relative Ranking (up to 2 pts)</strong>:
 Students will be ranked based on the <strong>geometric mean IPC speedup relative to <code>next_line</code></strong> across all evaluation traces:</p>
 <p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal">G</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:3.3839em;vertical-align:-1.2777em;"></span><span class="minner"><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size4">(</span></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.8283em;"><span style="top:-1.8723em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">i</span><span class="mrel mtight">=</span><span class="mord mtight">1</span></span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∏</span></span></span><span style="top:-4.3em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.10903em;">N</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.2777em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3603em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord text"><span class="mord">IPC</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">next_line</span></span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight">i</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.367em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord text"><span class="mord">IPC</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">custom</span></span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight">i</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.053em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size4">)</span></span></span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:2.1062em;"><span style="top:-4.2812em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1/</span><span class="mord mathnormal mtight" style="margin-right:0.10903em;">N</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">.</span></span></span></span></span></p>
-<p>Each trace has equal weight. Run <code>next_line</code> and your custom prefetcher on the same platform and instruction window for each trace. This ranking metric uses <code>next_line</code> as its reference; the general-purpose Speedup column defined in Part 2 uses <code>no</code>. Report the per-trace ratios to <code>next_line</code> and their geometric mean separately. Sort by evaluation score from highest to lowest and divide rank positions into <strong>20 approximately equal-sized bands</strong>. The highest band earns <strong>2.0 points</strong>, and each subsequent band earns <strong>0.1 points</strong> less, down to <strong>0.1 points</strong> for the lowest band. Tied scores share the same rank and points, using competition ranking (e.g., <strong>1, 2, 2, 4</strong>).</p>
+<p>Each trace has equal weight. Run <code>next_line</code> and your custom prefetcher on the same platform and instruction window for each trace. This ranking metric uses <code>next_line</code> as its reference; the general-purpose Speedup column defined in Part 2 uses <code>no</code>. Report the per-trace ratios to <code>next_line</code> and their geometric mean separately. Sort by evaluation score from highest to lowest and divide rank positions into <strong>20 approximately equal-sized bands</strong>. The highest band earns <strong>2.0 points</strong>, and each subsequent band earns <strong>0.1 points</strong> less, down to <strong>0.1 points</strong> for the lowest band. Tied scores share the same rank and points, using competition ranking (e.g., <strong>1, 2, 2, 4</strong>). You can self-test your implementation on the <a href="https://10.129.163.38:5000">online evaluation platform</a> used in Project 2, which reports your evaluation score.</p>
 </li>
 </ul>
 <div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
@@ -801,22 +801,22 @@ Include tables or figures comparing:</p>
 </div>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="part-4-cache-aware-optimization-of-a-telemetry-analysis-program"><a class="header" href="#part-4-cache-aware-optimization-of-a-telemetry-analysis-program">Part 4: Cache-Aware Optimization of a Telemetry Analysis Program</a></h1>
-<p>Optimize a working telemetry analysis program while preserving its results. A device gateway stores normalized sensor readings in acquisition order. The offline program filters these readings through four processing stages and produces a health report for each group of devices. Your task is to make this computation faster on the fixed ChampSim platform by improving how it uses the cache hierarchy.</p>
-<p>Part 4 contributes <strong>6 points</strong>. Most points reward experimental design and analysis; performance is measured by the <strong>cycles required to complete the same task</strong>.</p>
+<p>A device gateway records sensor readings in arrival order. An offline program filters these readings through four stages and builds a health report for groups of devices. Your job is to make this program run faster on a fixed ChampSim machine by helping it use the cache hierarchy better. The outputs must stay exactly the same.</p>
+<p>Part 4 is worth <strong>6 points</strong>. Most of the points are for designing and explaining experiments. Performance is judged by one number: the <strong>number of cycles needed to finish the whole task</strong>.</p>
 <h2 id="starter-program-and-business-function"><a class="header" href="#starter-program-and-business-function">Starter Program and Business Function</a></h2>
-<p>Download and extract the <a href="proj3/./part4-starter.zip">Part 4 starter package</a>. It contains the original implementation, a student copy to optimize, the fixed arithmetic and checking driver, a ChampSim configuration, and a complete-ROI trace capture utility. Optimized implementations are not included.</p>
+<p>Download and extract the <a href="proj3/./part4-starter.zip">Part 4 starter package</a>. It contains the original program, a copy for you to optimize, the fixed arithmetic and checking driver, a ChampSim configuration, and a trace capture tool. It does not contain optimized implementations.</p>
 <div class="table-wrapper"><table><thead><tr><th>File</th><th>Purpose</th></tr></thead><tbody>
-<tr><td><a href="proj3/./part4/telemetry.h">telemetry.h</a></td><td>Fixed data types, constants and four-point arithmetic primitive</td></tr>
-<tr><td><a href="proj3/./part4/reference.cc">reference.cc</a></td><td>Original pipeline and provided health-report calculation</td></tr>
-<tr><td><a href="proj3/./part4/student.cc">student.cc</a></td><td>Starting implementation of <code>telemetry::analyze()</code>; optimize this file</td></tr>
-<tr><td><a href="proj3/./part4/driver.cc">driver.cc</a></td><td>Input generation, ROI markers, full-output verification and optional CSV export</td></tr>
-<tr><td><a href="proj3/./part4/Makefile">Makefile</a></td><td>Fixed compiler flags and separate reference/student executables</td></tr>
+<tr><td><a href="proj3/./part4/telemetry.h">telemetry.h</a></td><td>Fixed data types, constants and the four-point arithmetic primitive</td></tr>
+<tr><td><a href="proj3/./part4/reference.cc">reference.cc</a></td><td>Original pipeline and the provided health-report calculation</td></tr>
+<tr><td><a href="proj3/./part4/student.cc">student.cc</a></td><td>Starting version of <code>telemetry::analyze()</code>; this is the file you optimize</td></tr>
+<tr><td><a href="proj3/./part4/driver.cc">driver.cc</a></td><td>Generates the input, marks the measured region, verifies the full output and can export CSV</td></tr>
+<tr><td><a href="proj3/./part4/Makefile">Makefile</a></td><td>Fixed compiler flags; builds the reference and student executables separately</td></tr>
 <tr><td><a href="proj3/./part4/part4_config.json">part4_config.json</a></td><td>Complete fixed ChampSim configuration</td></tr>
-<tr><td><a href="proj3/./part4/capture_trace.py">capture_trace.py</a></td><td>Capture and compress the complete computation; record its instruction length</td></tr>
-<tr><td><code>tracer/</code></td><td>Course-format Pin tracer source and build files with ROI symbol support</td></tr>
+<tr><td><a href="proj3/./part4/capture_trace.py">capture_trace.py</a></td><td>Captures the complete computation as a trace and records its instruction length</td></tr>
+<tr><td><code>tracer/</code></td><td>Course-format Pin tracer and build files, with ROI symbol support</td></tr>
 </tbody></table>
 </div>
-<p>The <strong>one official performance input</strong> is:</p>
+<p>The one input used for the performance score is:</p>
 <div class="table-wrapper"><table><thead><tr><th>Parameter</th><th>Value</th></tr></thead><tbody>
 <tr><td>Time samples (<code>T</code>)</td><td>512</td></tr>
 <tr><td>Devices (<code>D</code>)</td><td>64</td></tr>
@@ -824,34 +824,36 @@ Include tables or figures comparing:</p>
 <tr><td>Filter stages / points per stage</td><td>4 / 4</td></tr>
 <tr><td>Input pattern / seed</td><td><code>stress</code> / <code>123</code></td></tr>
 <tr><td>Input readings</td><td>Signed 32-bit integers in <code>[-10000, 10000]</code></td></tr>
-<tr><td>Input footprint</td><td>2 MiB</td></tr>
+<tr><td>Input size</td><td>2 MiB</td></tr>
 </tbody></table>
 </div>
-<p>The sixteen channels represent normalized deviations of measurements such as temperature, vibration, current, voltage, pressure and flow. All channels contribute to the output. The original implementation passes complete intermediate arrays between processing stages. It is functionally correct, but its processing order and intermediate working sets leave room for optimization.</p>
-<p>Only this medium-sized input is used for the reported performance score. Small cases in the checker test correctness. Hidden correctness cases may change the data, seed and medium-sized dimensions, including incomplete device groups and block tails; <strong>the sixteen channels, four stages and four-point calculation remain fixed</strong>.</p>
-<h3 id="exact-computation"><a class="header" href="#exact-computation">Exact Computation</a></h3>
-<p>Input acquisition order is <code>[time][device][channel]</code>:</p>
+<p>The sixteen channels stand for different measurements, such as temperature, vibration, current, voltage, pressure and flow. Every channel affects the output.</p>
+<p>The original program is correct. Its problem is how it moves data: each stage writes its complete output to an array, and the next stage reads that array back. The arrays are large, so the program keeps streaming data through the cache instead of reusing what is already there. This is what you will improve.</p>
+<p>Only the medium input above is used for scoring. The checker also runs small inputs, and hidden correctness tests may change the data, seed and medium dimensions, including incomplete device groups and block tails. These never change: <strong>sixteen channels, four stages and four history points per stage</strong>.</p>
+<h3 id="exactly-what-the-program-computes"><a class="header" href="#exactly-what-the-program-computes">Exactly What the Program Computes</a></h3>
+<p>The input is stored in acquisition order <code>[time][device][channel]</code>:</p>
 <pre><code class="language-text">input.data[(t * D + d) * 16 + c]
 </code></pre>
-<p>Let <code>x[0]</code> be the input. For stage <code>s = 0, 1, 2, 3</code>, compute the following for every device and channel at times <code>t &gt;= 3*(s+1)</code>:</p>
+<p>Start with <code>x[0] = input</code>. For each stage <code>s = 0, 1, 2, 3</code>, every device, every channel, and every time <code>t &gt;= 3*(s+1)</code>:</p>
 <pre><code class="language-text">weighted = x[s][t,d,c] + 2*x[s][t-1,d,c]
          + 3*x[s][t-2,d,c] + 4*x[s][t-3,d,c]
 value = weighted / 10
 limit = 2400 - 100*s + 50*(c % 4)
 x[s+1][t,d,c] = clamp(value, -limit, limit)
 </code></pre>
-<p>Use signed 64-bit accumulation. Division is <strong>integer division toward zero</strong>, followed by clamping <strong>at every stage</strong>. The supplied <code>condition()</code> primitive already implements this short calculation; you do not need to derive a signal-processing algorithm.</p>
-<p>The final valid time range is <code>12 &lt;= t &lt; T</code>. Store <strong>every</strong> final filtered reading in:</p>
+<p>Use signed 64-bit accumulation. Division is <strong>integer division toward zero</strong>, and the result is clamped <strong>after every stage</strong>. You do not need to design this filter yourself: the supplied <code>condition()</code> primitive already implements it.</p>
+<p>After four stages, only times <code>12 &lt;= t &lt; T</code> are valid. Store every final filtered value at:</p>
 <pre><code class="language-text">output.filtered[((t - 12) * D + d) * 16 + c]
 </code></pre>
-<p>For each valid time, compute a device's risk as the sum of the absolute values of its sixteen final readings. Its alert threshold is:</p>
+<p>Then, for each valid time, compute the risk of a device as the sum of the absolute values of its sixteen final readings. Its alert threshold is:</p>
 <pre><code class="language-text">threshold[d] = 600*16 + (19*d) % (400*16)
 </code></pre>
-<p>A device is in alert when its risk is <strong>strictly greater</strong> than this threshold. For each group of up to sixteen devices, produce the total risk, number of devices in alert, and maximum device risk. The last group uses its actual device count. Report layout is <code>[t-12][group]</code>, with <code>ceil(D/16)</code> groups. <code>summarize()</code> supplies this computation.</p>
-<h2 id="optimization-scope"><a class="header" href="#optimization-scope">Optimization Scope</a></h2>
-<p>Keep the input, all final filtered readings, and every report field unchanged. Preserve the per-stage weighted contributions, integer truncation and clamping, and the main <code>O(stages * T * D * channels * history)</code> computation. You may reorganize loops, change internal layouts, block the work, pack data, fuse compatible work and reuse loaded samples or intermediate values. Explain why your changes preserve the dependency order.</p>
-<p>Keep all data-dependent computation, explicit preprocessing, intermediate initialization, copying and report construction inside <code>analyze()</code>. The input is read-only. Use single-threaded scalar C++ and the supplied compiler flags. Preserve the fixed headers, reference implementation, driver, ROI markers, tracer and hardware configuration. You may add your own helper files; add them only to the student executable's build dependencies and command, keeping the flags unchanged.</p>
-<p>Prefix sums, running updates of window aggregates, FFT-based filtering, collapsing stages, skipping required contributions, changing the input or task size, and precomputed answers are outside this lab's optimization scope. Keeping original history samples for later reuse is allowed when each valid output still evaluates the prescribed contributions. Hidden output checks verify semantics; source review also checks the required computation structure. The grader uses the original course driver and reference files.</p>
+<p>A device is in alert when its risk is <strong>strictly greater</strong> than its threshold. For each group of up to sixteen devices, report the total risk, the number of devices in alert, and the maximum device risk. The last group may contain fewer devices. The report layout is <code>[t-12][group]</code>, with <code>ceil(D/16)</code> groups. <code>summarize()</code> already does this part.</p>
+<h2 id="what-you-may-change"><a class="header" href="#what-you-may-change">What You May Change</a></h2>
+<p>The input, every final filtered reading and every report field must stay the same. Keep the per-stage weighted sum, the integer truncation, the clamping, and the main <code>O(stages * T * D * channels * history)</code> computation.</p>
+<p>You may reorganize loops, change internal data layouts, process the data in blocks, pack values into smaller types, fuse loops or stages that can be fused, and reuse samples or intermediate values that are already loaded. For each change, explain why the result is still the same.</p>
+<p>All data-dependent work must stay inside <code>analyze()</code>: preprocessing, initialization, copying and building the report. The input is read-only. Use single-threaded scalar C++ with the supplied compiler flags. Keep the fixed headers, reference implementation, driver, ROI markers, tracer and hardware configuration. You may add your own helper files, but add them only to the student executable's build dependencies and command, with the flags unchanged.</p>
+<p>These are outside the scope of this lab: prefix sums or running updates of window aggregates, FFT-based filtering, collapsing stages, skipping required contributions, changing the input or the task size, and precomputed answers. Keeping history samples for later reuse is allowed, as long as each valid output is still computed from the prescribed contributions. Hidden tests check the output; source review also checks that the required computation structure is preserved. The grader uses the original course driver and reference files.</p>
 <h3 id="build-and-check"><a class="header" href="#build-and-check">Build and Check</a></h3>
 <p>Use the Linux environment prepared in Lab 1. After extracting the archive:</p>
 <pre><code class="language-sh">cd part4-starter
@@ -859,14 +861,14 @@ make -j2
 make check
 ./bin/telemetry_student --pattern demo --csv health-report.csv
 </code></pre>
-<p><code>make check</code> compares every filtered reading and report field on multiple inputs. The demo exports a readable device-group report with quiet periods, transient spikes and sustained faults. It is separate from the official <code>stress</code> performance input.</p>
+<p><code>make check</code> compares every filtered reading and report field on several inputs. The demo writes a readable device-group report with quiet periods, short spikes and sustained faults. It is not the official <code>stress</code> performance input.</p>
 <p>The fixed build flags are:</p>
 <pre><code class="language-text">-std=c++17 -O2 -fno-tree-vectorize -fno-tree-slp-vectorize
 -fno-unroll-loops -fno-pie -no-pie -Wall -Wextra -Werror
 </code></pre>
-<p>The reference executable is built independently of <code>student.cc</code>. Each normal run verifies its complete output outside the measured region and prints JSON containing <code>verified: true</code> and a checksum. The checksum is for reproducibility; verification compares the actual arrays and report fields. Do not use native wall-clock time as the ChampSim performance result.</p>
+<p>The reference executable is built separately from <code>student.cc</code>. On every normal run, the driver checks the complete output outside the measured region and prints JSON with <code>verified: true</code> and a checksum. The checksum is only for reproducibility; the check itself compares the actual arrays and report fields. Do not use native wall-clock time as the ChampSim performance result.</p>
 <h2 id="fixed-hardware-platform"><a class="header" href="#fixed-hardware-platform">Fixed Hardware Platform</a></h2>
-<p>Use <a href="proj3/./part4/part4_config.json">part4_config.json</a>, which preserves the <a href="proj3/./part2.html#shared-evaluation-platform-parts-24">Part 2 shared hardware platform</a> and fixes <strong>L1D <code>next_line</code></strong> for every implementation.</p>
+<p>Use <a href="proj3/./part4/part4_config.json">part4_config.json</a>. It keeps the <a href="proj3/./part2.html#shared-evaluation-platform-parts-24">Part 2 shared hardware platform</a> and fixes <strong>L1D <code>next_line</code></strong> for every implementation.</p>
 <div class="table-wrapper"><table><thead><tr><th>Component</th><th>Fixed setting</th></tr></thead><tbody>
 <tr><td>CPU</td><td>One core, 4 GHz, ROB 352, <code>bimodal</code>, <code>basic_btb</code>, mispredict penalty 15</td></tr>
 <tr><td>L1I</td><td>64 sets × 8 ways = 32 KiB; <code>no</code>; 16 MSHRs; tag/fill 1/1</td></tr>
@@ -874,11 +876,11 @@ make check
 <tr><td>L2C</td><td>2048 sets × 16 ways = 2 MiB; <code>no</code>; 20 MSHRs; tag/fill 4/4</td></tr>
 <tr><td>Hierarchy / replacement</td><td>Split L1I/L1D → L2C → DRAM; no LLC; LRU</td></tr>
 <tr><td>Cache line / page</td><td>64 B / 4 KiB</td></tr>
-<tr><td>Cache delays</td><td>Course ChampSim's default calculation, without manual latency overrides</td></tr>
+<tr><td>Cache delays</td><td>Course ChampSim's default calculation, with no manual latency overrides</td></tr>
 </tbody></table>
 </div>
-<p>The program is the optimization target. Keep this hardware configuration fixed, including L1I and the prefetchers.</p>
-<p>Set the paths to your existing installations and build the supplied tracer and simulator:</p>
+<p>The program is what you optimize. Keep this hardware fixed, including L1I and the prefetchers.</p>
+<p>Set the paths to your installations and build the supplied tracer and simulator:</p>
 <pre><code class="language-sh">export CHAMPSIM_ROOT=/absolute/path/to/ChampSim
 export PIN_ROOT=/absolute/path/to/pin
 export PART4_ROOT="$PWD"
@@ -890,9 +892,9 @@ make -j8 bin/champsim_part4
 cd "$PART4_ROOT"
 </code></pre>
 <h2 id="measure-the-complete-task"><a class="header" href="#measure-the-complete-task">Measure the Complete Task</a></h2>
-<p>Optimizations can change dynamic instruction counts. Capture <strong>the complete call to the analysis function</strong> and compare the cycles needed to finish it. Use <strong>zero warmup</strong> and the original instruction length of <strong>each implementation's own ROI</strong>. The 20M + 100M prefetcher window from Parts 2 and 3 does not apply here.</p>
-<p>The fixed driver places <code>roi_begin</code> and <code>roi_end</code> around the computation. Input generation, driver correctness checks and CSV export are outside this region. All work performed by the analysis function, including temporary allocation, initialization, packing and report construction, is measured.</p>
-<p>Capture the reference and current student implementation:</p>
+<p>A faster implementation executes fewer instructions. So instead of simulating a fixed 100M-instruction window, we capture <strong>the whole call to the analysis function</strong> for each version and measure exactly its own instruction count, with <strong>zero warmup</strong>.</p>
+<p>The fixed driver places <code>roi_begin</code> and <code>roi_end</code> around the computation. Input generation, driver checks and CSV export are outside this region. Everything the analysis function does is measured, including temporary allocation, initialization, packing and report construction.</p>
+<p>Capture the reference and your current student implementation:</p>
 <pre><code class="language-sh">python3 capture_trace.py --pin-root "$PIN_ROOT" \
     --tracer tracer/obj-intel64/champsim_tracer.so \
     --output traces/reference.champsimtrace.xz -- \
@@ -903,9 +905,9 @@ python3 capture_trace.py --pin-root "$PIN_ROOT" \
     --output traces/student.champsimtrace.xz -- \
     ./bin/telemetry_student --times 512 --devices 64 --seed 123 --pattern stress
 </code></pre>
-<p>Capture succeeds only after a complete ROI and successful driver verification. It writes the compressed trace, a <code>.xz.json</code> metadata file with <code>roi_instructions</code>, and a <code>.xz.capture.log</code>. The helper streams compression, so it does not require storing the large uncompressed trace. Use a new filename for each experiment; <code>--force</code> explicitly replaces a capture after a successful run.</p>
-<p>The trace contains <strong>8192 additional lookahead records after the original ROI</strong>. They prevent the simulator from ending early at EOF while fetching the last task instructions. <strong>Exclude them from the measurement length</strong>: use <code>roi_instructions</code> from the metadata, not the padded file's record count. Truncated captures or captures reaching the safety limit are rejected.</p>
-<p>Run the two complete tasks, using their separate instruction lengths:</p>
+<p>A capture succeeds only if the ROI completes and the driver verifies the output. It writes the compressed trace, a <code>.xz.json</code> metadata file containing <code>roi_instructions</code>, and a <code>.xz.capture.log</code>. Compression is streamed, so the large uncompressed trace is never stored. Use a new filename for each experiment; <code>--force</code> replaces an existing capture after a successful run.</p>
+<p>The trace file contains <strong>8192 extra lookahead records</strong> after the ROI. They stop the simulator from reaching the end of the trace while it is still fetching the last task instructions. <strong>Do not count them</strong>: use <code>roi_instructions</code> from the metadata, not the number of records in the file. Truncated captures, or captures that hit the safety limit, are rejected.</p>
+<p>Run the two complete tasks, each with its own instruction count:</p>
 <pre><code class="language-sh">mkdir -p results
 N_REFERENCE=$(python3 -c 'import json; print(json.load(open("traces/reference.champsimtrace.xz.json"))["roi_instructions"])')
 N_STUDENT=$(python3 -c 'import json; print(json.load(open("traces/student.champsimtrace.xz.json"))["roi_instructions"])')
@@ -918,34 +920,34 @@ N_STUDENT=$(python3 -c 'import json; print(json.load(open("traces/student.champs
     --simulation-instructions "$N_STUDENT" --json results/student.stats.json \
     traces/student.champsimtrace.xz &gt; results/student.log
 </code></pre>
-<p>Confirm successful completion and a measured retired instruction count reaching the requested ROI length. There can be a small retirement-width overshoot. An incomplete run is not a final result. Starting implementations need not have identical instruction counts or IPC, and all compared runs must finish the same input and outputs.</p>
-<p>You may reuse your reference capture and simulation across experiments when the fixed reference sources, compiler/version/flags, input, tracer/format, hardware and complete-ROI measurement method match. Keep its original metadata, binary/source provenance and logs. Regenerate the affected baseline when these conditions change.</p>
+<p>Check that each run finishes and that the retired instruction count reaches the requested ROI length. A small overshoot is normal. An incomplete run is not a final result. Different versions may have different instruction counts and IPC; the only requirement is that all of them process the same input and produce the same output.</p>
+<p>You may reuse an earlier reference capture and simulation across experiments when the reference sources, compiler version and flags, input, tracer and format, hardware and measurement method all match. Keep its metadata, binary/source provenance and logs. Regenerate the baseline when any of these change.</p>
 <h3 id="performance-and-cache-statistics"><a class="header" href="#performance-and-cache-statistics">Performance and Cache Statistics</a></h3>
-<p>Use the <strong>Simulation ROI</strong> in the native JSON. For the single core, read <code>roi.cores[0].instructions</code> and <code>roi.cores[0].cycles</code>. The task speedup is:</p>
+<p>Use the <strong>Simulation ROI</strong> in the native JSON. With one core, read <code>roi.cores[0].instructions</code> and <code>roi.cores[0].cycles</code>. The task speedup is:</p>
 <pre><code class="language-text">speedup = reference_cycles / optimized_cycles
 </code></pre>
-<p>The original implementation has speedup 1. Higher is better. This is a full-task cycle ratio; the Part 2 prefetcher IPC-ratio definition is a different comparison.</p>
-<p>For every reported version, extract counters and calculate the following yourself:</p>
+<p>The original implementation has speedup 1; higher is better. This is a full-task cycle ratio, which is different from the Part 2 prefetcher IPC ratio.</p>
+<p>For every version you report, extract the counters and calculate these values yourself:</p>
 <ul>
 <li>ROI instruction length, measured retired instructions, cycles and task speedup.</li>
-<li>L1D and L2C <strong>LOAD hits, LOAD misses, and LOAD miss rate</strong>. Read <code>cpu0_L1D</code> and <code>cpu0_L2C</code>; sum per-core arrays where present. Miss rate is <code>misses / (hits + misses)</code>; report <code>N/A</code> for a zero denominator. Keep native miss counts, including merged misses.</li>
+<li>L1D and L2C <strong>LOAD hits, LOAD misses and LOAD miss rate</strong>. Read <code>cpu0_L1D</code> and <code>cpu0_L2C</code>; sum per-core arrays where present. Miss rate is <code>misses / (hits + misses)</code>; report <code>N/A</code> when the denominator is zero. Keep the native miss counts, including merged misses.</li>
 <li><strong>DRAM read requests</strong>: sum <code>RQ ROW_BUFFER_HIT + RQ ROW_BUFFER_MISS</code> over the ROI's DRAM channels. These are memory-controller counts, not CPU LOAD counts.</li>
 </ul>
-<p>Store raw counters and derived results in clearly labelled CSV files. Retain the native JSON and stdout logs. Prefetch Accuracy/Coverage are not required for this fixed-prefetcher program-optimization experiment. IPC, branch and TLB counters may support your analysis, but the performance score uses cycles.</p>
-<p>Discuss absolute traffic as well as miss rates: a lower cache level may see fewer requests even when its local miss rate rises. Relate your intermediate working-set estimates to cache capacity, cache-line use and measured changes. Include the cost of packing or other extra work when interpreting a result.</p>
+<p>Store raw counters and derived results in clearly labelled CSV files, and keep the native JSON and stdout logs. Prefetch Accuracy/Coverage are not required here, because the prefetcher is fixed. IPC, branch and TLB counters can support your analysis, but the score uses cycles only.</p>
+<p>Discuss absolute traffic as well as miss rates: a lower cache level may see fewer requests even when its local miss rate goes up. Compare your working-set estimates with cache capacity, cache-line usage and the measured changes. When you add packing or other extra work, include its cost in the explanation.</p>
 <h2 id="experiments-and-report"><a class="header" href="#experiments-and-report">Experiments and Report</a></h2>
-<p>Present the original implementation and <strong>at least two optimization versions</strong>, with a clear reason for each change. All final performance comparisons use the official medium input and complete-ROI method above.</p>
-<p>For a parameterized choice, compare at least three settings while controlling the other changes. These settings can overlap your optimization-version runs. For an approach without tunable parameters, provide equivalent controlled comparisons or ablations. Explain both improvements and regressions, estimate the actively reused working set, and justify your final implementation using measurements.</p>
-<p>Your report should make it possible to follow a change from code to access pattern, from access pattern to cache behavior, and from cache behavior to complete-task cycles. Use correctness-only inputs for debugging without treating their performance as the official result.</p>
+<p>Present the original implementation and <strong>at least two optimization versions</strong>, with a clear reason for each change. All final performance comparisons use the official medium input and the complete-ROI method above.</p>
+<p>If a choice has a tunable parameter, compare at least three settings while keeping everything else fixed. These runs can overlap your version runs. If your approach has no tunable parameter, provide an equivalent set of controlled comparisons or ablations. Explain improvements and regressions, estimate the working set that is actually reused, and justify your final implementation with measurements.</p>
+<p>Your report should let a reader follow a change from code to access pattern, from access pattern to cache behavior, and from cache behavior to complete-task cycles. Correctness-only inputs are fine for debugging, but their performance is not the official result.</p>
 <h2 id="grading-criteria"><a class="header" href="#grading-criteria">Grading Criteria</a></h2>
 <p>Part 4 contributes <strong>6 points</strong> to the 18-point experimental component:</p>
 <div class="table-wrapper"><table><thead><tr><th>Component</th><th style="text-align: right">Points</th><th>Evidence</th></tr></thead><tbody>
-<tr><td>Optimization effect</td><td style="text-align: right">2</td><td>Verified final implementation; speedup on the official input using the fixed platform and complete ROI</td></tr>
+<tr><td>Optimization effect</td><td style="text-align: right">2</td><td>Verified final implementation; speedup on the official input with the fixed platform and complete ROI</td></tr>
 <tr><td>Experimental design</td><td style="text-align: right">2</td><td>Reproducible baseline, at least two motivated optimization versions, controlled parameter/ablation comparisons and retained raw evidence</td></tr>
 <tr><td>Analysis</td><td style="text-align: right">2</td><td>Correct counter calculations; working-set and access-pattern reasoning; explanation of gains, costs and regressions; justified final choice</td></tr>
 </tbody></table>
 </div>
-<p>The <strong>2 performance points</strong> use the following absolute task-speedup thresholds, before rounding:</p>
+<p>The <strong>2 performance points</strong> use these absolute task-speedup thresholds, before rounding:</p>
 <div class="table-wrapper"><table><thead><tr><th>Speedup</th><th style="text-align: right">Performance points</th></tr></thead><tbody>
 <tr><td>Below 1.25×</td><td style="text-align: right">0</td></tr>
 <tr><td>At least 1.25× and below 2×</td><td style="text-align: right">0.5</td></tr>
@@ -954,14 +956,14 @@ N_STUDENT=$(python3 -c 'import json; print(json.load(open("traces/student.champs
 <tr><td>At least 4×</td><td style="text-align: right">2</td></tr>
 </tbody></table>
 </div>
-<p>Correctness and the specified computation structure are prerequisites for performance points. Only verified runs count as experimental evidence. Hidden tests use the original course driver/reference to check semantics; source review checks the permitted optimization scope.</p>
+<p>Correctness and the required computation structure are prerequisites for performance points. Only verified runs count as evidence. Hidden tests use the original course driver and reference to check behavior; source review checks the permitted optimization scope.</p>
 <h2 id="deliverables"><a class="header" href="#deliverables">Deliverables</a></h2>
 <p>Submit:</p>
 <ol>
-<li>Your final <code>student.cc</code>, any added helpers, the complete starter sources/build files and the fixed JSON; identify each intermediate version used in the report.</li>
-<li>Correctness-check output and the reference/final compressed traces with their capture metadata and logs.</li>
-<li>Native ChampSim JSON and stdout logs for the baseline and reported versions; raw counter CSV and independently calculated metric tables.</li>
-<li>The report's design progression, controlled experiments, working-set reasoning and final selection. Record the compiler and ChampSim versions, exact build/capture/simulation commands, and the source-to-result mapping.</li>
+<li>Your final <code>student.cc</code>, any added helpers, the complete starter sources and build files, and the fixed JSON. Identify every intermediate version used in the report.</li>
+<li>The correctness-check output, and the reference and final traces with their capture metadata and logs.</li>
+<li>Native ChampSim JSON and stdout logs for the baseline and all reported versions, plus the raw counter CSV and your independently calculated metric tables.</li>
+<li>The report's design progression, controlled experiments, working-set reasoning and final choice. Record the compiler and ChampSim versions, the exact build/capture/simulation commands, and the mapping from sources to results.</li>
 </ol>
 <p>See <a href="proj3/./submit.html">Submission</a> for the combined project archive and grading breakdown.</p>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
