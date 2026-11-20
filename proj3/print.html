@@ -383,7 +383,7 @@ mkdir -p results
 <tr><td>Other settings</td><td>Preserve the Part 1 baseline; remaining parameters use course defaults</td></tr>
 </tbody></table>
 </div>
-<p>Use the same course-provided ChampSim version and base configuration for every run. Only the L1D prefetcher module and its internal predictor parameters may differ between prefetcher experiments; <code>executable_name</code> may also change to distinguish binaries. Do not modify the core, cache geometry, cache timing, replacement policies, memory system, or baseline prefetcher implementations for the comparison.</p>
+<p>Use the same course-provided ChampSim version and base configuration for every run. Only the L1D prefetcher module and its internal predictor parameters may differ between prefetcher experiments. Do not modify the core, cache geometry, cache timing, replacement policies, memory system, or baseline prefetcher implementations for the comparison.</p>
 <p>Starting from the complete baseline JSON in Part 1, update the fields below in <code>lab3_config.json</code>. Preserve its CPU settings and all other baseline fields. Keep the default L1-to-L2 connections; the explicit L2C <code>lower_level</code> bypasses the default LLC.</p>
 <pre><code class="language-json">{
   "executable_name": "champsim_ip_stride",
@@ -436,7 +436,7 @@ make -j $(nproc)
 <li><code>"next_line"</code>: A simple prefetcher that fetches the contiguous next cache block on access.</li>
 <li><code>"ip_stride"</code>: An Instruction Pointer (IP) based stride prefetcher that tracks strided memory access patterns per instruction.</li>
 </ul>
-<p><code>ip_stride</code> is attached to <strong>L1D</strong>. In the course implementation, it may choose to skip filling L1D when MSHR occupancy is high. The Accuracy and Coverage metrics below use <strong>L1D counters only</strong>; they do not measure all benefits of prefetches retained at lower levels. Interpret these local metrics together with IPC and Speedup.</p>
+<p><code>ip_stride</code> is attached to <strong>L1D</strong>. The Accuracy and Coverage metrics below use <strong>L1D counters only</strong>. Interpret these local metrics together with IPC and Speedup.</p>
 <h3 id="running-the-simulations"><a class="header" href="#running-the-simulations">Running the Simulations</a></h3>
 <p>Let's evaluate how these prefetchers impact system performance on two prefetch-sensitive workloads: <code>shell_sort</code> and <code>gemm</code>.</p>
 <p>To run a simulation for a specific prefetcher binary, execute:</p>
