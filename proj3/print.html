@@ -485,8 +485,7 @@ mkdir -p results
 <pre><code class="language-csv">workload,prefetcher,instructions,cycles,issued,useful,demand_misses
 </code></pre>
 <p>Include a <code>no</code> row for every workload. Keep raw counters as integers and ratios as fractions (or label percentages explicitly in figures). <strong>No metric-calculation script is provided. Students must extract the counters and calculate IPC, Accuracy, Coverage, and Speedup themselves using the formulas above.</strong> Explain the mapping from simulator output fields to your raw counters, and show a worked calculation for one prefetch-enabled test case in your report.</p>
-<p>For the prefetcher comparisons in Parts 2 and 3, check that each run completes, has valid counters, and includes at least 100M measurement instructions. Use the same platform and instruction window, include the matching <code>no</code> baseline, and apply the zero-denominator rules above. Never treat an incomplete simulation as a final result. Submit <code>raw_counters.csv</code>, your calculated results in <code>metrics.csv</code>, the configurations, and the original logs.</p>
-<p>Part 4 uses its separate <a href="proj3/./part4.html#measure-the-complete-task">complete-task cycle comparison</a>, with L1D <code>next_line</code> fixed and each implementation's own ROI length.</p>
+<p>For the prefetcher comparisons in Parts 2 and 3, check that each run completes, has valid counters, and includes at least 100M measurement instructions. Use the same platform and instruction window, include the matching <code>no</code> baseline, and apply the zero-denominator rules above. Submit <code>raw_counters.csv</code>, your calculated results in <code>metrics.csv</code>, the configurations, and the original logs.</p>
 <div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
 <div class="admonition-title">
 <div id="admonition-deliverables-title">
@@ -614,7 +613,7 @@ uint32_t my_prefetcher::prefetcher_cache_fill(
   return metadata_in;
 }
 </code></pre>
-<p>Store prediction tables, confidence values, and request history as members of <code>my_prefetcher</code>. Add the corresponding container headers or <code>msl/lru_table.h</code> when your design uses them. If you rename the module, keep its directory, class, header, implementation, and configuration name consistent.</p>
+<p>Store prediction tables, confidence values, and request history as members of <code>my_prefetcher</code>. Add the corresponding container headers or <code>msl/lru_table.h</code> when your design uses them.</p>
 <h3 id="course-champsim-api"><a class="header" href="#course-champsim-api">Course ChampSim API</a></h3>
 <ul>
 <li><strong><code>prefetcher_cache_operate()</code></strong> receives typed addresses, the PC, hit status, <code>useful_prefetch</code>, access type, and metadata. In the provided header, <code>cache_hit</code> is <code>uint8_t</code>; zero means miss and nonzero means hit. Return <code>metadata_in</code> when your design does not modify metadata.</li>
@@ -681,10 +680,10 @@ make -j $(nproc)
 <p>You may reuse the six Part 2 baseline results (<code>no</code>, <code>next_line</code>, and <code>ip_stride</code> on both workloads) when they use the <strong>same simulator revision, baseline implementations, CPU/cache/memory configuration, trace files and starting positions, and 20M warmup + 100M measurement window</strong>. Identify the reused runs and include their original configurations, logs, counters, and calculated results. If these conditions differ, rerun the affected baselines.</p>
 <p>With matching Part 2 results, Part 3 requires only <strong>two additional final simulations</strong>: your custom prefetcher on <code>shell_sort</code> and on <code>gemm</code>. The final comparison contains <strong>eight cases</strong> (four prefetchers × two workloads), with six cases reused and two newly measured. Additional debugging, tuning, or ablation runs are optional.</p>
 <h3 id="local-performance-evaluation-script"><a class="header" href="#local-performance-evaluation-script">Local Performance Evaluation Script</a></h3>
-<p>Download <a href="proj3/./tools/auto-run.py">auto-run.py</a>, place it in the course ChampSim root directory, and run it after implementing <code>prefetcher/my_prefetcher/my_prefetcher.h</code> and <code>.cc</code>:</p>
-<pre><code class="language-sh">python3 auto-run.py --max-worker 2 --output-file local-result.json
+<p>Download <a href="https://disk.pku.edu.cn/link/AA03FB514ED846474BBAAA5C4C97092C84">lab3-auto-run.py</a>, place it in the course ChampSim root directory, and run it after implementing <code>prefetcher/my_prefetcher/my_prefetcher.h</code> and <code>.cc</code>:</p>
+<pre><code class="language-sh">python3 lab3-auto-run.py --max-worker 2 --output-file local-result.json
 </code></pre>
-<p>The script follows the Lab 2 runner workflow: build each prefetcher once, run traces in parallel, and cache the baseline. It uses <strong>L1D <code>next_line</code> as the baseline</strong> and <code>my_prefetcher</code> as the candidate, with the shared Part 2 platform and <strong>20M warmup + 100M measurement</strong> on <strong>16 equally weighted traces</strong>: <code>shell_sort</code>, <code>gemm</code>, and the following <code>CACHE_TRACES</code>. The report comparison described above still uses <code>shell_sort</code> and <code>gemm</code>.</p>
+<p>The script follows the Lab 2 runner workflow: build each prefetcher once, run traces in parallel, and cache the baseline. It uses <strong>L1D <code>next_line</code> as the baseline</strong> and <code>my_prefetcher</code> as the candidate, with the shared Part 2 platform and <strong>20M warmup + 100M measurement</strong> on <strong>16 equally weighted traces</strong>: <code>shell_sort</code>, <code>gemm</code>, and the following <code>CACHE_TRACES</code>.</p>
 <pre><code class="language-text">cache-10.champsimtrace.xz
 cache-11-1.champsimtrace.xz
 cache-11-2.champsimtrace.xz
@@ -705,7 +704,7 @@ cache-9.champsimtrace.xz
 <p>The first default invocation runs 16 baseline and 16 candidate simulations (32 total). Later invocations reuse valid <code>baseline/next_line/</code> entries and run only the 16 candidate simulations. The cache checks the platform, instruction window, trace contents, and baseline/framework sources; editing your candidate module does not invalidate it. Logs, generated configurations, native statistics, and detailed results are saved under <code>.auto-run-p3/run-*/</code>. Failed or incomplete simulations produce no score.</p>
 <p>Part 2 baseline reuse for the report remains available as described above. The script maintains its own validated cache and does not import manual logs. It computes the IPC performance score only; extract counters and calculate Accuracy and Coverage yourself using Part 2's formulas. A local score of <strong>100 or higher</strong> meets the absolute performance requirement when using the full default 16-trace suite, the shared platform, and the final 20M warmup + 100M measurement window.</p>
 <p>For a short workflow check, use the following command. These results do not replace the final measurement window:</p>
-<pre><code class="language-sh">python3 auto-run.py --warmup-instructions 200000 --simulation-instructions 1000000
+<pre><code class="language-sh">python3 lab3-auto-run.py --warmup-instructions 200000 --simulation-instructions 1000000
 </code></pre>
 <p>Use <code>--candidate NAME</code> to select another prefetcher module and <code>--build-jobs N</code> to limit compilation concurrency. The optional <code>--trace FILENAME</code> flag can be repeated to replace the default automatic scoring suite with a selected subset or a separate suite. Without this flag, all 16 traces above contribute to the score.</p>
 <h3 id="grading-structure"><a class="header" href="#grading-structure">Grading Structure</a></h3>
@@ -733,7 +732,7 @@ Students should provide:</p>
 <ul>
 <li>
 <p><strong>Absolute Performance (2 pts)</strong>:
-Earn the full <strong>2 absolute-performance points</strong> by obtaining <strong><code>score &gt;= 100</code></strong> with the local <code>auto-run.py</code>, using all <strong>16 default traces</strong>, the shared Part 2 platform, and <strong>20M warmup + 100M measurement</strong> per trace. This corresponds to a geometric mean IPC speedup of at least <strong>1.0</strong> relative to <code>next_line</code>; matching the baseline meets this requirement. Scores from shortened windows or selected trace subsets do not establish final qualification.</p>
+Earn the full <strong>2 absolute-performance points</strong> by obtaining <strong><code>score &gt;= 100</code></strong> with the local <code>lab3-auto-run.py</code>, using all <strong>16 default traces</strong>, the shared Part 2 platform, and <strong>20M warmup + 100M measurement</strong> per trace. This corresponds to a geometric mean IPC speedup of at least <strong>1.0</strong> relative to <code>next_line</code>; matching the baseline meets this requirement. Scores from shortened windows or selected trace subsets do not establish final qualification.</p>
 </li>
 <li>
 <p><strong>Relative Ranking (2 pts)</strong>:
@@ -1068,7 +1067,7 @@ N_STUDENT=$(python3 -c 'import json; print(json.load(open("traces/student.champs
 <ul>
 <li><strong>Paper Summary</strong>: Background and motivation: <strong>1 pt</strong>; core architecture and mechanisms: <strong>3 pts</strong>; design insights: <strong>1 pt</strong> (5 pts total).</li>
 <li><strong>Code Correctness</strong>: Compilable and functional custom prefetcher implementation: <strong>2 pts</strong></li>
-<li><strong>Absolute Performance</strong>: Local <code>auto-run.py</code> score <strong>≥100</strong>, using all 16 default traces on the shared platform with 20M warmup + 100M measurement: <strong>2 pts</strong></li>
+<li><strong>Absolute Performance</strong>: Local <code>lab3-auto-run.py</code> score <strong>≥100</strong>, using all 16 default traces on the shared platform with 20M warmup + 100M measurement: <strong>2 pts</strong></li>
 <li><strong>Relative Leaderboard Ranking</strong>: Based on the geometric mean of per-trace IPC ratios relative to <code>next_line</code>, with equal weight per trace: <strong>2 pts</strong> <em>(Top 20%: 2 pts; Top 50%: 1.5 pts; Others: 1 pt)</em>. See Part 3 for the formula; this differs from the Part 2 Speedup column relative to <code>no</code>.</li>
 </ul>
 </li>

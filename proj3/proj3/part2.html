@@ -297,8 +297,7 @@ mkdir -p results
 <pre><code class="language-csv">workload,prefetcher,instructions,cycles,issued,useful,demand_misses
 </code></pre>
 <p>Include a <code>no</code> row for every workload. Keep raw counters as integers and ratios as fractions (or label percentages explicitly in figures). <strong>No metric-calculation script is provided. Students must extract the counters and calculate IPC, Accuracy, Coverage, and Speedup themselves using the formulas above.</strong> Explain the mapping from simulator output fields to your raw counters, and show a worked calculation for one prefetch-enabled test case in your report.</p>
-<p>For the prefetcher comparisons in Parts 2 and 3, check that each run completes, has valid counters, and includes at least 100M measurement instructions. Use the same platform and instruction window, include the matching <code>no</code> baseline, and apply the zero-denominator rules above. Never treat an incomplete simulation as a final result. Submit <code>raw_counters.csv</code>, your calculated results in <code>metrics.csv</code>, the configurations, and the original logs.</p>
-<p>Part 4 uses its separate <a href="./part4.html#measure-the-complete-task">complete-task cycle comparison</a>, with L1D <code>next_line</code> fixed and each implementation's own ROI length.</p>
+<p>For the prefetcher comparisons in Parts 2 and 3, check that each run completes, has valid counters, and includes at least 100M measurement instructions. Use the same platform and instruction window, include the matching <code>no</code> baseline, and apply the zero-denominator rules above. Submit <code>raw_counters.csv</code>, your calculated results in <code>metrics.csv</code>, the configurations, and the original logs.</p>
 <div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
 <div class="admonition-title">
 <div id="admonition-deliverables-title">
