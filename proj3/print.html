@@ -470,7 +470,7 @@ mkdir -p results
 </tbody></table>
 </div>
 <p><strong>What <code>useful</code> counts.</strong> A prefetch is useful when its data is consumed before it is thrown away. The simulator's L1D counter adds one in two cases: an access hits a line that is still marked as prefetched, or a demand request arrives while the prefetch is still in flight and merges with it. In the second case, both <code>useful</code> and <code>demand_misses</code> can increase for the same access.</p>
-<p><strong>What <code>demand_misses</code> counts.</strong> Count miss events on real LOAD and RFO accesses only. Do not include prefetch requests, writes/writebacks or translations. A demand access that merges with an outstanding prefetch still counts as a miss in the simulator, so keep it: do not remove duplicates by address. Use the same counting rule for every run. If a counter is missing, find the correct mapping in the course framework; do not substitute zero or an unrelated counter.</p>
+<p><strong>What <code>demand_misses</code> counts.</strong> Count miss events on real LOAD and RFO accesses only. Do not include prefetch requests, writes/writebacks or translations. A demand access that merges with an outstanding prefetch still counts as a miss in the simulator, so keep it: do not remove duplicates by address. Use the same counting rule for every run.</p>
 <p>Report four metrics:</p>
 <ul>
 <li><strong>IPC</strong>: <span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord text"><span class="mord">instructions</span></span><span class="mord">/</span><span class="mord text"><span class="mord">cycles</span></span></span></span></span>.</li>
@@ -484,7 +484,7 @@ mkdir -p results
 <p>Students are responsible for extracting and checking their own simulation counters and calculating the metrics. Record normalized counters in a CSV with the following header, one row per workload/prefetcher pair:</p>
 <pre><code class="language-csv">workload,prefetcher,instructions,cycles,issued,useful,demand_misses
 </code></pre>
-<p>Include a <code>no</code> row for every workload. Keep raw counters as integers and ratios as fractions (or label percentages explicitly in figures). <strong>No metric-calculation script is provided. Students must extract the counters and calculate IPC, Accuracy, Coverage, and Speedup themselves using the formulas above.</strong> Explain the mapping from simulator output fields to your raw counters, and show a worked calculation for one prefetch-enabled test case in your report.</p>
+<p>Include a <code>no</code> row for every workload. Keep raw counters as integers and ratios as fractions (or label percentages explicitly in figures). <strong>Students must extract the counters and calculate IPC, Accuracy, Coverage, and Speedup themselves using the formulas above.</strong> Explain the mapping from simulator output fields to your raw counters.</p>
 <p>For the prefetcher comparisons in Parts 2 and 3, check that each run completes, has valid counters, and includes at least 100M measurement instructions. Use the same platform and instruction window, include the matching <code>no</code> baseline, and apply the zero-denominator rules above. Submit <code>raw_counters.csv</code>, your calculated results in <code>metrics.csv</code>, the configurations, and the original logs.</p>
 <div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
 <div class="admonition-title">
@@ -1032,7 +1032,7 @@ N_STUDENT=$(python3 -c 'import json; print(json.load(open("traces/student.champs
 <li><strong>Raw Results and Metric Calculations</strong>:
 <ul>
 <li>Part 1 stdout logs, JSON statistics, and result tables in CSV form for both teaching traces.</li>
-<li>Original simulation logs, <code>raw_counters.csv</code>, and independently calculated <code>metrics.csv</code> for Parts 2 and 3, using the formulas in Part 2; include one worked calculation for a prefetch-enabled test case in the report.</li>
+<li>Original simulation logs, <code>raw_counters.csv</code>, and independently calculated <code>metrics.csv</code> for Parts 2 and 3, using the formulas in Part 2.</li>
 <li>Part 4 correctness-check output; reference/final <code>.champsimtrace.xz</code> captures with <code>.xz.json</code> metadata and capture logs; native JSON/stdout logs for reported versions; raw counter and calculated-result CSV files using Part 4's complete-task cycle ratio.</li>
 <li>The ChampSim revision, compiler version/flags, all evaluated configurations, build/capture/simulation commands, and the mapping from source versions and simulation-phase fields to result tables.</li>
 </ul>
