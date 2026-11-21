@@ -810,15 +810,15 @@ Include tables or figures comparing:</p>
 <p>A device gateway records sensor readings in arrival order. An offline program filters these readings through four stages and builds a health report for groups of devices. Your job is to make this program run faster on a fixed ChampSim machine by helping it use the cache hierarchy better. The outputs must stay exactly the same.</p>
 <p>Part 4 is worth <strong>6 points</strong>. Most of the points are for designing and explaining experiments. Performance is judged by one number: the <strong>number of cycles needed to finish the whole task</strong>.</p>
 <h2 id="starter-program-and-business-function"><a class="header" href="#starter-program-and-business-function">Starter Program and Business Function</a></h2>
-<p>Download and extract the <a href="proj3/./part4-starter.zip">Part 4 starter package</a>. It contains the original program, a copy for you to optimize, the fixed arithmetic and checking driver, a ChampSim configuration, and a trace capture tool. It does not contain optimized implementations.</p>
+<p>Download and extract the <a href="https://disk.pku.edu.cn/link/AA03FB514ED846474BBAAA5C4C97092C84">Part 4 starter package</a>. It contains the original program, a copy for you to optimize, the fixed arithmetic and checking driver, a ChampSim configuration, and a trace capture tool. It does not contain optimized implementations.</p>
 <div class="table-wrapper"><table><thead><tr><th>File</th><th>Purpose</th></tr></thead><tbody>
-<tr><td><a href="proj3/./part4/telemetry.h">telemetry.h</a></td><td>Fixed data types, constants and the four-point arithmetic primitive</td></tr>
-<tr><td><a href="proj3/./part4/reference.cc">reference.cc</a></td><td>Original pipeline and the provided health-report calculation</td></tr>
-<tr><td><a href="proj3/./part4/student.cc">student.cc</a></td><td>Starting version of <code>telemetry::analyze()</code>; this is the file you optimize</td></tr>
-<tr><td><a href="proj3/./part4/driver.cc">driver.cc</a></td><td>Generates the input, marks the measured region, verifies the full output and can export CSV</td></tr>
-<tr><td><a href="proj3/./part4/Makefile">Makefile</a></td><td>Fixed compiler flags; builds the reference and student executables separately</td></tr>
-<tr><td><a href="proj3/./part4/part4_config.json">part4_config.json</a></td><td>Complete fixed ChampSim configuration</td></tr>
-<tr><td><a href="proj3/./part4/capture_trace.py">capture_trace.py</a></td><td>Captures the complete computation as a trace and records its instruction length</td></tr>
+<tr><td><a href="https://disk.pku.edu.cn/link/AA03FB514ED846474BBAAA5C4C97092C84">telemetry.h</a></td><td>Fixed data types, constants and the four-point arithmetic primitive</td></tr>
+<tr><td><a href="https://disk.pku.edu.cn/link/AA03FB514ED846474BBAAA5C4C97092C84">reference.cc</a></td><td>Original pipeline and the provided health-report calculation</td></tr>
+<tr><td><a href="https://disk.pku.edu.cn/link/AA03FB514ED846474BBAAA5C4C97092C84">student.cc</a></td><td>Starting version of <code>telemetry::analyze()</code>; this is the file you optimize</td></tr>
+<tr><td><a href="https://disk.pku.edu.cn/link/AA03FB514ED846474BBAAA5C4C97092C84">driver.cc</a></td><td>Generates the input, marks the measured region, verifies the full output and can export CSV</td></tr>
+<tr><td><a href="https://disk.pku.edu.cn/link/AA03FB514ED846474BBAAA5C4C97092C84">Makefile</a></td><td>Fixed compiler flags; builds the reference and student executables separately</td></tr>
+<tr><td><a href="https://disk.pku.edu.cn/link/AA03FB514ED846474BBAAA5C4C97092C84">part4_config.json</a></td><td>Complete fixed ChampSim configuration</td></tr>
+<tr><td><a href="https://disk.pku.edu.cn/link/AA03FB514ED846474BBAAA5C4C97092C84">capture_trace.py</a></td><td>Captures the complete computation as a trace and records its instruction length</td></tr>
 <tr><td><code>tracer/</code></td><td>Course-format Pin tracer and build files, with ROI symbol support</td></tr>
 </tbody></table>
 </div>
@@ -874,7 +874,7 @@ make check
 </code></pre>
 <p>The reference executable is built separately from <code>student.cc</code>. On every normal run, the driver checks the complete output outside the measured region and prints JSON with <code>verified: true</code> and a checksum. The checksum is only for reproducibility; the check itself compares the actual arrays and report fields. Do not use native wall-clock time as the ChampSim performance result.</p>
 <h2 id="fixed-hardware-platform"><a class="header" href="#fixed-hardware-platform">Fixed Hardware Platform</a></h2>
-<p>Use <a href="proj3/./part4/part4_config.json">part4_config.json</a>. It keeps the <a href="proj3/./part2.html#shared-evaluation-platform-parts-24">Part 2 shared hardware platform</a> and fixes <strong>L1D <code>next_line</code></strong> for every implementation.</p>
+<p>Use <a href="https://disk.pku.edu.cn/link/AA03FB514ED846474BBAAA5C4C97092C84">part4_config.json</a>. It keeps the <a href="proj3/./part2.html#shared-evaluation-platform-parts-24">Part 2 shared hardware platform</a> and fixes <strong>L1D <code>next_line</code></strong> for every implementation.</p>
 <div class="table-wrapper"><table><thead><tr><th>Component</th><th>Fixed setting</th></tr></thead><tbody>
 <tr><td>CPU</td><td>One core, 4 GHz, ROB 352, <code>bimodal</code>, <code>basic_btb</code>, mispredict penalty 15</td></tr>
 <tr><td>L1I</td><td>64 sets × 8 ways = 32 KiB; <code>no</code>; 16 MSHRs; tag/fill 1/1</td></tr>
