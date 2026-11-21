@@ -191,6 +191,9 @@
 </div>
 <p>Download both course-provided trace files from the PKU Disk into the ChampSim <code>traces/</code> directory. Each contains <strong>124M instructions</strong>, enough for the required 20M warmup followed by 100M measurement.</p>
 <p>Keep the provided trace contents and simulation window identical across configurations.</p>
+<h3 id="access-patterns"><a class="header" href="#access-patterns">Access Patterns</a></h3>
+<p><strong><code>cache-capacity</code></strong> mixes two regions. About 75% of its loads revisit a <strong>96 KiB hot region</strong>; the other 25% sweep through a <strong>1 MiB warm region</strong>. Inside both regions, 64 B lines are visited in a fixed pseudo-random order, so there is plenty of reuse but no simple sequential stride. The total footprint is about 1.1 MiB: much larger than the 48 KiB L1D, but small enough for the 2 MiB L2C. This trace therefore stresses L1D capacity without making L2C the bottleneck.</p>
+<p><strong><code>cache-conflict</code></strong> repeatedly touches <strong>16 blocks spaced 4 KiB apart</strong>, in a fixed order that repeats. For a 64-set cache with 64 B lines, the set stride is 4 KiB, so addresses 4 KiB apart map to the same set. These 16 blocks therefore crowd into one L1D set (with 128 sets, they alternate between two sets) instead of spreading across the cache; the 2 MiB L2C still distributes them over different sets. With 6 or 12 L1D ways, the blocks cannot all stay resident and conflict misses appear; with 24 ways, all 16 fit.</p>
 <h2 id="2-single-core-baseline"><a class="header" href="#2-single-core-baseline">2. Single-Core Baseline</a></h2>
 <p>Create <code>lab3_config.json</code> with this complete baseline configuration. Use it as the starting point for each experiment.</p>
 <pre><code class="language-json">{
