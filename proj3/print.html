@@ -206,7 +206,7 @@
                 <div id="content" class="content">
                     <main>
                         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
-<h1 id="computer-architecture-2025fall-project-3"><a class="header" href="#computer-architecture-2025fall-project-3">Computer Architecture 2025fall Project 3</a></h1>
+<h1 id="computer-architecture-2026fall-project-3"><a class="header" href="#computer-architecture-2026fall-project-3">Computer Architecture 2026fall Project 3</a></h1>
 <div id="admonition-default" class="admonition admonish-success" role="note">
 <div>
 <p><em>By Prof. Jie Zhang</em></p>
@@ -312,7 +312,7 @@ mkdir -p results
 <tr><td>C</td><td style="text-align: right">256</td><td style="text-align: right">27</td><td style="text-align: right">432</td><td style="text-align: right">2048</td><td style="text-align: right">13</td><td style="text-align: right">1664</td><td style="text-align: right">2096</td></tr>
 </tbody></table>
 </div>
-<p>You may test additional valid configurations and refine your choices based on measurements. Under this exact budget and power-of-two set constraint, ways may need to change along with capacity. Explain these coupled changes.</p>
+<p>You may test additional valid configurations and refine your choices based on measurements. Under this exact budget, ways may need to change along with capacity. Explain these coupled changes.</p>
 <p>Address the following questions:</p>
 <ul>
 <li>Which tested allocation achieves the highest IPC, and what supports that conclusion?</li>
@@ -683,7 +683,7 @@ make -j $(nproc)
 <p>Download <a href="https://disk.pku.edu.cn/link/AA03FB514ED846474BBAAA5C4C97092C84">lab3-auto-run.py</a>, place it in the course ChampSim root directory, and run it after implementing <code>prefetcher/my_prefetcher/my_prefetcher.h</code> and <code>.cc</code>:</p>
 <pre><code class="language-sh">python3 lab3-auto-run.py --max-worker 2 --output-file local-result.json
 </code></pre>
-<p>The script follows the Lab 2 runner workflow: build each prefetcher once, run traces in parallel, and cache the baseline. It uses <strong>L1D <code>next_line</code> as the baseline</strong> and <code>my_prefetcher</code> as the candidate, with the shared Part 2 platform and <strong>20M warmup + 100M measurement</strong> on <strong>16 equally weighted traces</strong>: <code>shell_sort</code>, <code>gemm</code>, and the following <code>CACHE_TRACES</code>.</p>
+<p>The script follows the Project 2 runner workflow: build each prefetcher once, run traces in parallel, and cache the baseline. It uses <strong>L1D <code>next_line</code> as the baseline</strong> and <code>my_prefetcher</code> as the candidate, with the shared Part 2 platform and <strong>20M warmup + 100M measurement</strong> on <strong>16 equally weighted traces</strong>: <code>shell_sort</code>, <code>gemm</code>, and the following <code>CACHE_TRACES</code>.</p>
 <pre><code class="language-text">cache-10.champsimtrace.xz
 cache-11-1.champsimtrace.xz
 cache-11-2.champsimtrace.xz
@@ -702,7 +702,7 @@ cache-9.champsimtrace.xz
 <p>It reads <code>lab3_config.json</code> when present, fills omitted platform fields with the shared baseline, and rejects hardware changes that would make the comparison inconsistent. The input configuration is not modified.</p>
 <p>For the geometric mean speedup <strong>G</strong> defined below, the script reports <strong><code>score = 100 × G</code></strong>. Matching <code>next_line</code> gives 100; a geometric mean speedup of 1.10 gives 110. Successful stdout contains only a JSON score; progress goes to stderr. Detailed results include each trace's IPC, retired instructions, cycles, and speedup, using ChampSim's native JSON ROI counters.</p>
 <p>The first default invocation runs 16 baseline and 16 candidate simulations (32 total). Later invocations reuse valid <code>baseline/next_line/</code> entries and run only the 16 candidate simulations. The cache checks the platform, instruction window, trace contents, and baseline/framework sources; editing your candidate module does not invalidate it. Logs, generated configurations, native statistics, and detailed results are saved under <code>.auto-run-p3/run-*/</code>. Failed or incomplete simulations produce no score.</p>
-<p>Part 2 baseline reuse for the report remains available as described above. The script maintains its own validated cache and does not import manual logs. It computes the IPC performance score only; extract counters and calculate Accuracy and Coverage yourself using Part 2's formulas. A local score of <strong>100 or higher</strong> meets the absolute performance requirement when using the full default 16-trace suite, the shared platform, and the final 20M warmup + 100M measurement window.</p>
+<p>Part 2 baseline reuse for the report remains available as described above. The script maintains its own validated cache and does not import manual logs. It computes the IPC performance score only; extract counters and calculate Accuracy and Coverage yourself using Part 2's formulas. A local score of <strong>100 or higher</strong> meets the absolute performance requirement.</p>
 <p>For a short workflow check, use the following command. These results do not replace the final measurement window:</p>
 <pre><code class="language-sh">python3 lab3-auto-run.py --warmup-instructions 200000 --simulation-instructions 1000000
 </code></pre>
@@ -727,8 +727,6 @@ Students should provide:</p>
 </li>
 <li>
 <p><strong>Performance Evaluation (4 pts)</strong>:</p>
-</li>
-</ol>
 <ul>
 <li>
 <p><strong>Absolute Performance (2 pts)</strong>:
@@ -738,9 +736,11 @@ Obtain <strong><code>score &gt;= 100</code></strong> with the local <code>lab3-a
 <p><strong>Relative Ranking (up to 2 pts)</strong>:
 Students will be ranked based on the <strong>geometric mean IPC speedup relative to <code>next_line</code></strong> across all evaluation traces:</p>
 <p><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal">G</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:3.3839em;vertical-align:-1.2777em;"></span><span class="minner"><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size4">(</span></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.8283em;"><span style="top:-1.8723em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">i</span><span class="mrel mtight">=</span><span class="mord mtight">1</span></span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∏</span></span></span><span style="top:-4.3em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.10903em;">N</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.2777em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3603em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord text"><span class="mord">IPC</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">next_line</span></span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight">i</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.367em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord text"><span class="mord">IPC</span></span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">custom</span></span><span class="mpunct mtight">,</span><span class="mord mathnormal mtight">i</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.053em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size4">)</span></span></span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:2.1062em;"><span style="top:-4.2812em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1/</span><span class="mord mathnormal mtight" style="margin-right:0.10903em;">N</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">.</span></span></span></span></span></p>
-<p>Each trace has equal weight. Run <code>next_line</code> and your custom prefetcher on the same platform and instruction window for each trace. This ranking metric uses <code>next_line</code> as its reference; the general-purpose Speedup column defined in Part 2 uses <code>no</code>. Report the per-trace ratios to <code>next_line</code> and their geometric mean separately. Sort by evaluation score from highest to lowest and divide rank positions into <strong>20 approximately equal-sized bands</strong>. The highest band earns <strong>2.0 points</strong>, and each subsequent band earns <strong>0.1 points</strong> less, down to <strong>0.1 points</strong> for the lowest band. Tied scores share the same rank and points, using competition ranking (e.g., <strong>1, 2, 2, 4</strong>). You can self-test your implementation on the <a href="https://10.129.163.38:5000">online evaluation platform</a> used in Project 2, which reports your evaluation score.</p>
+<p>Each trace has equal weight. Run <code>next_line</code> and your custom prefetcher on the same platform and instruction window for each trace. This ranking metric uses <code>next_line</code> as its reference; the general-purpose Speedup column defined in Part 2 uses <code>no</code>. Report the per-trace ratios to <code>next_line</code> and their geometric mean separately. Sort by evaluation score from highest to lowest and divide rank positions into <strong>20 approximately equal-sized bands</strong>. The highest band earns <strong>2.0 points</strong>, and each subsequent band earns <strong>0.1 points</strong> less, down to <strong>0.1 points</strong> for the lowest band. Tied scores share the same rank and points, using competition ranking (e.g., <strong>1, 2, 2, 4</strong>). You can self-test your implementation on the <a href="https://10.129.163.38:5000">online evaluation platform</a> used in Project 2 to see where you currently stand. The official evaluation is run centrally for all submissions after the deadline, and the ranking uses that result.</p>
 </li>
 </ul>
+</li>
+</ol>
 <div id="admonition-deliverables" class="admonition admonish-example" role="note" aria-labelledby="admonition-deliverables-title">
 <div class="admonition-title">
 <div id="admonition-deliverables-title">
@@ -778,8 +778,8 @@ Include:</p>
 Include tables or figures comparing:</p>
 <ul>
 <li><strong>IPC</strong></li>
-<li><strong>Prefetch Accuracy</strong></li>
-<li><strong>Prefetch Coverage</strong></li>
+<li><strong>Accuracy</strong></li>
+<li><strong>Coverage estimate</strong></li>
 <li><strong>Speedup</strong></li>
 </ul>
 <p>Compare your implementation with:</p>
@@ -855,7 +855,7 @@ x[s+1][t,d,c] = clamp(value, -limit, limit)
 <p>All data-dependent work must stay inside <code>analyze()</code>: preprocessing, initialization, copying and building the report. The input is read-only. Use single-threaded scalar C++ with the supplied compiler flags. Keep the fixed headers, reference implementation, driver, ROI markers, tracer and hardware configuration. You may add your own helper files, but add them only to the student executable's build dependencies and command, with the flags unchanged.</p>
 <p>These are outside the scope of this lab: prefix sums or running updates of window aggregates, FFT-based filtering, collapsing stages, skipping required contributions, changing the input or the task size, and precomputed answers. Keeping history samples for later reuse is allowed, as long as each valid output is still computed from the prescribed contributions. Hidden tests check the output; source review also checks that the required computation structure is preserved. The grader uses the original course driver and reference files.</p>
 <h3 id="build-and-check"><a class="header" href="#build-and-check">Build and Check</a></h3>
-<p>Use the Linux environment prepared in Lab 1. After extracting the archive:</p>
+<p>Use the Linux environment prepared in Project 1. After extracting the archive:</p>
 <pre><code class="language-sh">cd part4-starter
 make -j2
 make check
@@ -1013,7 +1013,7 @@ N_STUDENT=$(python3 -c 'import json; print(json.load(open("traces/student.champs
 <ul>
 <li><strong>Part 1</strong>: Capacity allocation analysis on <code>cache-capacity</code> and fixed-capacity sets/ways analysis on <code>cache-conflict</code>; include IPC, cycles, L1D/L2C LOAD counts, miss rates, MPKI, and configured hit/fill latencies, with build/run evidence.</li>
 <li><strong>Part 2</strong>: Evaluation table/figures showing <strong>IPC</strong>, <strong>Accuracy</strong>, <strong>Coverage estimate</strong>, and <strong>Speedup</strong> for baseline prefetchers (<code>no</code>, <code>next_line</code>, <code>ip_stride</code>) on <code>shell_sort</code> and <code>gemm</code>.</li>
-<li><strong>Part 3</strong>: Custom prefetcher design, evaluation metrics, performance comparison, and discussion. Matching Part 2 baseline results may be reused under the conditions in Part 3; only two additional final runs are needed for that report comparison on the two required workloads. Part 3's local performance qualification separately uses the full 16-trace automatic scoring suite.</li>
+<li><strong>Part 3</strong>: Custom prefetcher design, evaluation metrics, performance comparison, and discussion. Matching Part 2 baseline results may be reused under the conditions in Part 3; only two additional final runs are needed for that report comparison on the two required workloads. Part 3's local performance qualification uses the local <code>lab3-auto-run.py</code> score.</li>
 <li><strong>Part 4</strong>: Telemetry-program optimization progression, correctness evidence, baseline and at least two optimization versions, controlled parameter/ablation comparisons, cache/working-set analysis, and complete-task cycles and speedup on the official medium input.</li>
 </ul>
 </li>
@@ -1026,7 +1026,7 @@ N_STUDENT=$(python3 -c 'import json; print(json.load(open("traces/student.champs
 <ul>
 <li><code>lab3_config.json</code> and all evaluated variant JSON files: Your baseline and experimental ChampSim configurations.</li>
 <li>Part 4 <code>student.cc</code>, any added helpers, and the starter sources/build files with the fixed <code>part4_config.json</code>. Preserve the course arithmetic, reference, driver and compiler flags.</li>
-<li><code>prefetcher/my_prefetcher/my_prefetcher.h</code> and <code>prefetcher/my_prefetcher/my_prefetcher.cc</code> (or the corresponding files for your chosen module name), plus any other required files: Your custom prefetcher implementation.</li>
+<li><code>prefetcher/my_prefetcher/my_prefetcher.h</code> and <code>prefetcher/my_prefetcher/my_prefetcher.cc</code>, plus any other required files: Your custom prefetcher implementation, built on the provided <code>my_prefetcher</code> module.</li>
 </ul>
 </li>
 <li><strong>Raw Results and Metric Calculations</strong>:
@@ -1068,7 +1068,7 @@ N_STUDENT=$(python3 -c 'import json; print(json.load(open("traces/student.champs
 <p><strong>Part 3: Paper Summary &amp; Custom Prefetcher Implementation (11 pts)</strong></p>
 <ul>
 <li><strong>Paper Summary</strong>: Background and motivation: <strong>1 pt</strong>; core architecture and mechanisms: <strong>3 pts</strong>; design insights: <strong>1 pt</strong> (5 pts total).</li>
-<li><strong>Code Correctness</strong>: Compilable and functional custom prefetcher implementation: <strong>2 pts</strong></li>
+<li><strong>Prefetcher Design &amp; Implementation (2 pts)</strong>: Design description, motivation, prediction and metadata explanation, plus a correct, compilable implementation.</li>
 <li><strong>Absolute Performance</strong>: Local <code>lab3-auto-run.py</code> score <strong>≥100</strong>: <strong>2 pts</strong></li>
 <li><strong>Relative Ranking (up to 2 pts)</strong>: Based on the geometric mean of per-trace IPC ratios relative to <code>next_line</code>, with equal weight per trace. Sort by evaluation score from highest to lowest and divide rank positions into <strong>20 approximately equal-sized bands</strong>. The highest band earns <strong>2.0 points</strong>, and each subsequent band earns <strong>0.1 points</strong> less, down to <strong>0.1 points</strong> for the lowest band. Tied scores share the same rank and points, using competition ranking (e.g., <strong>1, 2, 2, 4</strong>). See Part 3 for the formula; this differs from the Part 2 Speedup column relative to <code>no</code>.</li>
 </ul>
@@ -1098,7 +1098,7 @@ N_STUDENT=$(python3 -c 'import json; print(json.load(open("traces/student.champs
 <h2 id="metrics-to-evaluate-prefetchers"><a class="header" href="#metrics-to-evaluate-prefetchers">Metrics to evaluate prefetchers</a></h2>
 <p>Use the ChampSim metric definitions in <a href="proj3/./part2.html#analyzing-statistics">Part 2</a>: IPC, Accuracy, Coverage estimate, and Speedup relative to <code>no</code>. Collect only measurement-phase counters, retain raw logs and counters, and calculate the metrics yourself using the specified formulas. Accuracy and Coverage are <code>N/A</code> for the no-prefetch baseline and whenever their denominator is zero.</p>
 <p>Coverage estimates how useful prefetches compare with useful prefetches plus remaining demand misses. It does not directly measure the fraction of baseline misses eliminated. Speedup measures the resulting execution-performance benefit.</p>
-<p>The most important metrics are <code>accuracy</code> and <code>coverage</code>. There is a trade-off between them. More aggressive prefetching will fetch more addresses, whether useful of not. Many of the actual accesses can be covered by prefetches, but many useless data are also prefetched, thus, increasing the <code>coverage</code> but decreasing <code>accuracy</code>. More conservative prefetching may increase <code>accuracy</code> but decrease <code>coverage</code>.</p>
+<p>Accuracy and coverage are the standard prefetcher metrics, and they trade off against each other. Neither is a performance score on its own, so judge them together with IPC and Speedup. More aggressive prefetching will fetch more addresses, whether useful of not. Many of the actual accesses can be covered by prefetches, but many useless data are also prefetched, thus, increasing the <code>coverage</code> but decreasing <code>accuracy</code>. More conservative prefetching may increase <code>accuracy</code> but decrease <code>coverage</code>.</p>
 <p>With these metrics, we can compare between next-line prefetcher and stride prefetcher: stride prefetcher can have higher <code>accuracy</code> and <code>coverage</code> than next-line prefetcher under strided accesses, since next-line prefetcher cannot prefetch any useful data.</p>
 <div style="break-before: page; page-break-before: always;"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
 <h1 id="appendix-b-hyperion-prefetcher-brief-description"><a class="header" href="#appendix-b-hyperion-prefetcher-brief-description">Appendix B: Hyperion Prefetcher Brief Description</a></h1>

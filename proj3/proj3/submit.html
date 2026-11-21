@@ -225,7 +225,7 @@
 <ul>
 <li><strong>Part 1</strong>: Capacity allocation analysis on <code>cache-capacity</code> and fixed-capacity sets/ways analysis on <code>cache-conflict</code>; include IPC, cycles, L1D/L2C LOAD counts, miss rates, MPKI, and configured hit/fill latencies, with build/run evidence.</li>
 <li><strong>Part 2</strong>: Evaluation table/figures showing <strong>IPC</strong>, <strong>Accuracy</strong>, <strong>Coverage estimate</strong>, and <strong>Speedup</strong> for baseline prefetchers (<code>no</code>, <code>next_line</code>, <code>ip_stride</code>) on <code>shell_sort</code> and <code>gemm</code>.</li>
-<li><strong>Part 3</strong>: Custom prefetcher design, evaluation metrics, performance comparison, and discussion. Matching Part 2 baseline results may be reused under the conditions in Part 3; only two additional final runs are needed for that report comparison on the two required workloads. Part 3's local performance qualification separately uses the full 16-trace automatic scoring suite.</li>
+<li><strong>Part 3</strong>: Custom prefetcher design, evaluation metrics, performance comparison, and discussion. Matching Part 2 baseline results may be reused under the conditions in Part 3; only two additional final runs are needed for that report comparison on the two required workloads. Part 3's local performance qualification uses the local <code>lab3-auto-run.py</code> score.</li>
 <li><strong>Part 4</strong>: Telemetry-program optimization progression, correctness evidence, baseline and at least two optimization versions, controlled parameter/ablation comparisons, cache/working-set analysis, and complete-task cycles and speedup on the official medium input.</li>
 </ul>
 </li>
@@ -238,7 +238,7 @@
 <ul>
 <li><code>lab3_config.json</code> and all evaluated variant JSON files: Your baseline and experimental ChampSim configurations.</li>
 <li>Part 4 <code>student.cc</code>, any added helpers, and the starter sources/build files with the fixed <code>part4_config.json</code>. Preserve the course arithmetic, reference, driver and compiler flags.</li>
-<li><code>prefetcher/my_prefetcher/my_prefetcher.h</code> and <code>prefetcher/my_prefetcher/my_prefetcher.cc</code> (or the corresponding files for your chosen module name), plus any other required files: Your custom prefetcher implementation.</li>
+<li><code>prefetcher/my_prefetcher/my_prefetcher.h</code> and <code>prefetcher/my_prefetcher/my_prefetcher.cc</code>, plus any other required files: Your custom prefetcher implementation, built on the provided <code>my_prefetcher</code> module.</li>
 </ul>
 </li>
 <li><strong>Raw Results and Metric Calculations</strong>:
@@ -280,7 +280,7 @@
 <p><strong>Part 3: Paper Summary &amp; Custom Prefetcher Implementation (11 pts)</strong></p>
 <ul>
 <li><strong>Paper Summary</strong>: Background and motivation: <strong>1 pt</strong>; core architecture and mechanisms: <strong>3 pts</strong>; design insights: <strong>1 pt</strong> (5 pts total).</li>
-<li><strong>Code Correctness</strong>: Compilable and functional custom prefetcher implementation: <strong>2 pts</strong></li>
+<li><strong>Prefetcher Design &amp; Implementation (2 pts)</strong>: Design description, motivation, prediction and metadata explanation, plus a correct, compilable implementation.</li>
 <li><strong>Absolute Performance</strong>: Local <code>lab3-auto-run.py</code> score <strong>≥100</strong>: <strong>2 pts</strong></li>
 <li><strong>Relative Ranking (up to 2 pts)</strong>: Based on the geometric mean of per-trace IPC ratios relative to <code>next_line</code>, with equal weight per trace. Sort by evaluation score from highest to lowest and divide rank positions into <strong>20 approximately equal-sized bands</strong>. The highest band earns <strong>2.0 points</strong>, and each subsequent band earns <strong>0.1 points</strong> less, down to <strong>0.1 points</strong> for the lowest band. Tied scores share the same rank and points, using competition ranking (e.g., <strong>1, 2, 2, 4</strong>). See Part 3 for the formula; this differs from the Part 2 Speedup column relative to <code>no</code>.</li>
 </ul>

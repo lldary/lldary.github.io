@@ -234,7 +234,7 @@ x[s+1][t,d,c] = clamp(value, -limit, limit)
 <p>All data-dependent work must stay inside <code>analyze()</code>: preprocessing, initialization, copying and building the report. The input is read-only. Use single-threaded scalar C++ with the supplied compiler flags. Keep the fixed headers, reference implementation, driver, ROI markers, tracer and hardware configuration. You may add your own helper files, but add them only to the student executable's build dependencies and command, with the flags unchanged.</p>
 <p>These are outside the scope of this lab: prefix sums or running updates of window aggregates, FFT-based filtering, collapsing stages, skipping required contributions, changing the input or the task size, and precomputed answers. Keeping history samples for later reuse is allowed, as long as each valid output is still computed from the prescribed contributions. Hidden tests check the output; source review also checks that the required computation structure is preserved. The grader uses the original course driver and reference files.</p>
 <h3 id="build-and-check"><a class="header" href="#build-and-check">Build and Check</a></h3>
-<p>Use the Linux environment prepared in Lab 1. After extracting the archive:</p>
+<p>Use the Linux environment prepared in Project 1. After extracting the archive:</p>
 <pre><code class="language-sh">cd part4-starter
 make -j2
 make check
