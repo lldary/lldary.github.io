@@ -196,7 +196,7 @@
 </tbody></table>
 </div>
 <p>Use the same course-provided ChampSim version and base configuration for every run. Only the L1D prefetcher module and its internal predictor parameters may differ between prefetcher experiments. Do not modify the core, cache geometry, cache timing, replacement policies, memory system, or baseline prefetcher implementations for the comparison.</p>
-<p>Starting from the complete baseline JSON in Part 1, update the fields below in <code>lab3_config.json</code>. Preserve its CPU settings and all other baseline fields. Keep the default L1-to-L2 connections; the explicit L2C <code>lower_level</code> bypasses the default LLC.</p>
+<p>Starting from the complete baseline JSON in Part 1, update the fields below in <code>lab3_config.json</code>. Preserve its CPU settings and all other baseline fields. Keep the default L1-to-L2 connections. The explicit <code>lower_level: DRAM</code> on L2C removes the LLC that ChampSim would otherwise insert between L2C and DRAM.</p>
 <pre><code class="language-json">{
   "executable_name": "champsim_ip_stride",
   "num_cores": 1,
@@ -235,10 +235,9 @@
 </code></pre>
 <p>For <code>no</code>, <code>next_line</code>, or your own prefetcher, change only <code>L1D.prefetcher</code> and <code>executable_name</code>. Submit the configurations used, the ChampSim revision, and the simulation commands so the results can be reproduced.</p>
 <blockquote>
-<p><strong>Note</strong>: Unlike simulators with dynamic Python scripting, changing the prefetcher module in ChampSim requires re-running <code>./config.sh</code> and re-compiling the executable:</p>
+<p><strong>Note</strong>: ChampSim compiles the prefetcher into the binary, so after changing the prefetcher module you must re-run <code>./config.sh</code> and <code>make</code>:</p>
 <pre><code class="language-sh">./config.sh lab3_config.json
 make -j $(nproc)
-
 </code></pre>
 <p><em>Tip</em>: You can set different <code>"executable_name"</code> values in your JSON file (e.g., <code>"champsim_no_pf"</code>, <code>"champsim_next_line"</code>, <code>"champsim_ip_stride"</code>) to build distinct binary executables for different configurations without overwriting them.</p>
 </blockquote>
@@ -293,7 +292,7 @@ mkdir -p results
 <p><strong>What Accuracy and Coverage tell you.</strong> Accuracy answers one question: of the prefetches the cache sent out, how many paid off? Coverage estimate answers another: compared with the demand misses that remain, how much traffic did prefetching cover? The second number is only an estimate. The simulator's <code>useful</code> count can also include consumption by writes, while <code>demand_misses</code> counts only LOAD and RFO, and a merged access can appear in both. So it is not an exact fraction of the misses that prefetching removed. Prefetching also changes cache pollution and execution timing. Read Accuracy and Coverage together with IPC and Speedup, never on their own.</p>
 <p>If a denominator is zero, report <code>N/A</code>. For the <code>no</code> run, always report Accuracy and Coverage as <code>N/A</code>, but keep its zero <code>issued</code> and <code>useful</code> counters. Do not measure or submit a late-prefetch count.</p>
 <h3 id="reproducible-metric-calculation"><a class="header" href="#reproducible-metric-calculation">Reproducible Metric Calculation</a></h3>
-<p>Students are responsible for extracting and checking their own simulation counters and calculating the metrics. Record normalized counters in a CSV with the following header, one row per workload/prefetcher pair:</p>
+<p>Students are responsible for extracting and checking their own simulation counters and calculating the metrics. Record the counters in a CSV with exactly these columns, one row per workload/prefetcher pair:</p>
 <pre><code class="language-csv">workload,prefetcher,instructions,cycles,issued,useful,demand_misses
 </code></pre>
 <p>Include a <code>no</code> row for every workload. Keep raw counters as integers and ratios as fractions (or label percentages explicitly in figures). <strong>Students must extract the counters and calculate IPC, Accuracy, Coverage, and Speedup themselves using the formulas above.</strong> Explain the mapping from simulator output fields to your raw counters.</p>
